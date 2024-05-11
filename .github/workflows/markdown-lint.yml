@@ -1,6 +1,4 @@
-#!/usr/bin/env ruby
-
-# Copyright (c) 2014-2024 Yegor Bugayenko
+# Copyright (c) 2024 Yegor Bugayenko
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the 'Software'), to deal
@@ -19,35 +17,22 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-$stdout.sync = true
-
-require 'slop'
-require 'loog'
-
-loog = Loog::REGULAR
-
-opts = Slop.parse(ARGV, strict: true, help: true) do |o|
-  o.banner = "Usage: judges [options] <directory> <factbase>"
-  o.bool '-h', '--help', 'Show brief intro'
-  o.bool '--version', 'Print tool\'s version'
-end
-
-if opts.help?
-  puts opts
-  exit
-end
-
-if opts.verbose?
-  loog = Loog::VERBOSE
-end
-
-if opts.version?
-  loog.info('0.0.0')
-  exit
-end
-
-Encoding.default_external = Encoding::UTF_8
-Encoding.default_internal = Encoding::UTF_8
-
-loog.info('1 judge processed')
+---
+name: markdown-lint
+'on':
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+    paths-ignore: ['paper/**', 'sandbox/**']
+concurrency:
+  group: markdown-lint-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  markdown-lint:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: articulate/actions-markdownlint@v1
