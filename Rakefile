@@ -25,10 +25,6 @@ require 'rake'
 require 'rdoc'
 require 'rake/clean'
 
-require 'rubygems'
-require 'rake'
-require 'rake/clean'
-
 def name
   @name ||= File.basename(Dir['*.gemspec'].first, '.*')
 end
