@@ -26,7 +26,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new('>= 0') if s.respond_to? :required_rubygems_version=
   s.required_ruby_version = '>=2.3'
   s.name = 'judges'
-  s.version = '0.0.0'
+  s.version = '0.0.1'
   s.license = 'MIT'
   s.summary = 'Command-line tool for a Factbase'
   s.description = 'Runs a collection of judges against a factbase'
