@@ -33,6 +33,8 @@ release:
     rm -rf *.gem
     sed -i "s/0\.0\.0/${tag}/g" judges.gemspec
     git add judges.gemspec
+    sed -i "s/0\.0\.0/${tag}/g" bin/judges
+    git add bin/judges
     git commit -m "version set to ${tag}"
     gem build judges.gemspec
     chmod 0600 ../rubygems.yml
