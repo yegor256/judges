@@ -11,6 +11,13 @@ Feature: Simple Run
     Then Exit code is zero
 
   Scenario: Simple run of a few judges
-    When I run bin/judges with "./fixtures/simple ./target/simple.fb"
-    Then Stdout contains "1 judge processed"
+    Given I have a "simple_judge.rb" file with content:
+    """
+      $fb.query("(eq kind 'foo')").each do |f|
+        n = $fb.insert
+        n.kind = 'yes!'
+      end
+    """
+    When I run bin/judges with ". simple.fb"
+    Then Stdout contains "1 judges processed"
     And Exit code is zero
