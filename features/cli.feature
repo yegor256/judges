@@ -11,13 +11,19 @@ Feature: Simple Run
     Then Exit code is zero
 
   Scenario: Simple run of a few judges
-    Given I have a "simple/simple_judge.rb" file with content:
+    Given I make a temp directory
+    Then I have a "simple/simple_judge.rb" file with content:
     """
       $fb.query("(eq kind 'foo')").each do |f|
         n = $fb.insert
         n.kind = 'yes!'
       end
     """
-    When I run bin/judges with "update . simple.fb"
+    Then I run bin/judges with "update . simple.fb"
     Then Stdout contains "1 judges processed"
+    And Exit code is zero
+
+  Scenario: Simple test of a few judges
+    Given I run bin/judges with "update ./fixtures temp/simple.fb"
+    Then Stdout contains "judges processed"
     And Exit code is zero

@@ -3,7 +3,8 @@ Feature: Gem Package
   package the Gem into .gem file
 
   Scenario: Gem can be packaged
-    Given I have a "execs.rb" file with content:
+    Given I make a temp directory
+    Then I have a "execs.rb" file with content:
     """
     #!/usr/bin/env ruby
     require 'rubygems'

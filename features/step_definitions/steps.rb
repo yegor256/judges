@@ -25,14 +25,19 @@ require 'English'
 
 Before do
   @cwd = Dir.pwd
-  @dir = Dir.mktmpdir('test')
-  FileUtils.mkdir_p(@dir)
-  Dir.chdir(@dir)
 end
 
 After do
-  Dir.chdir(@cwd)
-  FileUtils.rm_rf(@dir)
+  unless @tmp.nil?
+    Dir.chdir(@cwd)
+    FileUtils.rm_rf(@tmp)
+  end
+end
+
+Given(/^I make a temp directory$/) do
+  @tmp = Dir.mktmpdir('test')
+  FileUtils.mkdir_p(@tmp)
+  Dir.chdir(@tmp)
 end
 
 Given(/^I have a "([^"]*)" file with content:$/) do |file, text|
@@ -43,6 +48,18 @@ end
 When(%r{^I run bin/judges with "([^"]*)"$}) do |arg|
   home = File.join(File.dirname(__FILE__), '../..')
   @stdout = `ruby -I#{home}/lib #{home}/bin/judges #{arg}`
+  @exitstatus = $CHILD_STATUS.exitstatus
+end
+
+When(/^I run bash with "([^"]*)"$/) do |text|
+  FileUtils.copy_entry(@cwd, File.join(@tmp, 'judges'))
+  @stdout = `#{text}`
+  @exitstatus = $CHILD_STATUS.exitstatus
+end
+
+When(/^I run bash with:$/) do |text|
+  FileUtils.copy_entry(@cwd, File.join(@tmp, 'judges'))
+  @stdout = `#{text}`
   @exitstatus = $CHILD_STATUS.exitstatus
 end
 
@@ -60,16 +77,4 @@ end
 
 Then(/^Exit code is not zero$/) do
   raise 'Zero exit code' if @exitstatus.zero?
-end
-
-When(/^I run bash with "([^"]*)"$/) do |text|
-  FileUtils.copy_entry(@cwd, File.join(@dir, 'judges'))
-  @stdout = `#{text}`
-  @exitstatus = $CHILD_STATUS.exitstatus
-end
-
-When(/^I run bash with:$/) do |text|
-  FileUtils.copy_entry(@cwd, File.join(@dir, 'judges'))
-  @stdout = `#{text}`
-  @exitstatus = $CHILD_STATUS.exitstatus
 end

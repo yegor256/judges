@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'factbase'
+require 'fileutils'
 require_relative '../judges'
 require_relative '../judges/packs'
 
@@ -36,6 +37,7 @@ class Judges::Update
   def run(_opts, args)
     raise 'Exactly two arguments required' unless args.size == 2
     dir = args[0]
+    raise "The directory is absent: #{dir}" unless File.exist?(dir)
     file = args[1]
     fb = Factbase.new
     if File.exist?(file)
@@ -49,6 +51,7 @@ class Judges::Update
       p.run(fb, {})
     end
     @loog.info("#{done} judges processed")
+    FileUtils.mkdir_p(File.dirname(file))
     File.write(file, fb.export)
     @loog.info("Factbase exported to #{file} (#{File.size(file)} bytes)")
   end
