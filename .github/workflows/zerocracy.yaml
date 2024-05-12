@@ -31,8 +31,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: zerocracy/judges-action@master
+        with:
+          factbase: recent.fb
+      - run: mkdir gh-pages && cp recent.yml gh-pages
       - uses: JamesIves/github-pages-deploy-action@v4.6.0
         with:
           branch: gh-pages
-          folder: factbase.yml
+          folder: gh-pages/recent.yml
+          factbase: recent.fb
           clean: true

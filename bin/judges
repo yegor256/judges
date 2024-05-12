@@ -62,6 +62,7 @@ class App
   command :print do |c|
     c.desc 'Output format (xml, json, or yaml)'
     c.flag([:format], default_value: 'yaml')
+    c.switch([:auto])
     c.action do |global, options, args|
       require_relative '../lib/judges/commands/print'
       Judges::Print.new(loog).run(options, args)

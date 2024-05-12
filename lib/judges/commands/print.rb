@@ -35,10 +35,15 @@ class Judges::Print
   end
 
   def run(opts, args)
-    raise 'Exactly two arguments required' unless args.size == 2
+    raise 'At lease one argument required' if args.empty?
     f = args[0]
     raise "The file is absent: #{f}" unless File.exist?(f)
     o = args[1]
+    if o.nil?
+      raise 'Either provide output file name or use --auto' unless opts[:auto]
+      o = File.join(File.dirname(f), File.basename(f).gsub(/\.[^.]*$/, ''))
+      o = "#{o}.#{opts[:format]}"
+    end
     fb = Factbase.new
     fb.import(File.read(f))
     @loog.info("Factbase imported from #{f} (#{File.size(f)} bytes)")
