@@ -1,4 +1,6 @@
-# Copyright (c) 2024 Yegor Bugayenko
+# frozen_string_literal: true
+
+# Copyright (c) 2014-2024 Yegor Bugayenko
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the 'Software'), to deal
@@ -17,33 +19,11 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
----
-AllCops:
-  Exclude:
-    - 'bin/**/*'
-    - 'assets/**/*'
-  DisplayCopNames: true
-  TargetRubyVersion: 3.2
-  SuggestExtensions: false
-  NewCops: enable
 
-Style/GlobalVars:
-  Enabled: false
-Metrics/MethodLength:
-  Enabled: false
-Gemspec/RequiredRubyVersion:
-  Enabled: false
-Style/ClassAndModuleChildren:
-  Enabled: false
-Layout/MultilineMethodCallIndentation:
-  Enabled: false
-Metrics/AbcSize:
-  Enabled: false
-Metrics/BlockLength:
-  Enabled: false
-Metrics/CyclomaticComplexity:
-  Enabled: false
-Metrics/PerceivedComplexity:
-  Enabled: false
-Layout/EmptyLineAfterGuardClause:
-  Enabled: false
+$fb.query("(and (eq kind 'bug was accepted') (not (eq seen 'this judge'))").each do |f|
+  n = $fb.insert
+  n.kind = 'nominate for good bug'
+  n.payee = f.reporter
+  n.amount = 15
+  n.message = 'thanks for reporting a bug; you get +15 points for this'
+end
