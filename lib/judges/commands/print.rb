@@ -43,14 +43,15 @@ class Judges::Print
     fb.import(File.read(f))
     @loog.info("Factbase imported from #{f} (#{File.size(f)} bytes)")
     FileUtils.mkdir_p(File.dirname(o))
-    output = case opts[:format].downcase
-    when 'yaml'
-      fb.to_yaml
-    when 'json'
-      fb.to_json
-    when 'xml'
-      fb.to_xml
-    end
+    output =
+      case opts[:format].downcase
+        when 'yaml'
+          fb.to_yaml
+        when 'json'
+          fb.to_json
+        when 'xml'
+          fb.to_xml
+      end
     File.write(o, output)
     @loog.info("Factbase printed to #{o} (#{File.size(o)} bytes)")
   end

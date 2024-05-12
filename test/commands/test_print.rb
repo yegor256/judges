@@ -39,7 +39,7 @@ class TestPrint < Minitest::Test
       fb.insert
       File.write(f, fb.export)
       y = File.join(d, 'base.yml')
-      Judges::Print.new(Loog::VERBOSE).run({ :format => 'yaml' }, [f, y])
+      Judges::Print.new(Loog::VERBOSE).run({ format: 'yaml' }, [f, y])
       puts File.read(y)
       assert(File.exist?(y))
       assert_equal(1, YAML.load_file(y)['facts'].size)
