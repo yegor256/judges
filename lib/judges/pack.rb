@@ -1,4 +1,3 @@
-#!/usr/bin/env ruby
 # frozen_string_literal: true
 
 # Copyright (c) 2014-2024 Yegor Bugayenko
@@ -36,10 +35,12 @@ class Judges::Pack
   end
 
   # Run it with the given Factbase and environment variables.
-  def run(fb, env)
-    $fb = fb
+  def run(fbase, env)
+    $fb = fbase
     env.each do |k, v|
-      eval("$#{k} = '#{v}'")
+      # rubocop:disable Security/Eval
+      eval("$#{k} = '#{v}'", binding, __FILE__, __LINE__) # $foo = 42
+      # rubocop:enable Security/Eval
     end
     s = File.join(@dir, script)
     raise "Can't load '#{s}'" unless File.exist?(s)
@@ -49,13 +50,6 @@ class Judges::Pack
   # Get the name of the .rb script in the pack.
   def script
     File.basename(Dir.glob(File.join(@dir, '*.rb')).first)
-  end
-
-  # Iterate over .yml tests.
-  def tests
-    Dir.glob(File.join(@dir, '*.yml')).map do |f|
-      YAML.load_file(f)
-    end
   end
 
   # Iterate over .yml tests.

@@ -27,6 +27,8 @@ AllCops:
   SuggestExtensions: false
   NewCops: enable
 
+Style/GlobalVars:
+  Enabled: false
 Metrics/MethodLength:
   Enabled: false
 Gemspec/RequiredRubyVersion:
