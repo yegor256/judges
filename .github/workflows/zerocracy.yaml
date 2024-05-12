@@ -26,7 +26,7 @@ concurrency:
   group: zerocracy
   cancel-in-progress: true
 jobs:
-  yamllint:
+  zerocracy:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
