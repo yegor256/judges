@@ -30,7 +30,7 @@ require_relative '../lib/judges/options'
 # License:: MIT
 class TestOptions < Minitest::Test
   def test_basic
-    opts = Judges::Options.new(["token=a77", "max=42"])
+    opts = Judges::Options.new(['token=a77', 'max=42'])
     assert_equal('a77', opts.token)
     assert_equal(42, opts.max)
   end

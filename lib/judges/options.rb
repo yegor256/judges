@@ -35,11 +35,14 @@ class Judges::Options
 
   # Get option by name.
   def method_missing(*args)
-    @hash ||= (@pairs.nil? ? [] : (@pairs.is_a?(Hash) ? @pairs.map { |k, v| "#{k}=#{v}" } : @pairs))
-      .map { |p| p.split('=', 2) }
-      .map { |p| [p[0].to_sym, p[1]] }
-      .map { |p| [p[0], p[1].match?(/^[0-9]+$/) ? p[1].to_i : p[1]] }
-      .to_h
+    @hash ||= (if @pairs.nil?
+                 []
+               else
+                 (@pairs.is_a?(Hash) ? @pairs.map { |k, v| "#{k}=#{v}" } : @pairs)
+               end).to_h do |pair|
+      p = pair.split('=', 2)
+      [p[0].to_sym, p[1].match?(/^[0-9]+$/) ? p[1].to_i : p[1]]
+    end
     k = args[0].downcase
     @hash[k]
   end
