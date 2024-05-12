@@ -32,7 +32,7 @@ require_relative '../../lib/judges/fb/once'
 # License:: MIT
 class TestOnce < Minitest::Test
   def test_touch_once
-    fb = once(Factbase.new)
+    fb = once(Factbase.new, judge: 'something')
     fb.insert
     fb.query('()').each { |f| f.foo = 42 }
     assert(fb.query('()').extend(Enumerable).to_a.empty?)

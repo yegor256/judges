@@ -21,8 +21,8 @@
 # SOFTWARE.
 
 # Returns a decorated global factbase, which only touches facts once
-def once(fb)
-  Factbase::Once.new(fb, $judge)
+def once(fb, judge: $judge)
+  Factbase::Once.new(fb, judge)
 end
 
 # Runs only once.
