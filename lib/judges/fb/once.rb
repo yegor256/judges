@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2024 Yegor Bugayenko
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -17,37 +19,43 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
----
-AllCops:
-  Exclude:
-    - 'bin/**/*'
-    - 'assets/**/*'
-  DisplayCopNames: true
-  TargetRubyVersion: 3.2
-  SuggestExtensions: false
-  NewCops: enable
 
-Style/GlobalVars:
-  Enabled: false
-Metrics/MethodLength:
-  Enabled: false
-Gemspec/RequiredRubyVersion:
-  Enabled: false
-Style/ClassAndModuleChildren:
-  Enabled: false
-Layout/MultilineMethodCallIndentation:
-  Enabled: false
-Metrics/AbcSize:
-  Enabled: false
-Metrics/BlockLength:
-  Enabled: false
-Metrics/CyclomaticComplexity:
-  Enabled: false
-Metrics/PerceivedComplexity:
-  Enabled: false
-Layout/EmptyLineAfterGuardClause:
-  Enabled: false
-Layout/CaseIndentation:
-  Enabled: false
-Naming/MethodParameterName:
-  MinNameLength: 2
+# Returns a decorated global factbase, which only touches facts once
+def once(fb)
+  Factbase::Once.new(fb, $judge)
+end
+
+# Runs only once.
+# Author:: Yegor Bugayenko (yegor256@gmail.com)
+# Copyright:: Copyright (c) 2024 Yegor Bugayenko
+# License:: MIT
+class Factbase::Once
+  def initialize(fb, func)
+    @fb = fb
+    @func = func
+  end
+
+  def query(expr)
+    expr = "(and #{expr} (not (eq seen '#{@func}')))"
+    After.new(@fb.query(expr), @func)
+  end
+
+  def insert
+    @fb.insert
+  end
+
+  # What happens after a fact is processed.
+  class After
+    def initialize(query, func)
+      @query = query
+      @func = func
+    end
+
+    def each
+      @query.each do |f|
+        yield f
+        f.seen = @func
+      end
+    end
+  end
+end

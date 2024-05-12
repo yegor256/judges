@@ -22,6 +22,7 @@
 
 require 'yaml'
 require_relative '../judges'
+require_relative '../judges/fb/once'
 
 # A single pack.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -37,6 +38,7 @@ class Judges::Pack
   # Run it with the given Factbase and environment variables.
   def run(fbase, env)
     $fb = fbase
+    $judge = File.basename(File.dirname(@dir))
     env.each do |k, v|
       # rubocop:disable Security/Eval
       eval("$#{k} = '#{v}'", binding, __FILE__, __LINE__) # $foo = 42

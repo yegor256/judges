@@ -53,4 +53,12 @@ class TestPack < Minitest::Test
       assert_equal(1, fb2.size)
     end
   end
+
+  def test_with_supplemenary_functions
+    Dir.mktmpdir do |d|
+      File.write(File.join(d, 'x.rb'), 'once($fb).insert')
+      pack = Judges::Pack.new(d)
+      pack.run(Factbase.new, {})
+    end
+  end
 end
