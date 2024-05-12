@@ -20,6 +20,7 @@
 ---
 name: zerocracy
 on:
+  push:
   schedule:
     - cron: '0,10,20,30,50,50 * * * *'
 concurrency:
