@@ -24,7 +24,7 @@ require 'minitest/autorun'
 require 'tmpdir'
 require 'factbase'
 require_relative '../lib/judges'
-require_relative '../lib/judges/packs'
+require_relative '../lib/judges/pack'
 
 # Test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -38,6 +38,19 @@ class TestPack < Minitest::Test
       fb = Factbase.new
       pack.run(fb, {})
       assert_equal(1, fb.size)
+    end
+  end
+
+  def test_run_isolated
+    Dir.mktmpdir do |d|
+      File.write(File.join(d, 'bar.rb'), '$fb.insert')
+      pack = Judges::Pack.new(d)
+      fb1 = Factbase.new
+      pack.run(fb1, {})
+      assert_equal(1, fb1.size)
+      fb2 = Factbase.new
+      pack.run(fb2, {})
+      assert_equal(1, fb2.size)
     end
   end
 end

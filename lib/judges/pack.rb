@@ -44,7 +44,7 @@ class Judges::Pack
     end
     s = File.join(@dir, script)
     raise "Can't load '#{s}'" unless File.exist?(s)
-    require s
+    load s
   end
 
   # Get the name of the .rb script in the pack.
