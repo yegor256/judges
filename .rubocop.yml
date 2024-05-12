@@ -23,13 +23,13 @@ AllCops:
     - 'bin/**/*'
     - 'assets/**/*'
   DisplayCopNames: true
-  TargetRubyVersion: 2.3
+  TargetRubyVersion: 3.2
   SuggestExtensions: false
   NewCops: enable
 
-Gemspec/RequiredRubyVersion:
+Style/GlobalVars:
   Enabled: false
-Metrics/MethodLength:
+Gemspec/RequiredRubyVersion:
   Enabled: false
 Style/ClassAndModuleChildren:
   Enabled: false
@@ -38,10 +38,10 @@ Layout/MultilineMethodCallIndentation:
 Metrics/AbcSize:
   Enabled: false
 Metrics/BlockLength:
-  Max: 30
+  Enabled: false
 Metrics/CyclomaticComplexity:
-  Max: 20
+  Enabled: false
 Metrics/PerceivedComplexity:
-  Max: 20
+  Enabled: false
 Layout/EmptyLineAfterGuardClause:
   Enabled: false

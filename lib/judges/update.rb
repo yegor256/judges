@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 # Copyright (c) 2014-2024 Yegor Bugayenko
 #
@@ -31,8 +32,8 @@ class Judges::Update
     @loog = loog
   end
 
-  def run(opts, args)
-    raise 'Exactly two arguments required' unless args.size ==2
+  def run(_opts, args)
+    raise 'Exactly two arguments required' unless args.size == 2
     dir = args[0]
     file = args[1]
     $fb = Factbase.new
@@ -42,7 +43,7 @@ class Judges::Update
     else
       @loog.info("There is no Factbase to import from #{file}")
     end
-    scripts = Dir.glob(File.join(dir, "**/*.rb")).to_a
+    scripts = Dir.glob(File.join(dir, '**/*.rb')).to_a
     @loog.info("#{scripts.size} .rb scripts found in #{dir}")
     scripts.each do |f|
       next unless base(f).start_with?('_')
@@ -64,6 +65,6 @@ class Judges::Update
   private
 
   def base(file)
-    File::basename(file).gsub(/\.rb$/, '')
+    File.basename(file).gsub(/\.rb$/, '')
   end
 end
