@@ -41,8 +41,7 @@ Gem::Specification.new do |s|
   s.executables = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
   s.rdoc_options = ['--charset=UTF-8']
   s.extra_rdoc_files = ['README.md', 'LICENSE.txt']
-  s.add_runtime_dependency 'backtrace', '~>0.3'
-  s.add_runtime_dependency 'factbase', '~>0.0'
+  s.add_runtime_dependency 'factbase', '~>0.0.11'
   s.add_runtime_dependency 'gli', '~>2.21'
   s.add_runtime_dependency 'loog', '~>0.2'
   s.add_runtime_dependency 'nokogiri', '~> 1.10'

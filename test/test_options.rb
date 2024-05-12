@@ -21,27 +21,27 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
-require 'tmpdir'
-require 'loog'
 require_relative '../lib/judges'
-require_relative '../lib/judges/packs'
+require_relative '../lib/judges/options'
 
 # Test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
-class TestPacks < Minitest::Test
+class TestOptions < Minitest::Test
   def test_basic
-    Dir.mktmpdir do |d|
-      File.write(File.join(d, 'foo.rb'), 'hey')
-      File.write(File.join(d, 'something.yml'), "---\nfoo: 42")
-      found = 0
-      Judges::Packs.new(d, Loog::VERBOSE).each do |p|
-        assert_equal('foo.rb', p.script)
-        found += 1
-        assert_equal(42, p.tests.first['foo'])
-      end
-      assert_equal(1, found)
-    end
+    opts = Judges::Options.new(["token=a77", "max=42"])
+    assert_equal('a77', opts.token)
+    assert_equal(42, opts.max)
+  end
+
+  def test_with_nil
+    opts = Judges::Options.new(nil)
+    assert(opts.foo.nil?)
+  end
+
+  def test_with_hash
+    opts = Judges::Options.new('foo' => 42)
+    assert_equal(42, opts.foo)
   end
 end

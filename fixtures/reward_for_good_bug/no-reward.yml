@@ -25,7 +25,7 @@ input:
     time: 2024-01-01T03:15:45
     seen:
       - one
-      - this judge
+      - reward_for_good_bug
       - two
 expected:
   - /fb[count(f)=1]

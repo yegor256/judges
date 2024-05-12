@@ -20,28 +20,37 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'minitest/autorun'
-require 'tmpdir'
-require 'loog'
-require_relative '../lib/judges'
-require_relative '../lib/judges/packs'
+require_relative '../judges'
 
-# Test.
+# Options for ruby scripts.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
-class TestPacks < Minitest::Test
-  def test_basic
-    Dir.mktmpdir do |d|
-      File.write(File.join(d, 'foo.rb'), 'hey')
-      File.write(File.join(d, 'something.yml'), "---\nfoo: 42")
-      found = 0
-      Judges::Packs.new(d, Loog::VERBOSE).each do |p|
-        assert_equal('foo.rb', p.script)
-        found += 1
-        assert_equal(42, p.tests.first['foo'])
-      end
-      assert_equal(1, found)
-    end
+class Judges::Options
+  # Ctor.
+  # @param [Array<String>] List of pairs, like ["token=af73cd3", "max_speed=1"]
+  def initialize(pairs)
+    @pairs = pairs
+  end
+
+  # Get option by name.
+  def method_missing(*args)
+    @hash ||= (@pairs.nil? ? [] : (@pairs.is_a?(Hash) ? @pairs.map { |k, v| "#{k}=#{v}" } : @pairs))
+      .map { |p| p.split('=', 2) }
+      .map { |p| [p[0].to_sym, p[1]] }
+      .map { |p| [p[0], p[1].match?(/^[0-9]+$/) ? p[1].to_i : p[1]] }
+      .to_h
+    k = args[0].downcase
+    @hash[k]
+  end
+
+  # rubocop:disable Style/OptionalBooleanParameter
+  def respond_to?(_method, _include_private = false)
+    # rubocop:enable Style/OptionalBooleanParameter
+    true
+  end
+
+  def respond_to_missing?(_method, _include_private = false)
+    true
   end
 end

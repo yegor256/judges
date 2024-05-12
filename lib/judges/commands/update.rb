@@ -24,6 +24,7 @@ require 'factbase'
 require 'fileutils'
 require_relative '../../judges'
 require_relative '../../judges/packs'
+require_relative '../../judges/options'
 
 # Update.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -34,7 +35,7 @@ class Judges::Update
     @loog = loog
   end
 
-  def run(_opts, args)
+  def run(opts, args)
     raise 'Exactly two arguments required' unless args.size == 2
     dir = args[0]
     raise "The directory is absent: #{dir}" unless File.exist?(dir)
@@ -46,9 +47,9 @@ class Judges::Update
     else
       @loog.info("There is no Factbase to import from #{file}")
     end
-    done = Judges::Packs.new(dir).each_with_index do |p, i|
+    done = Judges::Packs.new(dir, @loog).each_with_index do |p, i|
       @loog.info("Pack ##{i} found in #{p.dir}")
-      p.run(fb, {})
+      p.run(fb, Judges::Options.new(opts['options']))
     end
     @loog.info("#{done} judges processed")
     FileUtils.mkdir_p(File.dirname(file))

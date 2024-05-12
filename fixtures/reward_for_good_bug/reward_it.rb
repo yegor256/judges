@@ -20,7 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-once($fb).query("(and (eq kind 'bug was accepted') (not (eq seen 'this judge')))").each do |f|
+$loog.info("Trying to reward a good reported bug (judge=#{$judge})...")
+
+once($fb).query("(eq kind 'bug was accepted')").each do |f|
+  $loog.info('Good candidate found!')
   n = $fb.insert
   n.kind = 'nominate for good bug'
   n.payee = f.reporter

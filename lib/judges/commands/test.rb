@@ -20,10 +20,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'factbase'
 require 'nokogiri'
+require 'factbase'
 require_relative '../../judges'
 require_relative '../../judges/packs'
+require_relative '../../judges/options'
 
 # Test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -37,7 +38,9 @@ class Judges::Test
   def run(_opts, args)
     raise 'Exactly one argument required' unless args.size == 1
     dir = args[0]
-    done = Judges::Packs.new(dir).each_with_index do |p, i|
+    @loog.info("Testing judges in #{dir}...")
+    done = Judges::Packs.new(dir, @loog).each_with_index do |p, i|
+      @loog.info("Testing #{p.script} in #{p.dir}...")
       p.tests.each do |t|
         test_one(p, t)
       end
@@ -62,10 +65,10 @@ class Judges::Test
         end
       end
     end
-    pack.run(fb, {})
+    pack.run(fb, Judges::Options.new(yaml['options']))
     xml = Nokogiri::XML.parse(fb.to_xml)
     yaml['expected'].each do |xp|
-      raise "#{pack.script} with '#{xp}' doesn't match:\n#{xml}" if xml.xpath(xp).empty?
+      raise "#{pack.script} doesn't match '#{xp}':\n#{xml}" if xml.xpath(xp).empty?
     end
   end
 end

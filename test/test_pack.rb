@@ -22,6 +22,7 @@
 
 require 'minitest/autorun'
 require 'tmpdir'
+require 'loog'
 require 'factbase'
 require_relative '../lib/judges'
 require_relative '../lib/judges/pack'
@@ -34,7 +35,7 @@ class TestPack < Minitest::Test
   def test_basic_run
     Dir.mktmpdir do |d|
       File.write(File.join(d, 'foo.rb'), '$fb.insert')
-      pack = Judges::Pack.new(d)
+      pack = Judges::Pack.new(d, Loog::VERBOSE)
       fb = Factbase.new
       pack.run(fb, {})
       assert_equal(1, fb.size)
@@ -44,7 +45,7 @@ class TestPack < Minitest::Test
   def test_run_isolated
     Dir.mktmpdir do |d|
       File.write(File.join(d, 'bar.rb'), '$fb.insert')
-      pack = Judges::Pack.new(d)
+      pack = Judges::Pack.new(d, Loog::VERBOSE)
       fb1 = Factbase.new
       pack.run(fb1, {})
       assert_equal(1, fb1.size)
@@ -57,8 +58,20 @@ class TestPack < Minitest::Test
   def test_with_supplemenary_functions
     Dir.mktmpdir do |d|
       File.write(File.join(d, 'x.rb'), 'once($fb).insert')
-      pack = Judges::Pack.new(d)
+      pack = Judges::Pack.new(d, Loog::VERBOSE)
       pack.run(Factbase.new, {})
+    end
+  end
+
+  def test_sets_judge_value_correctly
+    Dir.mktmpdir do |d|
+      j = 'this_is_it'
+      dir = File.join(d, j)
+      FileUtils.mkdir(dir)
+      File.write(File.join(dir, 'foo.rb'), '$loog.info("judge=" + $judge)')
+      log = Loog::Buffer.new
+      Judges::Pack.new(dir, log).run(Factbase.new, {})
+      assert(log.to_s.include?("judge=#{j}"))
     end
   end
 end

@@ -29,53 +29,55 @@ require 'factbase'
 Encoding.default_external = Encoding::UTF_8
 Encoding.default_internal = Encoding::UTF_8
 
-class App
-  extend GLI::App
+include GLI::App
 
-  loog = Loog::REGULAR
+loog = Loog::REGULAR
 
-  program_desc 'Automated executor of judges for a factbase'
+program_desc('Automated executor of judges for a factbase')
 
-  version '0.0.0'
+version('0.0.0')
 
-  desc 'Make it more verbose, logging as much as possible'
-  switch([:v, :verbose])
+synopsis_format(:full)
 
-  pre do |global, command, options, args|
-    if global[:verbose]
-      loog = Loog::VERBOSE
-    end
-    true
+subcommand_option_handling(:normal)
+
+desc 'Make it more verbose, logging as much as possible'
+switch([:v, :verbose])
+
+pre do |global, command, options, args|
+  if global[:verbose]
+    loog = Loog::VERBOSE
   end
+  true
+end
 
-  desc 'Update the factbase by passing all judges one by one'
-  command :update do |c|
-    c.desc 'Environment variable to pass to every judge'
-    c.flag([:e, :environment], default_value: 'yes')
-    c.action do |global, options, args|
-      require_relative '../lib/judges/commands/update'
-      Judges::Update.new(loog).run(options, args)
-    end
-  end
-
-  desc 'Print the factbase into a human-readable format (YAML, JSON, etc.)'
-  command :print do |c|
-    c.desc 'Output format (xml, json, or yaml)'
-    c.flag([:format], default_value: 'yaml')
-    c.switch([:auto])
-    c.action do |global, options, args|
-      require_relative '../lib/judges/commands/print'
-      Judges::Print.new(loog).run(options, args)
-    end
-  end
-
-  desc 'Run automated tests for all judges'
-  command :test do |c|
-    c.action do |global, options, args|
-      require_relative '../lib/judges/commands/test'
-      Judges::Test.new(loog).run(options, args)
-    end
+desc 'Update the factbase by passing all judges one by one'
+command :update do |c|
+  c.desc 'Options to pass to every judge'
+  c.flag([:o, :option], default_value: 'yes', type: Array, arg_name: '<key=value>')
+  c.action do |global, options, args|
+    require_relative '../lib/judges/commands/update'
+    Judges::Update.new(loog).run(options, args)
   end
 end
 
-exit App.run(ARGV)
+desc 'Print the factbase into a human-readable format (YAML, JSON, etc.)'
+command :print do |c|
+  c.desc 'Output format (xml, json, or yaml)'
+  c.flag([:format], default_value: 'yaml')
+  c.switch([:auto])
+  c.action do |global, options, args|
+    require_relative '../lib/judges/commands/print'
+    Judges::Print.new(loog).run(options, args)
+  end
+end
+
+desc 'Run automated tests for all judges'
+command :test do |c|
+  c.action do |global, options, args|
+    require_relative '../lib/judges/commands/test'
+    Judges::Test.new(loog).run(options, args)
+  end
+end
+
+exit run(ARGV)

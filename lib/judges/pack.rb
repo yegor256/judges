@@ -32,19 +32,17 @@ require_relative '../judges/fb/once'
 class Judges::Pack
   attr_reader :dir
 
-  def initialize(dir)
+  def initialize(dir, loog)
     @dir = dir
+    @loog = loog
   end
 
   # Run it with the given Factbase and environment variables.
-  def run(fbase, env)
+  def run(fbase, options)
     $fb = fbase
-    $judge = File.basename(File.dirname(@dir))
-    env.each do |k, v|
-      # rubocop:disable Security/Eval
-      eval("$#{k} = '#{v}'", binding, __FILE__, __LINE__) # $foo = 42
-      # rubocop:enable Security/Eval
-    end
+    $judge = File.basename(@dir)
+    $options = options
+    $loog = @loog
     s = File.join(@dir, script)
     raise "Can't load '#{s}'" unless File.exist?(s)
     load s

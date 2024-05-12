@@ -69,4 +69,22 @@ class TestTest < Minitest::Test
       end
     end
   end
+
+  def test_with_options
+    Dir.mktmpdir do |d|
+      File.write(File.join(d, 'foo.rb'), '$fb.insert.foo = $options.bar')
+      File.write(
+        File.join(d, 'something.yml'),
+        <<-YAML
+        input: []
+        options:
+          bar: 42
+        expected:
+          - /fb[count(f)=1]
+          - /fb/f[foo='42']
+        YAML
+      )
+      Judges::Test.new(Loog::VERBOSE).run(nil, [d])
+    end
+  end
 end

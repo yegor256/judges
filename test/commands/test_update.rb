@@ -22,6 +22,7 @@
 
 require 'minitest/autorun'
 require 'loog'
+require 'nokogiri'
 require_relative '../../lib/judges'
 require_relative '../../lib/judges/commands/update'
 
@@ -32,10 +33,13 @@ require_relative '../../lib/judges/commands/update'
 class TestUpdate < Minitest::Test
   def test_simple_update
     Dir.mktmpdir do |d|
-      File.write(File.join(d, 'foo.rb'), '$fb.query("(eq foo 42)").each { |f| f.bar = 4 }')
-      fb = File.join(d, 'base.fb')
-      Judges::Update.new(Loog::VERBOSE).run(nil, [d, fb])
-      assert(File.exist?(fb))
+      File.write(File.join(d, 'foo.rb'), '$fb.insert.zzz = $options.bar + 1')
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::VERBOSE).run({ 'options' => ['bar=42'] }, [d, file])
+      fb = Factbase.new
+      fb.import(File.read(file))
+      xml = Nokogiri::XML.parse(fb.to_xml)
+      assert(!xml.xpath('/fb/f[zzz="43"]').empty?)
     end
   end
 end
