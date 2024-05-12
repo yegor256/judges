@@ -41,16 +41,16 @@ class Judges::Update
     fb = Factbase.new
     if File.exist?(file)
       fb.import(File.read(file))
-      @loog.info("Factbase imported from #{file} (#{File.size(file)})")
+      @loog.info("Factbase imported from #{file} (#{File.size(file)} bytes)")
     else
       @loog.info("There is no Factbase to import from #{file}")
     end
     done = Judges::Packs.new(dir).each_with_index do |p, i|
-      p.run(fb, {})
       @loog.info("Pack ##{i} found in #{p.dir}")
+      p.run(fb, {})
     end
     @loog.info("#{done} judges processed")
     File.write(file, fb.export)
-    @loog.info("Factbase exported to #{file} (#{File.size(file)})")
+    @loog.info("Factbase exported to #{file} (#{File.size(file)} bytes)")
   end
 end

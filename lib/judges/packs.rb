@@ -37,7 +37,7 @@ class Judges::Packs
   # @yield [Pack]
   def each
     Dir.glob(File.join(@dir, '**/*.rb')).each do |f|
-      d = File.dirname(f)
+      d = File.dirname(File.absolute_path(f))
       yield Judges::Pack.new(d)
     end
   end
