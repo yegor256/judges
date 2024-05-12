@@ -45,7 +45,11 @@ class Judges::Pack
     $loog = @loog
     s = File.join(@dir, script)
     raise "Can't load '#{s}'" unless File.exist?(s)
-    load s
+    begin
+      load s
+    ensure
+      $fb = $judge = $options = $loog = nil
+    end
   end
 
   # Get the name of the .rb script in the pack.
