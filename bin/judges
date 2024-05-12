@@ -36,7 +36,7 @@ class App
 
   program_desc 'Automated executor of judges for a factbase'
 
-  version '0.0.0'
+  version '0.0.2'
 
   desc 'Make it more verbose, logging as much as possible'
   switch([:v, :verbose])
