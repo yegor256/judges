@@ -24,12 +24,16 @@ require 'English'
 
 Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new('>= 0') if s.respond_to? :required_rubygems_version=
-  s.required_ruby_version = '>=2.3'
+  s.required_ruby_version = '>=3.2'
   s.name = 'judges'
   s.version = '0.0.0'
   s.license = 'MIT'
-  s.summary = 'Command-line tool for a Factbase'
-  s.description = 'Runs a collection of judges against a factbase'
+  s.summary = 'Command-Line Tool for a Factbase'
+  s.description = """
+  Runs a collection of \"judges\" against a \"factbase,\" modifying it and updating.
+  Also, helps printing a factbase, merge with another one, inspect, and so on.
+  Also, helps run automated tests for a set of judges.
+  """
   s.authors = ['Yegor Bugayenko']
   s.email = 'yegor256@gmail.com'
   s.homepage = 'http://github.com/yegor256/judges'

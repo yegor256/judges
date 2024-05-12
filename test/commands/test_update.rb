@@ -20,39 +20,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'factbase'
-require 'fileutils'
-require_relative '../judges'
-require_relative '../judges/packs'
+require 'minitest/autorun'
+require 'loog'
+require_relative '../../lib/judges'
+require_relative '../../lib/judges/commands/update'
 
-# Update.
+# Test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
-class Judges::Update
-  def initialize(loog)
-    @loog = loog
-  end
-
-  def run(_opts, args)
-    raise 'Exactly two arguments required' unless args.size == 2
-    dir = args[0]
-    raise "The directory is absent: #{dir}" unless File.exist?(dir)
-    file = args[1]
-    fb = Factbase.new
-    if File.exist?(file)
-      fb.import(File.read(file))
-      @loog.info("Factbase imported from #{file} (#{File.size(file)} bytes)")
-    else
-      @loog.info("There is no Factbase to import from #{file}")
+class TestUpdate < Minitest::Test
+  def test_simple_update
+    Dir.mktmpdir do |d|
+      File.write(File.join(d, 'foo.rb'), '$fb.query("(eq foo 42)").each { |f| f.bar = 4 }')
+      fb = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::VERBOSE).run(nil, [d, fb])
+      assert(File.exist?(fb))
     end
-    done = Judges::Packs.new(dir).each_with_index do |p, i|
-      @loog.info("Pack ##{i} found in #{p.dir}")
-      p.run(fb, {})
-    end
-    @loog.info("#{done} judges processed")
-    FileUtils.mkdir_p(File.dirname(file))
-    File.write(file, fb.export)
-    @loog.info("Factbase exported to #{file} (#{File.size(file)} bytes)")
   end
 end

@@ -22,8 +22,8 @@
 
 require 'factbase'
 require 'nokogiri'
-require_relative '../judges'
-require_relative '../judges/packs'
+require_relative '../../judges'
+require_relative '../../judges/packs'
 
 # Test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

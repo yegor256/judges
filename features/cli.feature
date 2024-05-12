@@ -27,3 +27,16 @@ Feature: Simple Run
     Given I run bin/judges with "update ./fixtures temp/simple.fb"
     Then Stdout contains "judges processed"
     And Exit code is zero
+
+  Scenario: Simple print of a small factbase
+    Given I make a temp directory
+    Then I have a "simple/simple_judge.rb" file with content:
+    """
+      n = $fb.insert
+      n.kind = 'yes!'
+    """
+    Then I run bin/judges with "update . simple.fb"
+    Then I run bin/judges with "print --format=yaml simple.fb simple.yml"
+    Then Stdout contains "printed"
+    And Exit code is zero
+

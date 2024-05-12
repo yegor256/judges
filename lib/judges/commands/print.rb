@@ -20,53 +20,38 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'minitest/autorun'
-require 'loog'
-require_relative '../lib/judges'
-require_relative '../lib/judges/test'
+require 'fileutils'
+require 'factbase'
+require_relative '../../judges'
+require_relative '../../judges/packs'
 
-# Test.
+# Update.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
-class TestTest < Minitest::Test
-  def test_positive
-    Dir.mktmpdir do |d|
-      File.write(File.join(d, 'foo.rb'), '$fb.query("(eq foo 42)").each { |f| f.bar = 4 }')
-      File.write(
-        File.join(d, 'something.yml'),
-        <<-YAML
-        input:
-          -
-            foo: 42
-        expected:
-          - /fb[count(f)=1]
-          - /fb/f[foo/v='42']
-          - /fb/f[bar/v='4']
-        YAML
-      )
-      Judges::Test.new(Loog::VERBOSE).run(nil, [d])
-    end
+class Judges::Print
+  def initialize(loog)
+    @loog = loog
   end
 
-  def test_negative
-    Dir.mktmpdir do |d|
-      File.write(File.join(d, 'foo.rb'), '$fb.query("(eq foo 42)").each { |f| f.bar = 4 }')
-      File.write(
-        File.join(d, 'something.yml'),
-        <<-YAML
-        input:
-          -
-            foo: 42
-        expected:
-          - /fb[count(f)=1]
-          - /fb/f[foo/v='42']
-          - /fb/f[bar/v='5']
-        YAML
-      )
-      assert_raises do
-        Judges::Test.new(Loog::VERBOSE).run(nil, [d])
-      end
+  def run(opts, args)
+    raise 'Exactly two arguments required' unless args.size == 2
+    f = args[0]
+    raise "The file is absent: #{f}" unless File.exist?(f)
+    o = args[1]
+    fb = Factbase.new
+    fb.import(File.read(f))
+    @loog.info("Factbase imported from #{f} (#{File.size(f)} bytes)")
+    FileUtils.mkdir_p(File.dirname(o))
+    output = case opts[:format].downcase
+    when 'yaml'
+      fb.to_yaml
+    when 'json'
+      fb.to_json
+    when 'xml'
+      fb.to_xml
     end
+    File.write(o, output)
+    @loog.info("Factbase printed to #{o} (#{File.size(o)} bytes)")
   end
 end

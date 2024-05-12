@@ -22,20 +22,27 @@
 
 require 'minitest/autorun'
 require 'loog'
-require_relative '../lib/judges'
-require_relative '../lib/judges/update'
+require 'factbase'
+require 'yaml'
+require_relative '../../lib/judges'
+require_relative '../../lib/judges/commands/print'
 
 # Test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
-class TestUpdate < Minitest::Test
-  def test_simple_update
+class TestPrint < Minitest::Test
+  def test_simple_print
     Dir.mktmpdir do |d|
-      File.write(File.join(d, 'foo.rb'), '$fb.query("(eq foo 42)").each { |f| f.bar = 4 }')
-      fb = File.join(d, 'base.fb')
-      Judges::Update.new(Loog::VERBOSE).run(nil, [d, fb])
-      assert(File.exist?(fb))
+      f = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert
+      File.write(f, fb.export)
+      y = File.join(d, 'base.yml')
+      Judges::Print.new(Loog::VERBOSE).run({ :format => 'yaml' }, [f, y])
+      puts File.read(y)
+      assert(File.exist?(y))
+      assert_equal(1, YAML.load_file(y)['facts'].size)
     end
   end
 end
