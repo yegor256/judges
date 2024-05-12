@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-$fb.query("(and (eq kind 'bug was accepted') (not (eq seen 'this judge')))").each do |f|
+once($fb).query("(and (eq kind 'bug was accepted') (not (eq seen 'this judge')))").each do |f|
   n = $fb.insert
   n.kind = 'nominate for good bug'
   n.payee = f.reporter

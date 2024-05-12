@@ -47,7 +47,7 @@ end
 
 When(%r{^I run bin/judges with "([^"]*)"$}) do |arg|
   home = File.join(File.dirname(__FILE__), '../..')
-  @stdout = `ruby -I#{home}/lib #{home}/bin/judges #{arg}`
+  @stdout = `GLI_DEBUG=true ruby -I#{home}/lib #{home}/bin/judges #{arg}`
   @exitstatus = $CHILD_STATUS.exitstatus
 end
 

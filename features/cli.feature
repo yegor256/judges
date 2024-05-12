@@ -24,8 +24,8 @@ Feature: Simple Run
     And Exit code is zero
 
   Scenario: Simple test of a few judges
-    Given I run bin/judges with "update ./fixtures temp/simple.fb"
-    Then Stdout contains "judges processed"
+    Given I run bin/judges with "test ./fixtures"
+    Then Stdout contains "judges tested"
     And Exit code is zero
 
   Scenario: Simple print of a small factbase

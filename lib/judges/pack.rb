@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'yaml'
+require 'time'
 require_relative '../judges'
 require_relative '../judges/fb/once'
 
@@ -57,7 +58,7 @@ class Judges::Pack
   # Iterate over .yml tests.
   def tests
     Dir.glob(File.join(@dir, '*.yml')).map do |f|
-      YAML.load_file(f)
+      YAML.load_file(f, permitted_classes: [Time])
     end
   end
 end
