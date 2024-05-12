@@ -1,3 +1,5 @@
+# Why bugs reports are rewarded?
+
 Every bug reported and accepted deserves a reward, which
 are given to the reporter of the bug. A bug is considered as
 "accepted" only if it has the `bug`, `enhancement`, or `question` label
