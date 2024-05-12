@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+#
 # Copyright (c) 2024 Yegor Bugayenko
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,27 +21,27 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'English'
+require 'minitest/autorun'
+require 'tmpdir'
+require_relative '../lib/judges'
+require_relative '../lib/judges/packs'
 
-Gem::Specification.new do |s|
-  s.required_rubygems_version = Gem::Requirement.new('>= 0') if s.respond_to? :required_rubygems_version=
-  s.required_ruby_version = '>=2.3'
-  s.name = 'judges'
-  s.version = '0.0.0'
-  s.license = 'MIT'
-  s.summary = 'Command-line tool for a Factbase'
-  s.description = 'Runs a collection of judges against a factbase'
-  s.authors = ['Yegor Bugayenko']
-  s.email = 'yegor256@gmail.com'
-  s.homepage = 'http://github.com/yegor256/judges'
-  s.files = `git ls-files`.split($RS)
-  s.executables = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
-  s.rdoc_options = ['--charset=UTF-8']
-  s.extra_rdoc_files = ['README.md', 'LICENSE.txt']
-  s.add_runtime_dependency 'backtrace', '~>0.3'
-  s.add_runtime_dependency 'factbase', '~>0.0'
-  s.add_runtime_dependency 'gli', '~>2.21'
-  s.add_runtime_dependency 'loog', '~>0.2'
-  s.add_runtime_dependency 'nokogiri', '~> 1.10'
-  s.metadata['rubygems_mfa_required'] = 'true'
+# Test.
+# Author:: Yegor Bugayenko (yegor256@gmail.com)
+# Copyright:: Copyright (c) 2024 Yegor Bugayenko
+# License:: MIT
+class TestPacks < Minitest::Test
+  def test_basic
+    Dir.mktmpdir do |d|
+      File.write(File.join(d, 'foo.rb'), 'hey')
+      File.write(File.join(d, 'something.yml'), "---\nfoo: 42")
+      found = 0
+      Judges::Packs.new(d).each do |p|
+        assert_equal('foo.rb', p.script)
+        found += 1
+        assert_equal(42, p.tests.first['foo'])
+      end
+      assert_equal(1, found)
+    end
+  end
 end

@@ -22,35 +22,51 @@
 # SOFTWARE.
 
 require 'factbase'
+require 'nokogiri'
 require_relative '../judges'
 require_relative '../judges/packs'
 
-# Update.
+# Test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
-class Judges::Update
+class Judges::Test
   def initialize(loog)
     @loog = loog
   end
 
   def run(_opts, args)
-    raise 'Exactly two arguments required' unless args.size == 2
+    raise 'Exactly one argument required' unless args.size == 1
     dir = args[0]
-    file = args[1]
-    fb = Factbase.new
-    if File.exist?(file)
-      fb.import(File.read(file))
-      @loog.info("Factbase imported from #{file} (#{File.size(file)})")
-    else
-      @loog.info("There is no Factbase to import from #{file}")
-    end
     done = Judges::Packs.new(dir).each_with_index do |p, i|
-      p.run(fb, {})
+      p.tests.each do |t|
+        test_one(p, t)
+      end
       @loog.info("Pack ##{i} found in #{p.dir}")
     end
-    @loog.info("#{done} judges processed")
-    File.write(file, fb.export)
-    @loog.info("Factbase exported to #{file} (#{File.size(file)})")
+    @loog.info("#{done} judges tested")
+  end
+
+  private
+
+  def test_one(pack, yaml)
+    fb = Factbase.new
+    yaml['input'].each do |i|
+      f = fb.insert
+      i.each do |k, vv|
+        if vv.is_a?(Array)
+          vv.each do |v|
+            send(f, "#{k}=", v)
+          end
+        else
+          f.send('foo=', 42)
+        end
+      end
+    end
+    pack.run(fb, {})
+    xml = Nokogiri::XML.parse(fb.to_xml)
+    yaml['expected'].each do |xp|
+      raise "#{pack.script} with '#{xp}' doesn't match:\n#{xml}" if xml.xpath(xp).empty?
+    end
   end
 end

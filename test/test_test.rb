@@ -1,7 +1,7 @@
-#!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# Copyright (c) 2014-2024 Yegor Bugayenko
+#
+# Copyright (c) 2024 Yegor Bugayenko
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the 'Software'), to deal
@@ -21,36 +21,53 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'factbase'
-require_relative '../judges'
-require_relative '../judges/packs'
+require 'minitest/autorun'
+require 'loog'
+require_relative '../lib/judges'
+require_relative '../lib/judges/test'
 
-# Update.
+# Test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
-class Judges::Update
-  def initialize(loog)
-    @loog = loog
+class TestTest < Minitest::Test
+  def test_positive
+    Dir.mktmpdir do |d|
+      File.write(File.join(d, 'foo.rb'), '$fb.query("(eq foo 42)").each { |f| f.bar = 4 }')
+      File.write(
+        File.join(d, 'something.yml'),
+        <<-YAML
+        input:
+          -
+            foo: 42
+        expected:
+          - /fb[count(f)=1]
+          - /fb/f[foo/v='42']
+          - /fb/f[bar/v='4']
+        YAML
+      )
+      Judges::Test.new(Loog::VERBOSE).run(nil, [d])
+    end
   end
 
-  def run(_opts, args)
-    raise 'Exactly two arguments required' unless args.size == 2
-    dir = args[0]
-    file = args[1]
-    fb = Factbase.new
-    if File.exist?(file)
-      fb.import(File.read(file))
-      @loog.info("Factbase imported from #{file} (#{File.size(file)})")
-    else
-      @loog.info("There is no Factbase to import from #{file}")
+  def test_negative
+    Dir.mktmpdir do |d|
+      File.write(File.join(d, 'foo.rb'), '$fb.query("(eq foo 42)").each { |f| f.bar = 4 }')
+      File.write(
+        File.join(d, 'something.yml'),
+        <<-YAML
+        input:
+          -
+            foo: 42
+        expected:
+          - /fb[count(f)=1]
+          - /fb/f[foo/v='42']
+          - /fb/f[bar/v='5']
+        YAML
+      )
+      assert_raises do
+        Judges::Test.new(Loog::VERBOSE).run(nil, [d])
+      end
     end
-    done = Judges::Packs.new(dir).each_with_index do |p, i|
-      p.run(fb, {})
-      @loog.info("Pack ##{i} found in #{p.dir}")
-    end
-    @loog.info("#{done} judges processed")
-    File.write(file, fb.export)
-    @loog.info("Factbase exported to #{file} (#{File.size(file)})")
   end
 end

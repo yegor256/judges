@@ -60,8 +60,9 @@ class App
 
   desc 'Run automated tests for all judges'
   command :test do |c|
-    c.action do
-      puts 'testing...'
+    c.action do |global, options, args|
+      require_relative '../lib/judges/test'
+      Judges::Test.new(loog).run(options, args)
     end
   end
 end

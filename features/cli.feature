@@ -11,7 +11,7 @@ Feature: Simple Run
     Then Exit code is zero
 
   Scenario: Simple run of a few judges
-    Given I have a "simple_judge.rb" file with content:
+    Given I have a "simple/simple_judge.rb" file with content:
     """
       $fb.query("(eq kind 'foo')").each do |f|
         n = $fb.insert
