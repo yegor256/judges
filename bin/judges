@@ -22,67 +22,48 @@
 
 $stdout.sync = true
 
-require 'slop'
+require 'gli'
 require 'loog'
 require 'factbase'
-
-loog = Loog::REGULAR
-
-opts = Slop.parse(ARGV, strict: true, help: true) do |o|
-  o.banner = "Usage: judges [options] <directory> <factbase>"
-  o.bool '-h', '--help', 'Show brief intro'
-  o.bool '--version', 'Print tool\'s version'
-end
-
-if opts.help?
-  puts opts
-  exit
-end
-
-if opts.verbose?
-  loog = Loog::VERBOSE
-end
-
-if opts.version?
-  loog.info('0.0.0')
-  exit
-end
 
 Encoding.default_external = Encoding::UTF_8
 Encoding.default_internal = Encoding::UTF_8
 
-raise 'Exactly two arguments required' unless opts.arguments.size ==2
+class App
+  extend GLI::App
 
-dir = opts.arguments[0]
-file = opts.arguments[1]
-$fb = Factbase.new
-if File.exist?(file)
-  $fb.import(File.read(file))
-  loog.info("Factbase imported from #{file} (#{File.size(file)})")
-else
-  loog.info("There is no Factbase to import from #{file}")
+  loog = Loog::REGULAR
+
+  program_desc 'Automated executor of judges for a factbase'
+
+  version '0.0.0'
+
+  desc 'Make it more verbose, logging as much as possible'
+  switch([:v, :verbose])
+
+  pre do |global, command, options, args|
+    if global[:verbose]
+      loog = Loog::VERBOSE
+    end
+    true
+  end
+
+  desc 'Update the factbase by passing all judges one by one'
+  command :update do |c|
+    c.desc 'Environment variable to pass to every judge'
+    c.flag([:e, :environment], default_value: 'yes')
+    c.action do |global, options, args|
+      require_relative '../lib/judges/update'
+      Judges::Update.new(loog).run(options, args)
+    end
+  end
+
+  desc 'Run automated tests for all judges'
+  command :test do |c|
+    c.action do
+      puts 'testing...'
+    end
+  end
 end
 
-def base(file)
-  File::basename(file).gsub(/\.rb$/, '')
-end
-
-scripts = Dir.glob(File.join(dir, "**/*.rb")).to_a
-loog.info("#{scripts.size} .rb scripts found in #{dir}")
-scripts.each do |f|
-  next unless base(f).start_with?('_')
-  require f
-end
-
-done = 0
-scripts.each do |f|
-  b = base(f)
-  next if b.start_with?('_')
-  $judge = b
-  require f
-  done += 1
-end
-loog.info("#{done} judges processed")
-
-File.write(file, $fb.export)
-loog.info("Factbase exported to #{file} (#{File.size(file)})")
+exit App.run(ARGV)

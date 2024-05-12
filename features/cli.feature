@@ -18,6 +18,6 @@ Feature: Simple Run
         n.kind = 'yes!'
       end
     """
-    When I run bin/judges with ". simple.fb"
+    When I run bin/judges with "update . simple.fb"
     Then Stdout contains "1 judges processed"
     And Exit code is zero
