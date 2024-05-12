@@ -1,0 +1,11 @@
+---
+facts:
+- id: 1
+  kind: bug was accepted
+  reporter: yegor256
+  issue: yegor256/factbase#12345
+- id: 2
+  kind: nominate for good bug
+  payee: yegor256
+  amount: 15
+  message: thanks for reporting a bug; you get +15 points for this
