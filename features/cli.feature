@@ -19,7 +19,9 @@ Feature: Simple Run
         n.kind = 'yes!'
       end
     """
-    Then I run bin/judges with "update -o foo=1 -o bar=2 . simple.fb"
+    Then I run bin/judges with "--verbose update -o foo=1 -o bar=2 . simple.fb"
+    Then Stdout contains "foo → "
+    Then Stdout contains "bar → "
     Then Stdout contains "1 judges processed"
     And Exit code is zero
 
