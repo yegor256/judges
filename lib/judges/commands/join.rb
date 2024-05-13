@@ -43,9 +43,9 @@ class Judges::Join
     slave = args[1]
     raise "The slave factbase is absent: #{slave.to_rel}" unless File.exist?(slave)
     fb = Factbase.new
-    fb.import(File.read(master))
+    fb.import(File.binread(master))
     @loog.info("Master factbase imported from #{master.to_rel} (#{File.size(master)} bytes)")
-    fb.import(File.read(slave))
+    fb.import(File.binread(slave))
     @loog.info("Slave factbase imported from #{slave.to_rel} (#{File.size(slave)} bytes)")
     File.binwrite(master, fb.export)
     @loog.info("Master factbase exported to #{master.to_rel} (#{File.size(master)} bytes)")

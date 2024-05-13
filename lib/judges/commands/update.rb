@@ -44,7 +44,7 @@ class Judges::Update
     file = args[1]
     fb = Factbase.new
     if File.exist?(file)
-      fb.import(File.read(file))
+      fb.import(File.binread(file))
       @loog.info("Factbase imported from #{file.to_rel} (#{File.size(file)} bytes)")
     else
       @loog.info("There is no Factbase to import from #{file.to_rel} (file is absent)")

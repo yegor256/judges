@@ -37,7 +37,7 @@ class TestUpdate < Minitest::Test
       file = File.join(d, 'base.fb')
       Judges::Update.new(Loog::VERBOSE).run({ 'option' => ['foo_bar=42'] }, [d, file])
       fb = Factbase.new
-      fb.import(File.read(file))
+      fb.import(File.binread(file))
       xml = Nokogiri::XML.parse(fb.to_xml)
       assert(!xml.xpath('/fb/f[zzz="43"]').empty?)
     end
@@ -52,7 +52,7 @@ class TestUpdate < Minitest::Test
       File.write(File.join(d, 'foo.rb'), '$fb.insert.tt = 4')
       Judges::Update.new(Loog::VERBOSE).run({}, [d, file])
       fb = Factbase.new
-      fb.import(File.read(file))
+      fb.import(File.binread(file))
       xml = Nokogiri::XML.parse(fb.to_xml)
       assert(!xml.xpath('/fb/f[tt="4"]').empty?)
       assert(!xml.xpath('/fb/f[foo_bar="42"]').empty?)

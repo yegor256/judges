@@ -43,7 +43,7 @@ class TestJoin < Minitest::Test
       File.binwrite(slave, fb2.export)
       Judges::Join.new(Loog::VERBOSE).run({}, [master, slave])
       fb = Factbase.new
-      fb.import(File.read(master))
+      fb.import(File.binread(master))
       xml = Nokogiri::XML.parse(fb.to_xml)
       assert(!xml.xpath('/fb/f[zz="5"]').empty?, fb.to_xml)
       assert(!xml.xpath('/fb/f[foo_bar="42"]').empty?, fb.to_xml)

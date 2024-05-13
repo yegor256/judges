@@ -46,7 +46,7 @@ class Judges::Print
       o = "#{o}.#{opts[:format]}"
     end
     fb = Factbase.new
-    fb.import(File.read(f))
+    fb.import(File.binread(f))
     @loog.info("Factbase imported from #{f.to_rel} (#{File.size(f)} bytes)")
     FileUtils.mkdir_p(File.dirname(o))
     output =
