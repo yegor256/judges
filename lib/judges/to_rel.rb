@@ -32,6 +32,7 @@ class Object
     s = File.absolute_path(to_s)
     p = Pathname.new(s).relative_path_from(Dir.getwd)
     t = p.to_s
+    t = s if t.length > s.length
     t = "\"#{t}\"" if t.include?(' ')
     if p.directory?
       "#{t}/"
