@@ -38,6 +38,10 @@ jobs:
           restore-keys: judges
       - uses: zerocracy/judges-action@master
         with:
+          options: |
+            github_token=${{ secrets.GITHUB_TOKEN }},\
+            github_max_events=2,\
+            github_repository=${{ github.repository }}
           factbase: recent.fb
       - run: mkdir gh-pages && cp recent.yaml gh-pages
       - uses: JamesIves/github-pages-deploy-action@v4.6.0
