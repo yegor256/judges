@@ -29,13 +29,15 @@ require 'factbase'
 Encoding.default_external = Encoding::UTF_8
 Encoding.default_internal = Encoding::UTF_8
 
+ver = '0.0.0'
+
 include GLI::App
 
 loog = Loog::REGULAR
 
 program_desc('Automated executor of judges for a factbase')
 
-version('0.0.0')
+version(ver)
 
 synopsis_format(:full)
 
@@ -48,6 +50,7 @@ pre do |global, command, options, args|
   if global[:verbose]
     loog = Loog::VERBOSE
   end
+  loog.debug("judges #{ver}")
   true
 end
 
