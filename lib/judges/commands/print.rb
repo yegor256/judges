@@ -23,6 +23,7 @@
 require 'fileutils'
 require 'factbase'
 require_relative '../../judges'
+require_relative '../../judges/to_rel'
 require_relative '../../judges/packs'
 
 # Update.
@@ -37,7 +38,7 @@ class Judges::Print
   def run(opts, args)
     raise 'At lease one argument required' if args.empty?
     f = args[0]
-    raise "The file is absent: #{f}" unless File.exist?(f)
+    raise "The file is absent: #{f.to_rel}" unless File.exist?(f)
     o = args[1]
     if o.nil?
       raise 'Either provide output file name or use --auto' unless opts[:auto]
@@ -46,7 +47,7 @@ class Judges::Print
     end
     fb = Factbase.new
     fb.import(File.read(f))
-    @loog.info("Factbase imported from #{f} (#{File.size(f)} bytes)")
+    @loog.info("Factbase imported from #{f.to_rel} (#{File.size(f)} bytes)")
     FileUtils.mkdir_p(File.dirname(o))
     output =
       case opts[:format].downcase
@@ -58,6 +59,6 @@ class Judges::Print
           fb.to_xml
       end
     File.write(o, output)
-    @loog.info("Factbase printed to #{o} (#{File.size(o)} bytes)")
+    @loog.info("Factbase printed to #{o.to_rel} (#{File.size(o)} bytes)")
   end
 end
