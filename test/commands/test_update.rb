@@ -33,9 +33,9 @@ require_relative '../../lib/judges/commands/update'
 class TestUpdate < Minitest::Test
   def test_simple_update
     Dir.mktmpdir do |d|
-      File.write(File.join(d, 'foo.rb'), '$fb.insert.zzz = $options.bar + 1')
+      File.write(File.join(d, 'foo.rb'), '$fb.insert.zzz = $options.foo_bar + 1')
       file = File.join(d, 'base.fb')
-      Judges::Update.new(Loog::VERBOSE).run({ 'options' => ['bar=42'] }, [d, file])
+      Judges::Update.new(Loog::VERBOSE).run({ 'options' => ['foo_bar=42'] }, [d, file])
       fb = Factbase.new
       fb.import(File.read(file))
       xml = Nokogiri::XML.parse(fb.to_xml)
