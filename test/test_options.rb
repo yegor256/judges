@@ -46,6 +46,16 @@ class TestOptions < Minitest::Test
     assert(opts.foo.nil?)
   end
 
+  def test_with_empty_string
+    opts = Judges::Options.new('   ')
+    assert(opts.foo.nil?)
+  end
+
+  def test_with_empty_strings
+    opts = Judges::Options.new(['', nil])
+    assert(opts.foo.nil?)
+  end
+
   def test_with_string
     opts = Judges::Options.new('a=1,b=42')
     assert_equal(1, opts.a)
