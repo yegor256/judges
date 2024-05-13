@@ -41,7 +41,14 @@ class TestOptions < Minitest::Test
   end
 
   def test_with_hash
-    opts = Judges::Options.new('foo' => 42)
+    opts = Judges::Options.new('foo' => 42, 'bar' => 'hello')
     assert_equal(42, opts.foo)
+    assert_equal('hello', opts.bar)
+    assert(opts.xxx.nil?)
+  end
+
+  def test_converts_to_string
+    opts = Judges::Options.new('foo' => 44, 'bar' => 'long-string-maybe-secret')
+    assert_equal("foo=44\nbar=long********************", opts.to_s)
   end
 end

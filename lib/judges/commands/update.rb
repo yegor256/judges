@@ -22,6 +22,7 @@
 
 require 'factbase'
 require 'fileutils'
+require 'backtrace'
 require_relative '../../judges'
 require_relative '../../judges/packs'
 require_relative '../../judges/options'
@@ -43,17 +44,26 @@ class Judges::Update
     fb = Factbase.new
     if File.exist?(file)
       fb.import(File.read(file))
-      @loog.info("Factbase imported from #{file} (#{File.size(file)} bytes)")
+      @loog.info("Factbase imported from '#{file}' (#{File.size(file)} bytes)")
     else
-      @loog.info("There is no Factbase to import from #{file}")
+      @loog.info("There is no Factbase to import from '#{file}' (file is absent)")
     end
+    options = Judges::Options.new(opts['options'])
+    @loog.debug("The following options provided:\n\t#{options.to_s.gsub("\n", "\n\t")}")
+    errors = []
     done = Judges::Packs.new(dir, @loog).each_with_index do |p, i|
       @loog.info("Pack ##{i} found in #{p.dir}")
-      p.run(fb, Judges::Options.new(opts['options']))
+      begin
+        p.run(fb, options)
+      rescue StandardError => e
+        @loog.warn(Backtrace.new(e))
+        errors << p.script
+      end
     end
-    @loog.info("#{done} judges processed")
+    @loog.info("#{done} judges processed (#{errors.size} errors)")
     FileUtils.mkdir_p(File.dirname(file))
     File.write(file, fb.export)
-    @loog.info("Factbase exported to #{file} (#{File.size(file)} bytes)")
+    @loog.info("Factbase exported to '#{file}' (#{File.size(file)} bytes)")
+    raise "Failed to update correctly (#{errors.size} errors)" unless errors.empty?
   end
 end

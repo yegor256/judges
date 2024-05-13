@@ -22,26 +22,36 @@
 
 require_relative '../judges'
 
-# Options for ruby scripts.
+# Options for Ruby scripts in the judges.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
 class Judges::Options
   # Ctor.
-  # @param [Array<String>] List of pairs, like ["token=af73cd3", "max_speed=1"]
+  # @param pairs [Array<String>] List of pairs, like ["token=af73cd3", "max_speed=1"]
   def initialize(pairs)
     @pairs = pairs
   end
 
+  # Convert them all to a string (printable in a log).
+  def to_s
+    touch # this will trigger method_missing() method, which will create @hash
+    @hash.map do |k, v|
+      v = v.to_s
+      v = "#{v[0..3]}#{'*' * (v.length - 4)}" if v.length > 8
+      "#{k}=#{v}"
+    end.join("\n")
+  end
+
   # Get option by name.
   def method_missing(*args)
-    @hash ||= (if @pairs.nil?
-                 []
-               else
-                 (@pairs.is_a?(Hash) ? @pairs.map { |k, v| "#{k}=#{v}" } : @pairs)
-               end).to_h do |pair|
-      p = pair.split('=', 2)
-      [p[0].to_sym, p[1].match?(/^[0-9]+$/) ? p[1].to_i : p[1]]
+    @hash ||= begin
+      pp = @pairs || []
+      pp = @pairs.map { |k, v| "#{k}=#{v}" } if pp.is_a?(Hash)
+      pp.to_h do |pair|
+        p = pair.split('=', 2)
+        [p[0].to_sym, p[1].match?(/^[0-9]+$/) ? p[1].to_i : p[1]]
+      end
     end
     k = args[0].downcase
     @hash[k]
