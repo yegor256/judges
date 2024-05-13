@@ -22,6 +22,7 @@
 
 require 'nokogiri'
 require 'factbase'
+require 'backtrace'
 require_relative '../../judges'
 require_relative '../../judges/packs'
 require_relative '../../judges/options'
@@ -39,16 +40,27 @@ class Judges::Test
     raise 'Exactly one argument required' unless args.size == 1
     dir = args[0]
     @loog.info("Testing judges in #{dir}...")
+    errors = []
     done = Judges::Packs.new(dir, @loog).each_with_index do |p, i|
       @loog.info("Testing #{p.script} in #{p.dir}...")
       p.tests.each do |f|
         yaml = YAML.load_file(f, permitted_classes: [Time])
         @loog.info("Testing #{f}:")
-        test_one(p, yaml)
+        begin
+          test_one(p, yaml)
+        rescue StandardError => e
+          @loog.warn(Backtrace.new(e))
+          errors << f
+        end
       end
       @loog.info("Pack ##{i} found in #{p.dir}")
     end
-    @loog.info("#{done} judges tested")
+    if errors.empty?
+      @loog.info("All #{done} judges tested successfully")
+    else
+      @loog.info("#{done} judges tested, #{errors.size} of them failed")
+      raise "#{errors.size} tests failed" unless errors.empty?
+    end
   end
 
   private
