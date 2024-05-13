@@ -31,10 +31,12 @@ class Object
   def to_rel
     s = File.absolute_path(to_s)
     p = Pathname.new(s).relative_path_from(Dir.getwd)
+    t = p.to_s
+    t = "\"#{t}\"" if t.include?(' ')
     if p.directory?
-      "#{p}/"
+      "#{t}/"
     else
-      p.to_s
+      t
     end
   end
 end

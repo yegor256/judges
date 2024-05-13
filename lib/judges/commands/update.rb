@@ -45,9 +45,9 @@ class Judges::Update
     fb = Factbase.new
     if File.exist?(file)
       fb.import(File.read(file))
-      @loog.info("Factbase imported from '#{file.to_rel}' (#{File.size(file)} bytes)")
+      @loog.info("Factbase imported from #{file.to_rel} (#{File.size(file)} bytes)")
     else
-      @loog.info("There is no Factbase to import from '#{file.to_rel}' (file is absent)")
+      @loog.info("There is no Factbase to import from #{file.to_rel} (file is absent)")
     end
     options = Judges::Options.new(opts['options'])
     @loog.debug("The following options provided:\n\t#{options.to_s.gsub("\n", "\n\t")}")
@@ -64,7 +64,7 @@ class Judges::Update
     @loog.info("#{done} judges processed (#{errors.size} errors)")
     FileUtils.mkdir_p(File.dirname(file))
     File.write(file, fb.export)
-    @loog.info("Factbase exported to '#{file.to_rel}' (#{File.size(file)} bytes)")
+    @loog.info("Factbase exported to #{file.to_rel} (#{File.size(file)} bytes)")
     raise "Failed to update correctly (#{errors.size} errors)" unless errors.empty?
   end
 end

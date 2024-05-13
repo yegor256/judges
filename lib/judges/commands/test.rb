@@ -40,13 +40,13 @@ class Judges::Test
   def run(_opts, args)
     raise 'Exactly one argument required' unless args.size == 1
     dir = args[0]
-    @loog.info("Testing judges in '#{dir.to_rel}'...")
+    @loog.info("Testing judges in #{dir.to_rel}...")
     errors = []
     done = Judges::Packs.new(dir, @loog).each_with_index do |p, i|
-      @loog.info("\n👉 Testing '#{p.script}' (##{i}) in '#{p.dir.to_rel}'...")
+      @loog.info("\n👉 Testing #{p.script} (##{i}) in #{p.dir.to_rel}...")
       p.tests.each do |f|
         yaml = YAML.load_file(f, permitted_classes: [Time])
-        @loog.info("Testing '#{f.to_rel}':")
+        @loog.info("Testing #{f.to_rel}:")
         begin
           test_one(p, yaml)
         rescue StandardError => e
