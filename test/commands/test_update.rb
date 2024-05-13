@@ -31,7 +31,7 @@ require_relative '../../lib/judges/commands/update'
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
 class TestUpdate < Minitest::Test
-  def test_simple_update
+  def test_build_factbase_from_scratch
     Dir.mktmpdir do |d|
       File.write(File.join(d, 'foo.rb'), '$fb.insert.zzz = $options.foo_bar + 1')
       file = File.join(d, 'base.fb')
@@ -40,6 +40,22 @@ class TestUpdate < Minitest::Test
       fb.import(File.read(file))
       xml = Nokogiri::XML.parse(fb.to_xml)
       assert(!xml.xpath('/fb/f[zzz="43"]').empty?)
+    end
+  end
+
+  def test_extend_existing_factbase
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert.foo_bar = 42
+      File.write(file, fb.export)
+      File.write(File.join(d, 'foo.rb'), '$fb.insert.tt = 4')
+      Judges::Update.new(Loog::VERBOSE).run({}, [d, file])
+      fb = Factbase.new
+      fb.import(File.read(file))
+      xml = Nokogiri::XML.parse(fb.to_xml)
+      assert(!xml.xpath('/fb/f[tt="4"]').empty?)
+      assert(!xml.xpath('/fb/f[foo_bar="42"]').empty?)
     end
   end
 end
