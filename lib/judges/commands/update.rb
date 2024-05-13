@@ -40,7 +40,7 @@ class Judges::Update
   def run(opts, args)
     raise 'Exactly two arguments required' unless args.size == 2
     dir = args[0]
-    raise "The directory is absent: #{dir}" unless File.exist?(dir)
+    raise "The directory is absent: #{dir.to_rel}" unless File.exist?(dir)
     file = args[1]
     fb = Factbase.new
     if File.exist?(file)

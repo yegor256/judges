@@ -54,7 +54,7 @@ end
 desc 'Update the factbase by passing all judges one by one'
 command :update do |c|
   c.desc 'Options to pass to every judge'
-  c.flag([:o, :option], default_value: 'yes', type: Array, arg_name: '<key=value>')
+  c.flag([:o, :option], multiple: true, arg_name: '<key=value>')
   c.action do |global, options, args|
     require_relative '../lib/judges/commands/update'
     Judges::Update.new(loog).run(options, args)

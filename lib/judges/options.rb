@@ -39,7 +39,7 @@ class Judges::Options
     @hash.map do |k, v|
       v = v.to_s
       v = "#{v[0..3]}#{'*' * (v.length - 4)}" if v.length > 8
-      "#{k}=#{v}"
+      "#{k} → \"#{v}\""
     end.join("\n")
   end
 
