@@ -20,34 +20,17 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'factbase'
-require 'fileutils'
-require_relative '../../judges'
-require_relative '../../judges/to_rel'
-require_relative '../../judges/packs'
-require_relative '../../judges/options'
+require 'minitest/autorun'
+require_relative '../lib/judges'
+require_relative '../lib/judges/to_rel'
 
-# Join.
+# Test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
-class Judges::Join
-  def initialize(loog)
-    @loog = loog
-  end
-
-  def run(_opts, args)
-    raise 'Exactly two arguments required' unless args.size == 2
-    master = args[0]
-    raise "The master factbase is absent: #{master.to_rel}" unless File.exist?(master)
-    slave = args[1]
-    raise "The slave factbase is absent: #{slave.to_rel}" unless File.exist?(slave)
-    fb = Factbase.new
-    fb.import(File.read(master))
-    @loog.info("Master factbase imported from #{master.to_rel} (#{File.size(master)} bytes)")
-    fb.import(File.read(slave))
-    @loog.info("Slave factbase imported from #{slave.to_rel} (#{File.size(slave)} bytes)")
-    File.write(master, fb.export)
-    @loog.info("Master factbase exported to #{master.to_rel} (#{File.size(master)} bytes)")
+class TestToRel < Minitest::Test
+  def test_simple_mapping
+    name = File.absolute_path(File.join('.', 'lib/../lib/commands/update.rb'))
+    assert_equal('lib/commands/update.rb', name.to_rel)
   end
 end
