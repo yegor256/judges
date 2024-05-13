@@ -43,7 +43,7 @@ class Judges::Test
     @loog.info("Testing judges in '#{dir.to_rel}'...")
     errors = []
     done = Judges::Packs.new(dir, @loog).each_with_index do |p, i|
-      @loog.info("Testing '#{p.script}' in '#{p.dir.to_rel}'...")
+      @loog.info("\n👉 Testing '#{p.script}' (##{i}) in '#{p.dir.to_rel}'...")
       p.tests.each do |f|
         yaml = YAML.load_file(f, permitted_classes: [Time])
         @loog.info("Testing '#{f.to_rel}':")
@@ -54,12 +54,11 @@ class Judges::Test
           errors << f
         end
       end
-      @loog.info("Pack ##{i} found in '#{p.dir.to_rel}'")
     end
     if errors.empty?
-      @loog.info("All #{done} judges tested successfully")
+      @loog.info("\nAll #{done} judges tested successfully")
     else
-      @loog.info("#{done} judges tested, #{errors.size} of them failed")
+      @loog.info("\n#{done} judges tested, #{errors.size} of them failed")
       raise "#{errors.size} tests failed" unless errors.empty?
     end
   end
