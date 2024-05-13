@@ -53,7 +53,7 @@ class Judges::Update
     @loog.debug("The following options provided:\n\t#{options.to_s.gsub("\n", "\n\t")}")
     errors = []
     done = Judges::Packs.new(dir, @loog).each_with_index do |p, i|
-      @loog.info("Pack ##{i} found in #{p.dir.to_rel}")
+      @loog.info("Running #{p.dir.to_rel} (##{i})...")
       before = fb.size
       begin
         p.run(fb, options)
