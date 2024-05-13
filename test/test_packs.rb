@@ -39,7 +39,7 @@ class TestPacks < Minitest::Test
       Judges::Packs.new(d, Loog::VERBOSE).each do |p|
         assert_equal('foo.rb', p.script)
         found += 1
-        assert_equal(42, p.tests.first['foo'])
+        assert_equal('something.yml', File.basename(p.tests.first))
       end
       assert_equal(1, found)
     end

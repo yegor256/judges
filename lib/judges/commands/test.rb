@@ -41,8 +41,10 @@ class Judges::Test
     @loog.info("Testing judges in #{dir}...")
     done = Judges::Packs.new(dir, @loog).each_with_index do |p, i|
       @loog.info("Testing #{p.script} in #{p.dir}...")
-      p.tests.each do |t|
-        test_one(p, t)
+      p.tests.each do |f|
+        yaml = YAML.load_file(f, permitted_classes: [Time])
+        @loog.info("Testing #{f}:")
+        test_one(p, yaml)
       end
       @loog.info("Pack ##{i} found in #{p.dir}")
     end

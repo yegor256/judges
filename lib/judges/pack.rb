@@ -57,10 +57,8 @@ class Judges::Pack
     File.basename(Dir.glob(File.join(@dir, '*.rb')).first)
   end
 
-  # Iterate over .yml tests.
+  # Return all .yml tests files.
   def tests
-    Dir.glob(File.join(@dir, '*.yml')).map do |f|
-      YAML.load_file(f, permitted_classes: [Time])
-    end
+    Dir.glob(File.join(@dir, '*.yml'))
   end
 end
