@@ -46,7 +46,7 @@ class Judges::Pack
     s = File.join(@dir, script)
     raise "Can't load '#{s}'" unless File.exist?(s)
     begin
-      load s
+      load(s, true)
     ensure
       $fb = $judge = $options = $loog = nil
     end
