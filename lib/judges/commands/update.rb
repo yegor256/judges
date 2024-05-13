@@ -54,12 +54,15 @@ class Judges::Update
     errors = []
     done = Judges::Packs.new(dir, @loog).each_with_index do |p, i|
       @loog.info("Pack ##{i} found in #{p.dir.to_rel}")
+      before = fb.size
       begin
         p.run(fb, options)
       rescue StandardError => e
         @loog.warn(Backtrace.new(e))
         errors << p.script
       end
+      after = fb.size
+      @loog.info("Pack #{p.dir.to_rel} added #{after - before} facts") if after > before
     end
     @loog.info("#{done} judges processed (#{errors.size} errors)")
     FileUtils.mkdir_p(File.dirname(file))
