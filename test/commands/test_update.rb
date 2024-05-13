@@ -35,7 +35,7 @@ class TestUpdate < Minitest::Test
     Dir.mktmpdir do |d|
       File.write(File.join(d, 'foo.rb'), '$fb.insert.zzz = $options.foo_bar + 1')
       file = File.join(d, 'base.fb')
-      Judges::Update.new(Loog::VERBOSE).run({ 'options' => ['foo_bar=42'] }, [d, file])
+      Judges::Update.new(Loog::VERBOSE).run({ 'option' => ['foo_bar=42'] }, [d, file])
       fb = Factbase.new
       fb.import(File.read(file))
       xml = Nokogiri::XML.parse(fb.to_xml)

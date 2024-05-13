@@ -49,7 +49,7 @@ class Judges::Update
     else
       @loog.info("There is no Factbase to import from #{file.to_rel} (file is absent)")
     end
-    options = Judges::Options.new(opts['options'])
+    options = Judges::Options.new(opts['option'])
     @loog.debug("The following options provided:\n\t#{options.to_s.gsub("\n", "\n\t")}")
     errors = []
     done = Judges::Packs.new(dir, @loog).each_with_index do |p, i|

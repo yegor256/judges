@@ -35,9 +35,21 @@ class TestOptions < Minitest::Test
     assert_equal(42, opts.max)
   end
 
+  def test_stips_spaces
+    opts = Judges::Options.new(['  token=a77   ', 'max  =  42'])
+    assert_equal('a77', opts.token)
+    assert_equal(42, opts.max)
+  end
+
   def test_with_nil
     opts = Judges::Options.new(nil)
     assert(opts.foo.nil?)
+  end
+
+  def test_with_string
+    opts = Judges::Options.new('a=1,b=42')
+    assert_equal(1, opts.a)
+    assert_equal(42, opts.b)
   end
 
   def test_with_hash

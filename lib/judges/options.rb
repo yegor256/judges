@@ -48,9 +48,13 @@ class Judges::Options
     @hash ||= begin
       pp = @pairs || []
       pp = @pairs.map { |k, v| "#{k}=#{v}" } if pp.is_a?(Hash)
+      pp = pp.split(',') if pp.is_a?(String)
       pp.to_h do |pair|
         p = pair.split('=', 2)
-        [p[0].to_sym, p[1].match?(/^[0-9]+$/) ? p[1].to_i : p[1]]
+        k = p[0].strip
+        v = p[1]
+        v = v.nil? ? 'true' : v.strip
+        [k.to_sym, v.match?(/^[0-9]+$/) ? v.to_i : v]
       end
     end
     k = args[0].downcase
