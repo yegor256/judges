@@ -37,7 +37,7 @@ class TestPrint < Minitest::Test
       f = File.join(d, 'base.fb')
       fb = Factbase.new
       fb.insert
-      File.write(f, fb.export)
+      File.binwrite(f, fb.export)
       Judges::Print.new(Loog::VERBOSE).run({ format: 'yaml', auto: true }, [f])
       y = File.join(d, 'base.yaml')
       assert(File.exist?(y))

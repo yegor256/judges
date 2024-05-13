@@ -66,7 +66,7 @@ class Judges::Update
     end
     @loog.info("#{done} judges processed (#{errors.size} errors)")
     FileUtils.mkdir_p(File.dirname(file))
-    File.write(file, fb.export)
+    File.binwrite(file, fb.export)
     @loog.info("Factbase exported to #{file.to_rel} (#{File.size(file)} bytes)")
     raise "Failed to update correctly (#{errors.size} errors)" unless errors.empty?
   end

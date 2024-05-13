@@ -58,7 +58,7 @@ class Judges::Print
         when 'xml'
           fb.to_xml
       end
-    File.write(o, output)
+    File.binwrite(o, output)
     @loog.info("Factbase printed to #{o.to_rel} (#{File.size(o)} bytes)")
   end
 end

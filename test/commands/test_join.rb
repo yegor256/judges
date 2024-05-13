@@ -36,11 +36,11 @@ class TestJoin < Minitest::Test
       master = File.join(d, 'master.fb')
       fb1 = Factbase.new
       fb1.insert.zz = 5
-      File.write(master, fb1.export)
+      File.binwrite(master, fb1.export)
       slave = File.join(d, 'slave.fb')
       fb2 = Factbase.new
       fb2.insert.foo_bar = 42
-      File.write(slave, fb2.export)
+      File.binwrite(slave, fb2.export)
       Judges::Join.new(Loog::VERBOSE).run({}, [master, slave])
       fb = Factbase.new
       fb.import(File.read(master))

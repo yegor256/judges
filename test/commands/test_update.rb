@@ -48,7 +48,7 @@ class TestUpdate < Minitest::Test
       file = File.join(d, 'base.fb')
       fb = Factbase.new
       fb.insert.foo_bar = 42
-      File.write(file, fb.export)
+      File.binwrite(file, fb.export)
       File.write(File.join(d, 'foo.rb'), '$fb.insert.tt = 4')
       Judges::Update.new(Loog::VERBOSE).run({}, [d, file])
       fb = Factbase.new
