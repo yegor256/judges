@@ -20,16 +20,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'judges'
+
 # Returns a decorated global factbase, which only touches facts once
 def once(fb, judge: $judge)
-  Factbase::Once.new(fb, judge)
+  Judges::Once.new(fb, judge)
 end
 
 # Runs only once.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
-class Factbase::Once
+class Judges::Once
   def initialize(fb, func)
     @fb = fb
     @func = func

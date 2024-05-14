@@ -23,21 +23,23 @@
 require_relative '../../judges'
 require_relative '../../judges/impex'
 
-# Join.
+# Trim.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
-class Judges::Join
+class Judges::Trim
   def initialize(loog)
     @loog = loog
   end
 
-  def run(_opts, args)
-    raise 'Exactly two arguments required' unless args.size == 2
-    master = Judges::Impex.new(@loog, args[0])
-    slave = Judges::Impex.new(@loog, args[1])
-    fb = master.import
-    slave.import_to(fb)
-    master.export(fb)
+  def run(opts, args)
+    raise 'Exactly one argument required' unless args.size == 1
+    impex = Judges::Impex.new(@loog, args[0])
+    fb = impex.import
+    day = Time.now - opts['days'].to_i * 60 * 60 * 24
+    p "(lt time #{day.utc.iso8601})"
+    deleted = fb.query("(lt time #{day.utc.iso8601})").delete!
+    @loog.info("#{deleted} facts deleted because they are too old")
+    impex.export(fb)
   end
 end

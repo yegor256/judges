@@ -20,24 +20,27 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative '../../judges'
-require_relative '../../judges/impex'
+require 'minitest/autorun'
+require 'loog'
+require 'nokogiri'
+require_relative '../../lib/judges'
+require_relative '../../lib/judges/commands/trim'
 
-# Join.
+# Test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
-class Judges::Join
-  def initialize(loog)
-    @loog = loog
-  end
-
-  def run(_opts, args)
-    raise 'Exactly two arguments required' unless args.size == 2
-    master = Judges::Impex.new(@loog, args[0])
-    slave = Judges::Impex.new(@loog, args[1])
-    fb = master.import
-    slave.import_to(fb)
-    master.export(fb)
+class TestTrim < Minitest::Test
+  def test_trims_factbase
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      before = Factbase.new
+      before.insert.time = Time.now - 100 * 24 * 60 * 60
+      File.binwrite(file, before.export)
+      Judges::Trim.new(Loog::VERBOSE).run({ 'days' => '10' }, [file])
+      after = Factbase.new
+      after.import(File.binread(file))
+      assert(after.size == 0)
+    end
   end
 end

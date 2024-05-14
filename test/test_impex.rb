@@ -20,24 +20,33 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative '../../judges'
-require_relative '../../judges/impex'
+require 'minitest/autorun'
+require 'tmpdir'
+require 'loog'
+require_relative '../lib/judges'
+require_relative '../lib/judges/impex'
 
-# Join.
+# Test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
-class Judges::Join
-  def initialize(loog)
-    @loog = loog
+class TestImpex < Minitest::Test
+  def test_basic
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'foo.rb')
+      impex = Judges::Impex.new(Loog::VERBOSE, f)
+      impex.import(strict: false)
+      impex.export(Factbase.new)
+    end
   end
 
-  def run(_opts, args)
-    raise 'Exactly two arguments required' unless args.size == 2
-    master = Judges::Impex.new(@loog, args[0])
-    slave = Judges::Impex.new(@loog, args[1])
-    fb = master.import
-    slave.import_to(fb)
-    master.export(fb)
+  def test_strict_import
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'x.rb')
+      impex = Judges::Impex.new(Loog::VERBOSE, f)
+      impex.import(strict: false)
+      impex.export(Factbase.new)
+      impex.import
+    end
   end
 end

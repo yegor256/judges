@@ -20,24 +20,40 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require_relative '../../judges'
-require_relative '../../judges/impex'
+require 'factbase'
+require 'fileutils'
+require_relative '../judges'
 
-# Join.
+# Import/Export of factbases.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
-class Judges::Join
-  def initialize(loog)
+class Judges::Impex
+  def initialize(loog, file)
     @loog = loog
+    @file = file
   end
 
-  def run(_opts, args)
-    raise 'Exactly two arguments required' unless args.size == 2
-    master = Judges::Impex.new(@loog, args[0])
-    slave = Judges::Impex.new(@loog, args[1])
-    fb = master.import
-    slave.import_to(fb)
-    master.export(fb)
+  def import(strict: true)
+    fb = Factbase.new
+    if File.exist?(@file)
+      fb.import(File.binread(@file))
+      @loog.info("The factbase imported from #{@file.to_rel} (#{File.size(@file)} bytes)")
+    else
+      raise "The factbase is absent at #{@file.to_rel}" if strict
+    end
+    fb
+  end
+
+  def import_to(fb)
+    raise "The factbase is absent at #{@file.to_rel}" unless File.exist?(@file)
+    fb.import(File.binread(@file))
+    @loog.info("The factbase loaded from #{@file.to_rel} (#{File.size(@file)} bytes)")
+  end
+
+  def export(fb)
+    FileUtils.mkdir_p(File.dirname(@file))
+    File.binwrite(@file, fb.export)
+    @loog.info("Factbase exported to #{@file.to_rel} (#{File.size(@file)} bytes)")
   end
 end

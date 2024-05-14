@@ -20,13 +20,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'factbase'
-require 'fileutils'
 require 'backtrace'
 require_relative '../../judges'
 require_relative '../../judges/to_rel'
 require_relative '../../judges/packs'
 require_relative '../../judges/options'
+require_relative '../../judges/impex'
 
 # Update.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -41,14 +40,8 @@ class Judges::Update
     raise 'Exactly two arguments required' unless args.size == 2
     dir = args[0]
     raise "The directory is absent: #{dir.to_rel}" unless File.exist?(dir)
-    file = args[1]
-    fb = Factbase.new
-    if File.exist?(file)
-      fb.import(File.binread(file))
-      @loog.info("Factbase imported from #{file.to_rel} (#{File.size(file)} bytes)")
-    else
-      @loog.info("There is no Factbase to import from #{file.to_rel} (file is absent)")
-    end
+    impex = Judges::Impex.new(@loog, args[1])
+    fb = impex.import(strict: false)
     options = Judges::Options.new(opts['option'])
     @loog.debug("The following options provided:\n\t#{options.to_s.gsub("\n", "\n\t")}")
     errors = []
@@ -65,9 +58,7 @@ class Judges::Update
       @loog.info("Pack #{p.dir.to_rel} added #{after - before} facts") if after > before
     end
     @loog.info("#{done} judges processed (#{errors.size} errors)")
-    FileUtils.mkdir_p(File.dirname(file))
-    File.binwrite(file, fb.export)
-    @loog.info("Factbase exported to #{file.to_rel} (#{File.size(file)} bytes)")
     raise "Failed to update correctly (#{errors.size} errors)" unless errors.empty?
+    impex.export(fb)
   end
 end

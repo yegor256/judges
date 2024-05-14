@@ -72,6 +72,14 @@ command :print do |c|
   end
 end
 
+desc 'Remove the facts that are too old'
+command :trim do |c|
+  c.action do |global, options, args|
+    require_relative '../lib/judges/commands/trim'
+    Judges::Trim.new(loog).run(options, args)
+  end
+end
+
 desc 'Print the factbase into a human-readable format (YAML, JSON, etc.)'
 command :print do |c|
   c.desc 'Output format (xml, json, or yaml)'
