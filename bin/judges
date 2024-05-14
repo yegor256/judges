@@ -74,6 +74,8 @@ end
 
 desc 'Remove the facts that are too old'
 command :trim do |c|
+  c.desc 'Remove facts that are older than X days'
+  c.flag([:days], type: Integer, default_value: 90)
   c.action do |global, options, args|
     require_relative '../lib/judges/commands/trim'
     Judges::Trim.new(loog).run(options, args)

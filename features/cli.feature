@@ -30,6 +30,17 @@ Feature: Simple Run
     Then Stdout contains "judges tested"
     And Exit code is zero
 
+  Scenario: Simple trimming of a factbase
+    Given I make a temp directory
+    Then I have a "simple/simple_judge.rb" file with content:
+    """
+      $fb.insert.time = Time.now - 100 * 60 * 60 * 24
+    """
+    Then I run bin/judges with "--verbose update . simple.fb"
+    Given I run bin/judges with "trim --days 5 simple.fb"
+    Then Stdout contains "1 facts deleted"
+    And Exit code is zero
+
   Scenario: Simple print of a small factbase
     Given I make a temp directory
     Then I have a "simple/simple_judge.rb" file with content:

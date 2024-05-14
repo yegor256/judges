@@ -23,6 +23,7 @@
 require 'minitest/autorun'
 require 'loog'
 require 'nokogiri'
+require 'time'
 require_relative '../../lib/judges'
 require_relative '../../lib/judges/commands/trim'
 

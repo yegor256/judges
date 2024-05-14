@@ -23,6 +23,7 @@
 require 'factbase'
 require 'fileutils'
 require_relative '../judges'
+require_relative '../judges/to_rel'
 
 # Import/Export of factbases.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
