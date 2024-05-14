@@ -20,51 +20,42 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'yaml'
-require 'time'
-require_relative '../judges'
-require_relative '../judges/fb/once'
-require_relative '../judges/fb/if_absent'
+require 'judges'
 
-# A single pack.
+# Injects a fact if it's absent in the factbase.
+def if_absent(fb)
+  attrs = {}
+  f = Judges::Accumulator.new(attrs)
+  yield f
+  q = attrs.map { |k, v| "(eq #{k} #{v})" }.join(' ')
+  return unless fb.query("(and #{q})").each.to_a.empty?
+  n = fb.insert
+  attrs.each { |k, v| n.send("#{k}=", v) }
+  n
+end
+
+# Predents to be a fact, just accumulating all attribute sets.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
-class Judges::Pack
-  attr_reader :dir
-
-  def initialize(dir, loog)
-    @dir = dir
-    @loog = loog
+class Judges::Accumulator
+  def initialize(map)
+    @map = map
   end
 
-  # Run it with the given Factbase and environment variables.
-  def run(fbase, options)
-    $fb = fbase
-    $judge = File.basename(@dir)
-    $options = options
-    $loog = @loog
-    s = File.join(@dir, script)
-    raise "Can't load '#{s}'" unless File.exist?(s)
-    begin
-      load(s, true)
-    ensure
-      $fb = $judge = $options = $loog = nil
-    end
+  def method_missing(*args)
+    k = args[0]
+    raise "Unexpected interation with the fact: '#{k}'" unless k.end_with?('=')
+    @map[k[0..-2]] = args[1]
   end
 
-  # Get the name of the pack.
-  def name
-    File.basename(@dir)
+  # rubocop:disable Style/OptionalBooleanParameter
+  def respond_to?(_method, _include_private = false)
+    # rubocop:enable Style/OptionalBooleanParameter
+    true
   end
 
-  # Get the name of the .rb script in the pack.
-  def script
-    File.basename(Dir.glob(File.join(@dir, '*.rb')).first)
-  end
-
-  # Return all .yml tests files.
-  def tests
-    Dir.glob(File.join(@dir, '*.yml'))
+  def respond_to_missing?(_method, _include_private = false)
+    true
   end
 end

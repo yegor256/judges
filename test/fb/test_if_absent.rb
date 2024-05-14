@@ -20,51 +20,31 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'yaml'
-require 'time'
-require_relative '../judges'
-require_relative '../judges/fb/once'
-require_relative '../judges/fb/if_absent'
+require 'minitest/autorun'
+require 'tmpdir'
+require 'factbase'
+require_relative '../../lib/judges'
+require_relative '../../lib/judges/fb/if_absent'
 
-# A single pack.
+# Test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
-class Judges::Pack
-  attr_reader :dir
-
-  def initialize(dir, loog)
-    @dir = dir
-    @loog = loog
-  end
-
-  # Run it with the given Factbase and environment variables.
-  def run(fbase, options)
-    $fb = fbase
-    $judge = File.basename(@dir)
-    $options = options
-    $loog = @loog
-    s = File.join(@dir, script)
-    raise "Can't load '#{s}'" unless File.exist?(s)
-    begin
-      load(s, true)
-    ensure
-      $fb = $judge = $options = $loog = nil
+class TestIfAbsent < Minitest::Test
+  def test_ignores
+    fb = Factbase.new
+    fb.insert.foo = 42
+    n = if_absent(fb) do |f|
+      f.foo = 42
     end
+    assert(n.nil?)
   end
 
-  # Get the name of the pack.
-  def name
-    File.basename(@dir)
-  end
-
-  # Get the name of the .rb script in the pack.
-  def script
-    File.basename(Dir.glob(File.join(@dir, '*.rb')).first)
-  end
-
-  # Return all .yml tests files.
-  def tests
-    Dir.glob(File.join(@dir, '*.yml'))
+  def test_injects
+    fb = Factbase.new
+    n = if_absent(fb) do |f|
+      f.foo = 42
+    end
+    assert_equal(42, n.foo)
   end
 end
