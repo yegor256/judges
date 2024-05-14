@@ -96,7 +96,9 @@ end
 desc 'Run automated tests for all judges'
 command :test do |c|
   c.desc 'Name of the test pack to run'
-  c.flag([:pack], default_value: '')
+  c.flag([:pack], multiple: true)
+  c.desc 'Fail if no judges tested?'
+  c.flag([:quiet], default_value: false)
   c.action do |global, options, args|
     require_relative '../lib/judges/commands/test'
     Judges::Test.new(loog).run(options, args)

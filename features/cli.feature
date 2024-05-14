@@ -27,13 +27,18 @@ Feature: Simple Run
 
   Scenario: Simple test of a few judges
     Given I run bin/judges with "test ./fixtures"
-    Then Stdout contains "judges tested"
+    Then Stdout contains "👉 Testing"
+    Then Stdout contains "judges tested successfully"
     And Exit code is zero
 
   Scenario: Simple test of just one pack
-    Given I run bin/judges with "test --pack absent_for_sure ./fixtures"
-    Then Stdout contains "judges tested"
+    Given I run bin/judges with "test --pack reward_for_good_bug ./fixtures"
+    Then Stdout contains "judges tested successfully"
     And Exit code is zero
+
+  Scenario: Simple test of no packs
+    Given I run bin/judges with "test --pack absent_for_sure ./fixtures"
+    Then Exit code is not zero
 
   Scenario: Simple trimming of a factbase
     Given I make a temp directory

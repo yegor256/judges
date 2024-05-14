@@ -100,7 +100,7 @@ class TestTest < Minitest::Test
         YAML
       )
       assert_raises do
-        Judges::Test.new(Loog::NULL).run({ 'pack' => File.basename(dir) }, [d])
+        Judges::Test.new(Loog::NULL).run({ 'pack' => [File.basename(dir)] }, [d])
       end
     end
   end

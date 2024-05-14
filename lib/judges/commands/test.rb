@@ -42,8 +42,9 @@ class Judges::Test
     dir = args[0]
     @loog.info("Testing judges in #{dir.to_rel}...")
     errors = []
-    done = Judges::Packs.new(dir, @loog).each_with_index do |p, i|
-      next if !opts['pack'].nil? && p.name != opts['pack']
+    done = 0
+    Judges::Packs.new(dir, @loog).each_with_index do |p, i|
+      next unless include?(opts, p.name)
       @loog.info("\n👉 Testing #{p.script} (##{i}) in #{p.dir.to_rel}...")
       p.tests.each do |f|
         yaml = YAML.load_file(f, permitted_classes: [Time])
@@ -55,7 +56,9 @@ class Judges::Test
           errors << f
         end
       end
+      done += 1
     end
+    raise 'No judges tested :(' if done.zero? && !opts['quiet']
     if errors.empty?
       @loog.info("\nAll #{done} judges tested successfully")
     else
@@ -65,6 +68,12 @@ class Judges::Test
   end
 
   private
+
+  def include?(opts, name)
+    packs = opts['pack'] || []
+    return true if packs.empty?
+    packs.include?(name)
+  end
 
   def test_one(pack, yaml)
     fb = Factbase.new
