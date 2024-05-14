@@ -39,8 +39,8 @@ class Judges::Impex
     if File.exist?(@file)
       fb.import(File.binread(@file))
       @loog.info("The factbase imported from #{@file.to_rel} (#{File.size(@file)} bytes)")
-    else
-      raise "The factbase is absent at #{@file.to_rel}" if strict
+    elsif strict
+      raise "The factbase is absent at #{@file.to_rel}"
     end
     fb
   end

@@ -35,12 +35,13 @@ class TestTrim < Minitest::Test
     Dir.mktmpdir do |d|
       file = File.join(d, 'base.fb')
       before = Factbase.new
-      before.insert.time = Time.now - 100 * 24 * 60 * 60
+      before.insert.time = Time.now + 1
+      before.insert.time = Time.now - (100 * 24 * 60 * 60)
       File.binwrite(file, before.export)
       Judges::Trim.new(Loog::VERBOSE).run({ 'days' => '10' }, [file])
       after = Factbase.new
       after.import(File.binread(file))
-      assert(after.size == 0)
+      assert_equal(1, after.size)
     end
   end
 end

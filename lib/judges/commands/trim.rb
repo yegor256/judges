@@ -36,7 +36,7 @@ class Judges::Trim
     raise 'Exactly one argument required' unless args.size == 1
     impex = Judges::Impex.new(@loog, args[0])
     fb = impex.import
-    day = Time.now - opts['days'].to_i * 60 * 60 * 24
+    day = Time.now - (opts['days'].to_i * 60 * 60 * 24)
     p "(lt time #{day.utc.iso8601})"
     deleted = fb.query("(lt time #{day.utc.iso8601})").delete!
     @loog.info("#{deleted} facts deleted because they are too old")
