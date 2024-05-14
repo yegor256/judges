@@ -37,12 +37,13 @@ class Judges::Test
     @loog = loog
   end
 
-  def run(_opts, args)
+  def run(opts, args)
     raise 'Exactly one argument required' unless args.size == 1
     dir = args[0]
     @loog.info("Testing judges in #{dir.to_rel}...")
     errors = []
     done = Judges::Packs.new(dir, @loog).each_with_index do |p, i|
+      next if !opts['pack'].nil? && p.name != opts['pack']
       @loog.info("\n👉 Testing #{p.script} (##{i}) in #{p.dir.to_rel}...")
       p.tests.each do |f|
         yaml = YAML.load_file(f, permitted_classes: [Time])

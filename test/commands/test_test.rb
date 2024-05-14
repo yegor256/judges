@@ -45,7 +45,7 @@ class TestTest < Minitest::Test
           - /fb/f[bar='4']
         YAML
       )
-      Judges::Test.new(Loog::VERBOSE).run(nil, [d])
+      Judges::Test.new(Loog::VERBOSE).run({}, [d])
     end
   end
 
@@ -65,7 +65,7 @@ class TestTest < Minitest::Test
         YAML
       )
       assert_raises do
-        Judges::Test.new(Loog::VERBOSE).run(nil, [d])
+        Judges::Test.new(Loog::VERBOSE).run({}, [d])
       end
     end
   end
@@ -84,7 +84,7 @@ class TestTest < Minitest::Test
           - /fb/f[foo='42']
         YAML
       )
-      Judges::Test.new(Loog::VERBOSE).run(nil, [d])
+      Judges::Test.new(Loog::VERBOSE).run({}, [d])
     end
   end
 end

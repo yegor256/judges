@@ -52,6 +52,11 @@ class Judges::Pack
     end
   end
 
+  # Get the name of the pack.
+  def name
+    File.basename(@dir)
+  end
+
   # Get the name of the .rb script in the pack.
   def script
     File.basename(Dir.glob(File.join(@dir, '*.rb')).first)

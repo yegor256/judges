@@ -30,6 +30,11 @@ Feature: Simple Run
     Then Stdout contains "judges tested"
     And Exit code is zero
 
+  Scenario: Simple test of just one pack
+    Given I run bin/judges with "test --pack absent_for_sure ./fixtures"
+    Then Stdout contains "judges tested"
+    And Exit code is zero
+
   Scenario: Simple trimming of a factbase
     Given I make a temp directory
     Then I have a "simple/simple_judge.rb" file with content:
