@@ -39,7 +39,7 @@ class Judges::Impex
     fb = Factbase.new
     if File.exist?(@file)
       fb.import(File.binread(@file))
-      @loog.info("The factbase imported from #{@file.to_rel} (#{File.size(@file)} bytes)")
+      @loog.info("The factbase imported from #{@file.to_rel} (#{File.size(@file)} bytes, #{fb.size} facts)")
     elsif strict
       raise "The factbase is absent at #{@file.to_rel}"
     end
@@ -49,12 +49,12 @@ class Judges::Impex
   def import_to(fb)
     raise "The factbase is absent at #{@file.to_rel}" unless File.exist?(@file)
     fb.import(File.binread(@file))
-    @loog.info("The factbase loaded from #{@file.to_rel} (#{File.size(@file)} bytes)")
+    @loog.info("The factbase loaded from #{@file.to_rel} (#{File.size(@file)} bytes, #{fb.size} facts)")
   end
 
   def export(fb)
     FileUtils.mkdir_p(File.dirname(@file))
     File.binwrite(@file, fb.export)
-    @loog.info("Factbase exported to #{@file.to_rel} (#{File.size(@file)} bytes)")
+    @loog.info("Factbase exported to #{@file.to_rel} (#{File.size(@file)} bytes, #{fb.size} facts)")
   end
 end
