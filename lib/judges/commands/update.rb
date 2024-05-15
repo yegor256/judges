@@ -47,13 +47,13 @@ class Judges::Update
     packs = Judges::Packs.new(dir, @loog)
     c = 0
     loop do
+      c += 1
       diff = cycle(packs, fb, impex, options)
       break if diff.zero?
-      if !opts['max-cycles'].nil? && c > opts['max-cycles']
+      if !opts['max-cycles'].nil? && c >= opts['max-cycles']
         @loog.info('Too many cycles already, as set by --max-cycles, breaking')
         break
       end
-      c += 1
       @loog.info("#{diff} modifications at the cycle ##{c}")
     end
     @loog.info("Update finished in #{c} cycles")

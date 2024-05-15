@@ -49,8 +49,8 @@ class TestUpdate < Minitest::Test
       fb = Factbase.new
       fb.insert.foo_bar = 42
       File.binwrite(file, fb.export)
-      File.write(File.join(d, 'foo.rb'), 'return if $fb.size > 2; $fb.insert.tt = 4')
-      Judges::Update.new(Loog::VERBOSE).run({}, [d, file])
+      File.write(File.join(d, 'foo.rb'), '$fb.insert.tt = 4')
+      Judges::Update.new(Loog::VERBOSE).run({ 'max-cycles' => 1 }, [d, file])
       fb = Factbase.new
       fb.import(File.binread(file))
       xml = Nokogiri::XML.parse(fb.to_xml)
