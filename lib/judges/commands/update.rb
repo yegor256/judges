@@ -65,7 +65,7 @@ class Judges::Update
     errors = []
     diff = 0
     done = packs.each_with_index do |p, i|
-      @loog.info("Running #{p.dir.to_rel} (##{i})...")
+      @loog.info("👍 Running #{p.name} (##{i}) at #{p.dir.to_rel}...")
       before = fb.size
       begin
         p.run(fb, options)
