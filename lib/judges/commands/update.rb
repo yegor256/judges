@@ -67,7 +67,7 @@ class Judges::Update
     errors = []
     diff = 0
     done = packs.each_with_index do |p, i|
-      @loog.info("👍 Running #{p.name} (##{i}) at #{p.dir.to_rel}...")
+      @loog.info("👉 Running #{p.name} (##{i}) at #{p.dir.to_rel}...")
       before = fb.size
       begin
         p.run(fb, options)
@@ -76,11 +76,15 @@ class Judges::Update
         errors << p.script
       end
       after = fb.size
-      @loog.info("Pack #{p.dir.to_rel} added #{after - before} facts") if after > before
+      @loog.info("👍 Pack #{p.dir.to_rel} added #{after - before} facts") if after > before
       diff += after - before
     end
-    @loog.info("#{done} judges processed (#{errors.size} errors)")
-    raise "Failed to update correctly (#{errors.size} errors)" unless errors.empty?
+    if errors.empty?
+      @loog.info("👍 #{done} judge(s) processed")
+    else
+      @loog.info("❌ #{done} judge(s) processed with #{errors.size} errors")
+      raise "Failed to update correctly (#{errors.size} errors)" unless opts['quiet']
+    end
     impex.export(fb)
     diff
   end

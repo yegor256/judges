@@ -60,6 +60,8 @@ command :update do |c|
   c.flag([:o, :option], multiple: true, arg_name: '<key=value>')
   c.desc 'Maximum number of update cycles to run'
   c.flag([:'max-cycles'], default_value: 8, type: Integer)
+  c.desc 'Stay quiet even if some judges fail'
+  c.switch([:q, :quiet], default_value: false)
   c.action do |global, options, args|
     require_relative '../lib/judges/commands/update'
     Judges::Update.new(loog).run(options, args)

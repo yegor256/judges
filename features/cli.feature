@@ -17,10 +17,10 @@ Feature: Simple Run
       n = $fb.insert
       n.kind = 'yes!'
     """
-    Then I run bin/judges with "--verbose update -o foo=1 -o bar=2 --max-cycles 3 . simple.fb"
+    Then I run bin/judges with "--verbose update --quiet -o foo=1 -o bar=2 --max-cycles 3 . simple.fb"
     Then Stdout contains "foo → "
     Then Stdout contains "bar → "
-    Then Stdout contains "1 judges processed"
+    Then Stdout contains "1 judge(s) processed"
     Then Stdout contains "Update finished in 3 cycles"
     And Exit code is zero
 
