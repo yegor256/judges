@@ -33,9 +33,9 @@ require_relative '../../lib/judges/fb/if_absent'
 class TestIfAbsent < Minitest::Test
   def test_ignores
     fb = Factbase.new
-    fb.insert.foo = 42
+    fb.insert.foo = 'hello dude'
     n = if_absent(fb) do |f|
-      f.foo = 42
+      f.foo = 'hello dude'
     end
     assert(n.nil?)
   end

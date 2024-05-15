@@ -27,7 +27,7 @@ def if_absent(fb)
   attrs = {}
   f = Judges::Accumulator.new(attrs)
   yield f
-  q = attrs.map { |k, v| "(eq #{k} #{v})" }.join(' ')
+  q = attrs.map { |k, v| "(eq #{k} '#{v}')" }.join(' ')
   return unless fb.query("(and #{q})").each.to_a.empty?
   n = fb.insert
   attrs.each { |k, v| n.send("#{k}=", v) }
