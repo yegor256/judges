@@ -88,7 +88,8 @@ desc 'Print the factbase into a human-readable format (YAML, JSON, etc.)'
 command :print do |c|
   c.desc 'Output format (xml, json, or yaml)'
   c.flag([:format], default_value: 'yaml')
-  c.switch([:auto])
+  c.desc 'Generate output name of the file automatically'
+  c.switch([:auto], default_value: false)
   c.action do |global, options, args|
     require_relative '../lib/judges/commands/print'
     Judges::Print.new(loog).run(options, args)
@@ -99,8 +100,8 @@ desc 'Run automated tests for all judges'
 command :test do |c|
   c.desc 'Name of the test pack to run'
   c.flag([:pack], multiple: true)
-  c.desc 'Fail if no judges tested?'
-  c.flag([:quiet], default_value: false)
+  c.desc 'Stay quiet even if some tests fail or simply no tests executed?'
+  c.switch([:quiet], default_value: false)
   c.action do |global, options, args|
     require_relative '../lib/judges/commands/test'
     Judges::Test.new(loog).run(options, args)
