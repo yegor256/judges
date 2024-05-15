@@ -21,14 +21,24 @@
 # SOFTWARE.
 
 require 'judges'
+require 'time'
 
 # Injects a fact if it's absent in the factbase.
 def if_absent(fb)
   attrs = {}
   f = Judges::Accumulator.new(attrs)
   yield f
-  q = attrs.map { |k, v| "(eq #{k} '#{v}')" }.join(' ')
-  return unless fb.query("(and #{q})").each.to_a.empty?
+  q = attrs.map do |k, v|
+    vv = v.to_s
+    if v.is_a?(String)
+      vv = "'#{vv.gsub('"', '\\"').gsub("'", "\\'")}'"
+    elsif v.is_a?(Time)
+      vv = v.iso8601
+    end
+    "(eq #{k} #{vv})"
+  end.join(' ')
+  q = "(and #{q})"
+  return unless fb.query(q).each.to_a.empty?
   n = fb.insert
   attrs.each { |k, v| n.send("#{k}=", v) }
   n

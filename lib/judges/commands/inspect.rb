@@ -20,41 +20,21 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'fileutils'
-require 'factbase'
 require_relative '../../judges'
 require_relative '../../judges/impex'
 
-# Update.
+# Inspect.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
-class Judges::Print
+class Judges::Inspect
   def initialize(loog)
     @loog = loog
   end
 
-  def run(opts, args)
+  def run(_opts, args)
     raise 'At lease one argument required' if args.empty?
-    o = args[1]
-    f = args[0]
-    fb = Judges::Impex.new(@loog, f).import
-    if o.nil?
-      raise 'Either provide output file name or use --auto' unless opts[:auto]
-      o = File.join(File.dirname(f), File.basename(f).gsub(/\.[^.]*$/, ''))
-      o = "#{o}.#{opts[:format]}"
-    end
-    FileUtils.mkdir_p(File.dirname(o))
-    output =
-      case opts[:format].downcase
-        when 'yaml'
-          fb.to_yaml
-        when 'json'
-          fb.to_json
-        when 'xml'
-          fb.to_xml
-      end
-    File.binwrite(o, output)
-    @loog.info("Factbase printed to #{o.to_rel} (#{File.size(o)} bytes)")
+    fb = Judges::Impex.new(@loog, args[0]).import
+    @loog.info("Facts: #{fb.size}")
   end
 end

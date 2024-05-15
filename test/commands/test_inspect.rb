@@ -20,41 +20,27 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'fileutils'
+require 'minitest/autorun'
+require 'loog'
 require 'factbase'
-require_relative '../../judges'
-require_relative '../../judges/impex'
+require_relative '../../lib/judges'
+require_relative '../../lib/judges/commands/inspect'
 
-# Update.
+# Test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
-class Judges::Print
-  def initialize(loog)
-    @loog = loog
-  end
-
-  def run(opts, args)
-    raise 'At lease one argument required' if args.empty?
-    o = args[1]
-    f = args[0]
-    fb = Judges::Impex.new(@loog, f).import
-    if o.nil?
-      raise 'Either provide output file name or use --auto' unless opts[:auto]
-      o = File.join(File.dirname(f), File.basename(f).gsub(/\.[^.]*$/, ''))
-      o = "#{o}.#{opts[:format]}"
+class TestInspect < Minitest::Test
+  def test_simple_inspect
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert
+      fb.insert
+      File.binwrite(f, fb.export)
+      loog = Loog::Buffer.new
+      Judges::Inspect.new(loog).run({}, [f])
+      assert(loog.to_s.include?('Facts: 2'))
     end
-    FileUtils.mkdir_p(File.dirname(o))
-    output =
-      case opts[:format].downcase
-        when 'yaml'
-          fb.to_yaml
-        when 'json'
-          fb.to_json
-        when 'xml'
-          fb.to_xml
-      end
-    File.binwrite(o, output)
-    @loog.info("Factbase printed to #{o.to_rel} (#{File.size(o)} bytes)")
   end
 end

@@ -23,6 +23,8 @@
 require 'minitest/autorun'
 require 'tmpdir'
 require 'factbase'
+require 'factbase/looged'
+require 'loog'
 require_relative '../../lib/judges'
 require_relative '../../lib/judges/fb/if_absent'
 
@@ -40,11 +42,55 @@ class TestIfAbsent < Minitest::Test
     assert(n.nil?)
   end
 
+  def test_ignores_with_time
+    fb = Factbase.new
+    t = Time.now
+    fb.insert.foo = t
+    n = if_absent(fb) do |f|
+      f.foo = t
+    end
+    assert(n.nil?)
+  end
+
   def test_injects
     fb = Factbase.new
     n = if_absent(fb) do |f|
       f.foo = 42
     end
     assert_equal(42, n.foo)
+  end
+
+  def test_complex_ignores
+    fb = Factbase.new
+    f1 = fb.insert
+    f1.foo = 'hello, "dude"!'
+    f1.abc = 42
+    t = Time.now
+    f1.z = t
+    f1.bar = 3.14
+    n = if_absent(fb) do |f|
+      f.foo = 'hello, "dude"!'
+      f.abc = 42
+      f.z = t
+      f.bar = 3.14
+    end
+    assert(n.nil?)
+  end
+
+  def test_complex_injects
+    fb = Factbase.new
+    f1 = fb.insert
+    f1.foo = 'hello, "dude"!'
+    f1.abc = 42
+    t = Time.now
+    f1.z = t
+    f1.bar = 3.14
+    n = if_absent(fb) do |f|
+      f.foo = 'hello, "dude"!'
+      f.abc = 42
+      f.z = t + 1
+      f.bar = 3.15
+    end
+    assert(!n.nil?)
   end
 end
