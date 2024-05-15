@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'backtrace'
+require 'factbase/looged'
 require_relative '../../judges'
 require_relative '../../judges/to_rel'
 require_relative '../../judges/packs'
@@ -42,6 +43,7 @@ class Judges::Update
     raise "The directory is absent: #{dir.to_rel}" unless File.exist?(dir)
     impex = Judges::Impex.new(@loog, args[1])
     fb = impex.import(strict: false)
+    fb = Factbase::Looged.new(fb, @loog)
     options = Judges::Options.new(opts['option'])
     @loog.debug("The following options provided:\n\t#{options.to_s.gsub("\n", "\n\t")}")
     packs = Judges::Packs.new(dir, @loog)
