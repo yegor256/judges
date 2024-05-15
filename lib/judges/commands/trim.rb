@@ -39,13 +39,12 @@ class Judges::Trim
     fb = impex.import
     days = opts['days']
     day = Time.now - (days * 60 * 60 * 24)
-    p "(lt time #{day.utc.iso8601})"
     deleted = fb.query("(lt time #{day.utc.iso8601})").delete!
     if deleted.zero?
       @loog.info('No facts deleted')
     else
       @loog.info("🗑 #{deleted} fact(s) deleted, because they were older than #{days} days")
+      impex.export(fb)
     end
-    impex.export(fb)
   end
 end
