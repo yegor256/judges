@@ -61,9 +61,9 @@ class Judges::Test
     end
     raise 'No judges tested :(' if done.zero? && !opts['quiet']
     if errors.empty?
-      @loog.info("\nAll #{done} judges tested successfully")
+      @loog.info("\n👍 All #{done} judges tested successfully")
     else
-      @loog.info("\n#{done} judges tested, #{errors.size} of them failed")
+      @loog.info("\n❌ #{done} judges tested, #{errors.size} of them failed")
       raise "#{errors.size} tests failed" unless errors.empty?
     end
   end
