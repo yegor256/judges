@@ -14,6 +14,7 @@ Feature: Simple Run
     Given I make a temp directory
     Then I have a "simple/simple_judge.rb" file with content:
     """
+      return if $fb.size > 2
       $fb.query("(eq kind 'foo')").each do |f|
         n = $fb.insert
         n.kind = 'yes!'
@@ -44,17 +45,19 @@ Feature: Simple Run
     Given I make a temp directory
     Then I have a "simple/simple_judge.rb" file with content:
     """
+      return if $fb.size > 2
       $fb.insert.time = Time.now - 100 * 60 * 60 * 24
     """
     Then I run bin/judges with "--verbose update . simple.fb"
     Given I run bin/judges with "trim --days 5 simple.fb"
-    Then Stdout contains "1 facts deleted"
+    Then Stdout contains "3 facts deleted"
     And Exit code is zero
 
   Scenario: Simple print of a small factbase
     Given I make a temp directory
     Then I have a "simple/simple_judge.rb" file with content:
     """
+      return if $fb.size > 2
       n = $fb.insert
       n.kind = 'yes!'
     """

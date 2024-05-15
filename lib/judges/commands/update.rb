@@ -44,8 +44,23 @@ class Judges::Update
     fb = impex.import(strict: false)
     options = Judges::Options.new(opts['option'])
     @loog.debug("The following options provided:\n\t#{options.to_s.gsub("\n", "\n\t")}")
+    packs = Judges::Packs.new(dir, @loog)
+    c = 0
+    loop do
+      diff = cycle(packs, fb, impex, options)
+      break if diff.zero?
+      c += 1
+      @loog.info("#{diff} modifications at the cycle ##{c}")
+    end
+    @loog.info("Update finished in #{c} cycles")
+  end
+
+  private
+
+  def cycle(packs, fb, impex, options)
     errors = []
-    done = Judges::Packs.new(dir, @loog).each_with_index do |p, i|
+    diff = 0
+    done = packs.each_with_index do |p, i|
       @loog.info("Running #{p.dir.to_rel} (##{i})...")
       before = fb.size
       begin
@@ -56,9 +71,11 @@ class Judges::Update
       end
       after = fb.size
       @loog.info("Pack #{p.dir.to_rel} added #{after - before} facts") if after > before
+      diff += after - before
     end
     @loog.info("#{done} judges processed (#{errors.size} errors)")
     raise "Failed to update correctly (#{errors.size} errors)" unless errors.empty?
     impex.export(fb)
+    diff
   end
 end
