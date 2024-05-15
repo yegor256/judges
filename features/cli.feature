@@ -14,13 +14,12 @@ Feature: Simple Run
     Given I make a temp directory
     Then I have a "simple/simple_judge.rb" file with content:
     """
-      return if $fb.size > 2
       $fb.query("(eq kind 'foo')").each do |f|
         n = $fb.insert
         n.kind = 'yes!'
       end
     """
-    Then I run bin/judges with "--verbose update -o foo=1 -o bar=2 . simple.fb"
+    Then I run bin/judges with "--verbose update -o foo=1 -o bar=2 --max-cycles 2 . simple.fb"
     Then Stdout contains "foo → "
     Then Stdout contains "bar → "
     Then Stdout contains "1 judges processed"
