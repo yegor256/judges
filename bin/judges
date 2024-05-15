@@ -29,93 +29,95 @@ require 'factbase'
 Encoding.default_external = Encoding::UTF_8
 Encoding.default_internal = Encoding::UTF_8
 
-ver = '0.0.0'
+class App
+  extend GLI::App
 
-include GLI::App
+  ver = '0.0.0'
 
-loog = Loog::REGULAR
+  loog = Loog::REGULAR
 
-program_desc('Automated executor of judges for a factbase')
+  program_desc('Automated executor of judges for a factbase')
 
-version(ver)
+  version(ver)
 
-synopsis_format(:full)
+  synopsis_format(:full)
 
-subcommand_option_handling(:normal)
+  subcommand_option_handling(:normal)
 
-desc 'Make it more verbose, logging as much as possible'
-switch([:v, :verbose])
+  desc 'Make it more verbose, logging as much as possible'
+  switch([:v, :verbose])
 
-pre do |global, command, options, args|
-  if global[:verbose]
-    loog = Loog::VERBOSE
+  pre do |global, command, options, args|
+    if global[:verbose]
+      loog = Loog::VERBOSE
+    end
+    loog.debug("judges #{ver}")
+    true
   end
-  loog.debug("judges #{ver}")
-  true
+
+  desc 'Update the factbase by passing all judges one by one'
+  command :update do |c|
+    c.desc 'Options to pass to every judge'
+    c.flag([:o, :option], multiple: true, arg_name: '<key=value>')
+    c.desc 'Maximum number of update cycles to run'
+    c.flag([:'max-cycles'], default_value: 8, type: Integer)
+    c.desc 'Stay quiet even if some judges fail'
+    c.switch([:q, :quiet], default_value: false)
+    c.action do |global, options, args|
+      require_relative '../lib/judges/commands/update'
+      Judges::Update.new(loog).run(options, args)
+    end
+  end
+
+  desc 'Join two factbases'
+  command :print do |c|
+    c.action do |global, options, args|
+      require_relative '../lib/judges/commands/join'
+      Judges::Join.new(loog).run(options, args)
+    end
+  end
+
+  desc 'Remove the facts that are too old'
+  command :trim do |c|
+    c.desc 'Remove facts that are older than X days'
+    c.flag([:days], type: Integer, default_value: 90)
+    c.action do |global, options, args|
+      require_relative '../lib/judges/commands/trim'
+      Judges::Trim.new(loog).run(options, args)
+    end
+  end
+
+  desc 'Print the factbase into a human-readable format (YAML, JSON, etc.)'
+  command :print do |c|
+    c.desc 'Output format (xml, json, or yaml)'
+    c.flag([:format], default_value: 'yaml')
+    c.desc 'Generate output name of the file automatically'
+    c.switch([:auto], default_value: false)
+    c.action do |global, options, args|
+      require_relative '../lib/judges/commands/print'
+      Judges::Print.new(loog).run(options, args)
+    end
+  end
+
+  desc 'Inspect the factbase and print all its possible meta-data'
+  command :inspect do |c|
+    c.action do |global, options, args|
+      require_relative '../lib/judges/commands/inspect'
+      Judges::Inspect.new(loog).run(options, args)
+    end
+  end
+
+  desc 'Run automated tests for all judges'
+  command :test do |c|
+    c.desc 'Name of the test pack to run'
+    c.flag([:pack], multiple: true)
+    c.desc 'Stay quiet even if some tests fail or simply no tests executed?'
+    c.switch([:quiet], default_value: false)
+    c.action do |global, options, args|
+      require_relative '../lib/judges/commands/test'
+      Judges::Test.new(loog).run(options, args)
+    end
+  end
 end
 
-desc 'Update the factbase by passing all judges one by one'
-command :update do |c|
-  c.desc 'Options to pass to every judge'
-  c.flag([:o, :option], multiple: true, arg_name: '<key=value>')
-  c.desc 'Maximum number of update cycles to run'
-  c.flag([:'max-cycles'], default_value: 8, type: Integer)
-  c.desc 'Stay quiet even if some judges fail'
-  c.switch([:q, :quiet], default_value: false)
-  c.action do |global, options, args|
-    require_relative '../lib/judges/commands/update'
-    Judges::Update.new(loog).run(options, args)
-  end
-end
-
-desc 'Join two factbases'
-command :print do |c|
-  c.action do |global, options, args|
-    require_relative '../lib/judges/commands/join'
-    Judges::Join.new(loog).run(options, args)
-  end
-end
-
-desc 'Remove the facts that are too old'
-command :trim do |c|
-  c.desc 'Remove facts that are older than X days'
-  c.flag([:days], type: Integer, default_value: 90)
-  c.action do |global, options, args|
-    require_relative '../lib/judges/commands/trim'
-    Judges::Trim.new(loog).run(options, args)
-  end
-end
-
-desc 'Print the factbase into a human-readable format (YAML, JSON, etc.)'
-command :print do |c|
-  c.desc 'Output format (xml, json, or yaml)'
-  c.flag([:format], default_value: 'yaml')
-  c.desc 'Generate output name of the file automatically'
-  c.switch([:auto], default_value: false)
-  c.action do |global, options, args|
-    require_relative '../lib/judges/commands/print'
-    Judges::Print.new(loog).run(options, args)
-  end
-end
-
-desc 'Inspect the factbase and print all its possible meta-data'
-command :inspect do |c|
-  c.action do |global, options, args|
-    require_relative '../lib/judges/commands/inspect'
-    Judges::Inspect.new(loog).run(options, args)
-  end
-end
-
-desc 'Run automated tests for all judges'
-command :test do |c|
-  c.desc 'Name of the test pack to run'
-  c.flag([:pack], multiple: true)
-  c.desc 'Stay quiet even if some tests fail or simply no tests executed?'
-  c.switch([:quiet], default_value: false)
-  c.action do |global, options, args|
-    require_relative '../lib/judges/commands/test'
-    Judges::Test.new(loog).run(options, args)
-  end
-end
-
-exit run(ARGV)
+exit App.run(ARGV)
