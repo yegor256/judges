@@ -48,7 +48,7 @@ Feature: Simple Run
     """
     Then I run bin/judges with "--verbose update . simple.fb"
     Given I run bin/judges with "trim --days 5 simple.fb"
-    Then Stdout contains "3 facts deleted"
+    Then Stdout contains "3 fact(s) deleted"
     And Exit code is zero
 
   Scenario: Simple print of a small factbase
