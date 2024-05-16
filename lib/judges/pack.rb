@@ -20,9 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'yaml'
-require 'time'
 require_relative '../judges'
+require_relative '../judges/to_rel'
 require_relative '../judges/fb/once'
 require_relative '../judges/fb/if_absent'
 
@@ -33,8 +32,9 @@ require_relative '../judges/fb/if_absent'
 class Judges::Pack
   attr_reader :dir
 
-  def initialize(dir, loog)
+  def initialize(dir, lib, loog)
     @dir = dir
+    @lib = lib
     @loog = loog
   end
 
@@ -44,6 +44,13 @@ class Judges::Pack
     $judge = File.basename(@dir)
     $options = options
     $loog = @loog
+    unless @lib.nil?
+      raise "Lib dir #{@lib.to_rel} is absent" unless File.exist?(@lib)
+      raise "Lib #{@lib.to_rel} is not a directory" unless File.directory?(@lib)
+      Dir.glob(File.join(@lib, '*.rb')).each do |f|
+        require_relative(File.absolute_path(f))
+      end
+    end
     s = File.join(@dir, script)
     raise "Can't load '#{s}'" unless File.exist?(s)
     begin
@@ -60,7 +67,9 @@ class Judges::Pack
 
   # Get the name of the .rb script in the pack.
   def script
-    File.basename(Dir.glob(File.join(@dir, '*.rb')).first)
+    s = Dir.glob(File.join(@dir, '*.rb')).first
+    raise "No *.rb scripts in #{@dir.to_rel}" if s.nil?
+    File.basename(s)
   end
 
   # Return all .yml tests files.

@@ -44,7 +44,7 @@ class Judges::Test
     @loog.info("Testing judges in #{dir.to_rel}...")
     errors = []
     done = 0
-    Judges::Packs.new(dir, @loog).each_with_index do |p, i|
+    Judges::Packs.new(dir, opts['lib'], @loog).each_with_index do |p, i|
       next unless include?(opts, p.name)
       @loog.info("\n👉 Testing #{p.script} (##{i}) in #{p.dir.to_rel}...")
       p.tests.each do |f|

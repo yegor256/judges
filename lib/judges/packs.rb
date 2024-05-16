@@ -28,8 +28,9 @@ require_relative 'pack'
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
 class Judges::Packs
-  def initialize(dir, loog)
+  def initialize(dir, lib, loog)
     @dir = dir
+    @lib = lib
     @loog = loog
   end
 
@@ -38,7 +39,7 @@ class Judges::Packs
   def each
     Dir.glob(File.join(@dir, '**/*.rb')).each do |f|
       d = File.dirname(File.absolute_path(f))
-      yield Judges::Pack.new(d, @loog)
+      yield Judges::Pack.new(d, @lib, @loog)
     end
   end
 

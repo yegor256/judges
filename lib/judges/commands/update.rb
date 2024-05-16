@@ -46,7 +46,7 @@ class Judges::Update
     fb = Factbase::Looged.new(fb, @loog)
     options = Judges::Options.new(opts['option'])
     @loog.debug("The following options provided:\n\t#{options.to_s.gsub("\n", "\n\t")}")
-    packs = Judges::Packs.new(dir, @loog)
+    packs = Judges::Packs.new(dir, opts['lib'], @loog)
     c = 0
     loop do
       c += 1
