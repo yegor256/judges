@@ -58,4 +58,12 @@ class TestUpdate < Minitest::Test
       assert(!xml.xpath('/fb/f[foo_bar="42"]').empty?)
     end
   end
+
+  def test_update_with_error
+    Dir.mktmpdir do |d|
+      File.write(File.join(d, 'foo.rb'), 'this is a broken Ruby script')
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::VERBOSE).run({ 'quiet' => true }, [d, file])
+    end
+  end
 end

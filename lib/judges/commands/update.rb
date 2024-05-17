@@ -50,7 +50,7 @@ class Judges::Update
     c = 0
     loop do
       c += 1
-      diff = cycle(packs, fb, impex, options)
+      diff = cycle(opts, packs, fb, impex, options)
       break if diff.zero?
       if !opts['max-cycles'].nil? && c >= opts['max-cycles']
         @loog.info('Too many cycles already, as set by --max-cycles, breaking')
@@ -63,7 +63,7 @@ class Judges::Update
 
   private
 
-  def cycle(packs, fb, impex, options)
+  def cycle(opts, packs, fb, impex, options)
     errors = []
     diff = 0
     global = {}
