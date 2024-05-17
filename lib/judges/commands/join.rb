@@ -39,5 +39,6 @@ class Judges::Join
     fb = master.import
     slave.import_to(fb)
     master.export(fb)
+    @loog.info('Two factbases joined')
   end
 end

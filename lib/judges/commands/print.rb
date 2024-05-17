@@ -39,6 +39,7 @@ class Judges::Print
     o = args[1]
     f = args[0]
     fb = Judges::Impex.new(@loog, f).import
+    fb.query("(not #{opts['query']})").delete! unless opts['query'].nil?
     if o.nil?
       raise 'Either provide output file name or use --auto' unless opts[:auto]
       o = File.join(File.dirname(f), File.basename(f).gsub(/\.[^.]*$/, ''))

@@ -39,3 +39,18 @@ Feature: Print
     Then I run bin/judges with "print --format=xml --auto simple.fb"
     Then Stdout contains "printed"
     And Exit code is zero
+
+  Scenario: Simple print of a small factbase, to XML, with a query
+    Given I make a temp directory
+    Then I have a "simple/simple_judge.rb" file with content:
+    """
+      return if $fb.size > 2
+      n = $fb.insert
+      n.foo = 42
+      n = $fb.insert
+      n.foo = 43
+    """
+    Then I run bin/judges with "update . simple.fb"
+    Then I run bin/judges with "print '--query=(eq foo 43)' --auto simple.fb"
+    Then Stdout contains "printed"
+    And Exit code is zero
