@@ -66,11 +66,13 @@ class Judges::Update
   def cycle(packs, fb, impex, options)
     errors = []
     diff = 0
+    global = {}
     done = packs.each_with_index do |p, i|
+      local = {}
       @loog.info("👉 Running #{p.name} (##{i}) at #{p.dir.to_rel}...")
       before = fb.size
       begin
-        p.run(fb, options)
+        p.run(fb, global, local, options)
       rescue StandardError => e
         @loog.warn(Backtrace.new(e))
         errors << p.script

@@ -44,14 +44,16 @@ class Judges::Test
     @loog.info("Testing judges in #{dir.to_rel}...")
     errors = []
     done = 0
+    global = {}
     Judges::Packs.new(dir, opts['lib'], @loog).each_with_index do |p, i|
+      local = {}
       next unless include?(opts, p.name)
       @loog.info("\n👉 Testing #{p.script} (##{i}) in #{p.dir.to_rel}...")
       p.tests.each do |f|
         yaml = YAML.load_file(f, permitted_classes: [Time])
         @loog.info("Testing #{f.to_rel}:")
         begin
-          test_one(p, yaml)
+          test_one(p, global, local, yaml)
         rescue StandardError => e
           @loog.warn(Backtrace.new(e))
           errors << f
@@ -78,7 +80,7 @@ class Judges::Test
     packs.include?(name)
   end
 
-  def test_one(pack, yaml)
+  def test_one(pack, global, local, yaml)
     fb = Factbase.new
     yaml['input'].each do |i|
       f = fb.insert
@@ -92,7 +94,7 @@ class Judges::Test
         end
       end
     end
-    pack.run(Factbase::Looged.new(fb, @loog), Judges::Options.new(yaml['options']))
+    pack.run(Factbase::Looged.new(fb, @loog), global, local, Judges::Options.new(yaml['options']))
     xml = Nokogiri::XML.parse(fb.to_xml)
     yaml['expected'].each do |xp|
       raise "#{pack.script} doesn't match '#{xp}':\n#{xml}" if xml.xpath(xp).empty?

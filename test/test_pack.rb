@@ -37,7 +37,7 @@ class TestPack < Minitest::Test
       File.write(File.join(d, 'foo.rb'), '$fb.insert')
       pack = Judges::Pack.new(d, nil, Loog::VERBOSE)
       fb = Factbase.new
-      pack.run(fb, {})
+      pack.run(fb, {}, {}, {})
       assert_equal(1, fb.size)
     end
   end
@@ -47,10 +47,10 @@ class TestPack < Minitest::Test
       File.write(File.join(d, 'bar.rb'), '$fb.insert')
       pack = Judges::Pack.new(d, nil, Loog::VERBOSE)
       fb1 = Factbase.new
-      pack.run(fb1, {})
+      pack.run(fb1, {}, {}, {})
       assert_equal(1, fb1.size)
       fb2 = Factbase.new
-      pack.run(fb2, {})
+      pack.run(fb2, {}, {}, {})
       assert_equal(1, fb2.size)
     end
   end
@@ -59,7 +59,25 @@ class TestPack < Minitest::Test
     Dir.mktmpdir do |d|
       File.write(File.join(d, 'x.rb'), 'once($fb).insert')
       pack = Judges::Pack.new(d, nil, Loog::VERBOSE)
-      pack.run(Factbase.new, {})
+      pack.run(Factbase.new, {}, {}, {})
+    end
+  end
+
+  def test_passes_local_vars_between_tests
+    Dir.mktmpdir do |d|
+      File.write(
+        File.join(d, 'x.rb'),
+        '
+        $local[:foo] = 42 if $local[:foo].nil?
+        $local[:foo] = $local[:foo] + 1
+        '
+      )
+      pack = Judges::Pack.new(d, nil, Loog::NULL)
+      local = {}
+      pack.run(Factbase.new, {}, local, {})
+      pack.run(Factbase.new, {}, local, {})
+      pack.run(Factbase.new, {}, local, {})
+      assert_equal(45, local[:foo])
     end
   end
 
@@ -70,7 +88,7 @@ class TestPack < Minitest::Test
       FileUtils.mkdir(dir)
       File.write(File.join(dir, 'foo.rb'), '$loog.info("judge=" + $judge)')
       log = Loog::Buffer.new
-      Judges::Pack.new(dir, nil, log).run(Factbase.new, {})
+      Judges::Pack.new(dir, nil, log).run(Factbase.new, {}, {}, {})
       assert(log.to_s.include?("judge=#{j}"))
     end
   end
@@ -85,7 +103,7 @@ class TestPack < Minitest::Test
       File.write(File.join(lib, 'y.rb'), '$foo = 42')
       pack = Judges::Pack.new(dir, lib, Loog::VERBOSE)
       fb = Factbase.new
-      pack.run(fb, {})
+      pack.run(fb, {}, {}, {})
       assert_equal(42, fb.query('()').each.to_a.first.bar)
     end
   end

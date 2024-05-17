@@ -39,11 +39,13 @@ class Judges::Pack
   end
 
   # Run it with the given Factbase and environment variables.
-  def run(fbase, options)
+  def run(fbase, global, local, options)
     $fb = fbase
     $judge = File.basename(@dir)
     $options = options
     $loog = @loog
+    $global = global
+    $local = local
     unless @lib.nil?
       raise "Lib dir #{@lib.to_rel} is absent" unless File.exist?(@lib)
       raise "Lib #{@lib.to_rel} is not a directory" unless File.directory?(@lib)
