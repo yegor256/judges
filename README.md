@@ -27,7 +27,7 @@ global variables available to it:
 * `$options` — a holder of options coming from `.yml` files;
 * `$local` — a hash map that is cleaned up when all tests
   in the pack are finished;
-* `$local` — a hash map that is never cleaned up;
+* `$global` — a hash map that is never cleaned up;
 * `$judge` — the name of the directory, where the `.rb` script is located.
 
 Every `.yml` file must be formatted as such:
