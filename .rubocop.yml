@@ -51,3 +51,5 @@ Layout/CaseIndentation:
   Enabled: false
 Naming/MethodParameterName:
   MinNameLength: 2
+Layout/EndOfLine:
+  EnforcedStyle: lf
