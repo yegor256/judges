@@ -57,7 +57,9 @@ class Judges::Update
         @loog.info('Too many cycles already, as set by --max-cycles, breaking')
         break
       end
-      @loog.info("#{diff} modifications at the cycle ##{c}")
+      @loog.info("By #{diff} facts the factbase \
+        #{diff.positive? ? 'increased' : 'decreased'} \
+        its size at the cycle ##{c}")
     end
     @loog.info("Update finished in #{c} cycles")
   end
