@@ -14,6 +14,41 @@
 A command line tool and a Ruby gem for running judges agains a
 [factbase](https://github.com/yegor256/factbase).
 
+Every "judge" is a directory with a single `.rb` file and a number
+of `.yml` files. A script in the Ruby file is executed with the following
+global variables available to it:
+
+* `$fb` — an instance
+  of [`Factbase`](https://www.rubydoc.info/gems/factbase/0.0.22/Factbase),
+  where facts may be added/updated;
+* `$loog` — an instance
+  of [`Loog`](https://www.rubydoc.info/gems/loog/0.5.1/Loog),
+  where `.info` and `.debug` logs are welcome;
+* `$options` — a holder of options coming from `.yml` files;
+* `$local` — a hash map that is cleaned up when all tests
+  in the pack are finished;
+* `$local` — a hash map that is never cleaned up;
+* `$judge` — the name of the directory, where the `.rb` script is located.
+
+Every `.yml` file must be formatted as such:
+
+```yaml
+input:
+  -
+    foo: 42
+    bar: Hello, world!
+options:
+  max: 100
+expected:
+  - /fb[count(f)=1]
+```
+
+Here, the `input` is an array of facts to be placed into the Factbase before
+the test starts; the `options` is a hash map of options to be passed
+via command line `--option` of the `update` command; and `expected` is
+an array of XPath expressions that must be present in the XML of the Factbase
+when the test is finished.
+
 ## How to contribute
 
 Read
