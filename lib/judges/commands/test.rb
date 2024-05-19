@@ -46,6 +46,7 @@ class Judges::Test
     errors = []
     done = 0
     global = {}
+    start = Time.now
     Judges::Packs.new(dir, opts['lib'], @loog).each_with_index do |p, i|
       local = {}
       next unless include?(opts, p.name)
@@ -62,13 +63,14 @@ class Judges::Test
       end
       done += 1
     end
+    lapse = "in #{format('%.02f', Time.now - start)}s"
     if done.zero?
       raise 'No judges tested :(' unless opts['quiet']
-      @loog.warn("\n👍 No judges tested")
+      @loog.warn("\n👍 No judges tested #{lapse}")
     elsif errors.empty?
-      @loog.info("\n👍 All #{done} judge(s) tested successfully")
+      @loog.info("\n👍 All #{done} judge(s) tested successfully #{lapse}")
     else
-      @loog.info("\n❌ #{done} judge(s) tested, #{errors.size} of them failed")
+      @loog.info("\n❌ #{done} judge(s) tested, #{errors.size} of them failed #{lapse}")
       raise "#{errors.size} tests failed" unless opts['quiet']
     end
   end

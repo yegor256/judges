@@ -12,7 +12,7 @@ Feature: Update
     Then Stdout contains "foo → "
     Then Stdout contains "bar → "
     Then Stdout contains "1 judge(s) processed"
-    Then Stdout contains "Update finished in 3 cycles"
+    Then Stdout contains "Update finished: 3 cycles"
     And Exit code is zero
 
   Scenario: Simple run of a few judges, with a lib
@@ -28,5 +28,5 @@ Feature: Update
     """
     Then I run bin/judges with "update --lib mylib --max-cycles 1 mypacks simple.fb"
     Then Stdout contains "1 judge(s) processed"
-    Then Stdout contains "Update finished in 1 cycles"
+    Then Stdout contains "Update finished: 1 cycles"
     And Exit code is zero

@@ -48,6 +48,7 @@ class Judges::Update
     @loog.debug("The following options provided:\n\t#{options.to_s.gsub("\n", "\n\t")}")
     packs = Judges::Packs.new(dir, opts['lib'], @loog)
     c = 0
+    start = Time.now
     loop do
       c += 1
       diff = cycle(opts, packs, fb, options)
@@ -63,7 +64,7 @@ class Judges::Update
         "its size at the cycle ##{c}"
       )
     end
-    @loog.info("Update finished in #{c} cycles")
+    @loog.info("Update finished: #{c} cycles in #{format('%.02f', Time.now - start)}s")
   end
 
   private
