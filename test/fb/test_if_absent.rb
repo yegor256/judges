@@ -80,13 +80,13 @@ class TestIfAbsent < Minitest::Test
   def test_complex_injects
     fb = Factbase.new
     f1 = fb.insert
-    f1.foo = 'hello, "dude"!'
+    f1.foo = 'hello, dude!'
     f1.abc = 42
     t = Time.now
     f1.z = t
     f1.bar = 3.14
     n = if_absent(fb) do |f|
-      f.foo = 'hello, "dude"!'
+      f.foo = "hello, \\\"dude\\\" \\' \\' ( \n\n ) (!"
       f.abc = 42
       f.z = t + 1
       f.bar = 3.15
