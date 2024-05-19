@@ -46,11 +46,13 @@ class Judges::Trim
     else
       raise 'Specify either --days or --query' unless opts['days'].nil?
     end
+    start = Time.now
     deleted = fb.query(query).delete!
+    lapse = "in #{format('%.02f', Time.now - start)}s"
     if deleted.zero?
-      @loog.info('No facts deleted')
+      @loog.info("No facts deleted #{lapse}")
     else
-      @loog.info("🗑 #{deleted} fact(s) deleted")
+      @loog.info("🗑 #{deleted} fact(s) deleted #{lapse}")
       impex.export(fb)
     end
   end
