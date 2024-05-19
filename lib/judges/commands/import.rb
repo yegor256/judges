@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'time'
+require 'factbase/looged'
 require_relative '../../judges'
 require_relative '../../judges/impex'
 require_relative '../../judges/to_rel'

@@ -87,6 +87,14 @@ class App
     end
   end
 
+  desc 'Import YAML into a factbase'
+  command :import do |c|
+    c.action do |global, options, args|
+      require_relative '../lib/judges/commands/import'
+      Judges::Import.new(loog).run(options, args)
+    end
+  end
+
   desc 'Remove the facts that are too old'
   command :trim do |c|
     c.desc 'Only the facts that match the expression are deleted'
