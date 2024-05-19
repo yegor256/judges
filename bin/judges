@@ -82,7 +82,7 @@ class App
   desc 'Remove the facts that are too old'
   command :trim do |c|
     c.desc 'Only the facts that match the expression are deleted'
-    c.flag([:query], default_value: '()')
+    c.flag([:query])
     c.desc 'Remove facts that are older than X days'
     c.flag([:days], type: Integer, default_value: 90)
     c.action do |global, options, args|
