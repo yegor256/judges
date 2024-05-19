@@ -15,13 +15,7 @@ Feature: Trim
 
   Scenario: Simple trimming of a factbase, with a query
     Given I make a temp directory
-    Then I have a "simple/simple_judge.rb" file with content:
-    """
-      return if $fb.size > 2
-      $fb.insert.time = Time.now - 100 * 60 * 60 * 24
-      $fb.insert.foo = 42
-    """
-    Then I run bin/judges with "--verbose update . simple.fb"
+    Then I run bin/judges with "--verbose eval simple.fb '$fb.insert.foo = 42'"
     Given I run bin/judges with "trim --query '(eq foo 42)' simple.fb"
-    Then Stdout contains "2 fact(s) deleted"
+    Then Stdout contains "1 fact(s) deleted"
     And Exit code is zero

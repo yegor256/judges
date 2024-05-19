@@ -71,6 +71,14 @@ class App
     end
   end
 
+  desc 'Evaluate a single Ruby expression on the factbase'
+  command :eval do |c|
+    c.action do |global, options, args|
+      require_relative '../lib/judges/commands/eval'
+      Judges::Eval.new(loog).run(options, args)
+    end
+  end
+
   desc 'Join two factbases'
   command :join do |c|
     c.action do |global, options, args|
