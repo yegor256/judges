@@ -35,7 +35,7 @@ class TestPack < Minitest::Test
   def test_basic_run
     Dir.mktmpdir do |d|
       File.write(File.join(d, 'foo.rb'), '$fb.insert')
-      pack = Judges::Pack.new(d, nil, Loog::VERBOSE)
+      pack = Judges::Pack.new(d, nil, Loog::NULL)
       fb = Factbase.new
       pack.run(fb, {}, {}, {})
       assert_equal(1, fb.size)
@@ -45,7 +45,7 @@ class TestPack < Minitest::Test
   def test_run_isolated
     Dir.mktmpdir do |d|
       File.write(File.join(d, 'bar.rb'), '$fb.insert')
-      pack = Judges::Pack.new(d, nil, Loog::VERBOSE)
+      pack = Judges::Pack.new(d, nil, Loog::NULL)
       fb1 = Factbase.new
       pack.run(fb1, {}, {}, {})
       assert_equal(1, fb1.size)
@@ -58,7 +58,7 @@ class TestPack < Minitest::Test
   def test_with_supplemenary_functions
     Dir.mktmpdir do |d|
       File.write(File.join(d, 'x.rb'), 'once($fb).insert')
-      pack = Judges::Pack.new(d, nil, Loog::VERBOSE)
+      pack = Judges::Pack.new(d, nil, Loog::NULL)
       pack.run(Factbase.new, {}, {}, {})
     end
   end
@@ -101,7 +101,7 @@ class TestPack < Minitest::Test
       lib = File.join(d, 'lib')
       FileUtils.mkdir_p(lib)
       File.write(File.join(lib, 'y.rb'), '$foo = 42')
-      pack = Judges::Pack.new(dir, lib, Loog::VERBOSE)
+      pack = Judges::Pack.new(dir, lib, Loog::NULL)
       fb = Factbase.new
       pack.run(fb, {}, {}, {})
       assert_equal(42, fb.query('()').each.to_a.first.bar)

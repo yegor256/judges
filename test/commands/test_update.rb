@@ -36,7 +36,7 @@ class TestUpdate < Minitest::Test
     Dir.mktmpdir do |d|
       File.write(File.join(d, 'foo.rb'), 'return if $fb.size > 2; $fb.insert.zzz = $options.foo_bar + 1')
       file = File.join(d, 'base.fb')
-      Judges::Update.new(Loog::VERBOSE).run({ 'option' => ['foo_bar=42'] }, [d, file])
+      Judges::Update.new(Loog::NULL).run({ 'option' => ['foo_bar=42'] }, [d, file])
       fb = Factbase.new
       fb.import(File.binread(file))
       xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
@@ -51,7 +51,7 @@ class TestUpdate < Minitest::Test
       fb.insert.foo_bar = 42
       File.binwrite(file, fb.export)
       File.write(File.join(d, 'foo.rb'), '$fb.insert.tt = 4')
-      Judges::Update.new(Loog::VERBOSE).run({ 'max-cycles' => 1 }, [d, file])
+      Judges::Update.new(Loog::NULL).run({ 'max-cycles' => 1 }, [d, file])
       fb = Factbase.new
       fb.import(File.binread(file))
       xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
@@ -64,7 +64,7 @@ class TestUpdate < Minitest::Test
     Dir.mktmpdir do |d|
       File.write(File.join(d, 'foo.rb'), 'this is a broken Ruby script')
       file = File.join(d, 'base.fb')
-      Judges::Update.new(Loog::VERBOSE).run({ 'quiet' => true }, [d, file])
+      Judges::Update.new(Loog::NULL).run({ 'quiet' => true }, [d, file])
     end
   end
 end

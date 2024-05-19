@@ -34,7 +34,7 @@ class TestImpex < Minitest::Test
   def test_basic
     Dir.mktmpdir do |d|
       f = File.join(d, 'foo.rb')
-      impex = Judges::Impex.new(Loog::VERBOSE, f)
+      impex = Judges::Impex.new(Loog::NULL, f)
       impex.import(strict: false)
       impex.export(Factbase.new)
     end
@@ -43,7 +43,7 @@ class TestImpex < Minitest::Test
   def test_strict_import
     Dir.mktmpdir do |d|
       f = File.join(d, 'x.rb')
-      impex = Judges::Impex.new(Loog::VERBOSE, f)
+      impex = Judges::Impex.new(Loog::NULL, f)
       impex.import(strict: false)
       impex.export(Factbase.new)
       impex.import

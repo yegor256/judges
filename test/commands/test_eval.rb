@@ -35,7 +35,7 @@ class TestEval < Minitest::Test
   def test_build_factbase_from_scratch
     Dir.mktmpdir do |d|
       file = File.join(d, 'base.fb')
-      Judges::Eval.new(Loog::VERBOSE).run({}, [file, '$fb.insert.foo = 42'])
+      Judges::Eval.new(Loog::NULL).run({}, [file, '$fb.insert.foo = 42'])
       fb = Factbase.new
       fb.import(File.binread(file))
       xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)

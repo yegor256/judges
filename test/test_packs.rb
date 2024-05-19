@@ -36,7 +36,7 @@ class TestPacks < Minitest::Test
       File.write(File.join(d, 'foo.rb'), 'hey')
       File.write(File.join(d, 'something.yml'), "---\nfoo: 42")
       found = 0
-      Judges::Packs.new(d, nil, Loog::VERBOSE).each do |p|
+      Judges::Packs.new(d, nil, Loog::NULL).each do |p|
         assert_equal('foo.rb', p.script)
         found += 1
         assert_equal('something.yml', File.basename(p.tests.first))
