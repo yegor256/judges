@@ -49,11 +49,14 @@ class Judges::Print
     output =
       case opts[:format].downcase
         when 'yaml'
-          fb.to_yaml
+          require 'factbase/to_yaml'
+          Factbase::ToYAML.new(fb).yaml
         when 'json'
-          fb.to_json
+          require 'factbase/to_json'
+          Factbase::ToJSON.new(fb).json
         when 'xml'
-          fb.to_xml
+          require 'factbase/to_xml'
+          Factbase::ToXML.new(fb).xml
       end
     File.binwrite(o, output)
     @loog.info("Factbase printed to #{o.to_rel} (#{File.size(o)} bytes)")

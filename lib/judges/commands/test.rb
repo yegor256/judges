@@ -24,6 +24,7 @@ require 'nokogiri'
 require 'factbase'
 require 'backtrace'
 require 'factbase/looged'
+require 'factbase/to_xml'
 require_relative '../../judges'
 require_relative '../../judges/to_rel'
 require_relative '../../judges/packs'
@@ -95,7 +96,7 @@ class Judges::Test
       end
     end
     pack.run(Factbase::Looged.new(fb, @loog), global, local, Judges::Options.new(yaml['options']))
-    xml = Nokogiri::XML.parse(fb.to_xml)
+    xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
     yaml['expected'].each do |xp|
       raise "#{pack.script} doesn't match '#{xp}':\n#{xml}" if xml.xpath(xp).empty?
     end

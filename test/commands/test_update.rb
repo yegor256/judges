@@ -23,6 +23,7 @@
 require 'minitest/autorun'
 require 'loog'
 require 'nokogiri'
+require 'factbase/to_xml'
 require_relative '../../lib/judges'
 require_relative '../../lib/judges/commands/update'
 
@@ -38,8 +39,8 @@ class TestUpdate < Minitest::Test
       Judges::Update.new(Loog::VERBOSE).run({ 'option' => ['foo_bar=42'] }, [d, file])
       fb = Factbase.new
       fb.import(File.binread(file))
-      xml = Nokogiri::XML.parse(fb.to_xml)
-      assert(!xml.xpath('/fb/f[zzz="43"]').empty?)
+      xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
+      assert(!xml.xpath('/fb/f[zzz="43"]').empty?, xml)
     end
   end
 
@@ -53,9 +54,9 @@ class TestUpdate < Minitest::Test
       Judges::Update.new(Loog::VERBOSE).run({ 'max-cycles' => 1 }, [d, file])
       fb = Factbase.new
       fb.import(File.binread(file))
-      xml = Nokogiri::XML.parse(fb.to_xml)
-      assert(!xml.xpath('/fb/f[tt="4"]').empty?)
-      assert(!xml.xpath('/fb/f[foo_bar="42"]').empty?)
+      xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
+      assert(!xml.xpath('/fb/f[tt="4"]').empty?, xml)
+      assert(!xml.xpath('/fb/f[foo_bar="42"]').empty?, xml)
     end
   end
 

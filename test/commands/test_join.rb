@@ -23,6 +23,7 @@
 require 'minitest/autorun'
 require 'loog'
 require 'nokogiri'
+require 'factbase/to_xml'
 require_relative '../../lib/judges'
 require_relative '../../lib/judges/commands/join'
 
@@ -44,9 +45,9 @@ class TestJoin < Minitest::Test
       Judges::Join.new(Loog::VERBOSE).run({}, [master, slave])
       fb = Factbase.new
       fb.import(File.binread(master))
-      xml = Nokogiri::XML.parse(fb.to_xml)
-      assert(!xml.xpath('/fb/f[zz="5"]').empty?, fb.to_xml)
-      assert(!xml.xpath('/fb/f[foo_bar="42"]').empty?, fb.to_xml)
+      xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
+      assert(!xml.xpath('/fb/f[zz="5"]').empty?, xml)
+      assert(!xml.xpath('/fb/f[foo_bar="42"]').empty?, xml)
     end
   end
 end
