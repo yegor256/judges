@@ -43,6 +43,8 @@ class Judges::Trim
       day = Time.now - (days * 60 * 60 * 24)
       query = "(lt time #{day.utc.iso8601})"
       @loog.info("Deleting facts that are older than #{days} days")
+    else
+      raise 'Specify either --days or --query' unless opts['days'].nil?
     end
     deleted = fb.query(query).delete!
     if deleted.zero?
