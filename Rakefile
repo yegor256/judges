@@ -69,6 +69,7 @@ end
 task :copyright do
   sh "grep -q -r '#{Date.today.strftime('%Y')}' \
     --include '*.rb' \
+    --include '*.yml' \
     --include '*.txt' \
     --include 'Rakefile' \
     ."
