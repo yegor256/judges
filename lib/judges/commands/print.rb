@@ -53,6 +53,7 @@ class Judges::Print
       end
       @loog.debug("The factbase #{f.to_rel} is younger than the target #{o.to_rel}, need to print")
     end
+    start = Time.now
     output =
       case opts[:format].downcase
         when 'yaml'
@@ -66,6 +67,6 @@ class Judges::Print
           Factbase::ToXML.new(fb).xml
       end
     File.binwrite(o, output)
-    @loog.info("Factbase printed to #{o.to_rel} (#{File.size(o)} bytes)")
+    @loog.info("Factbase printed to #{o.to_rel} (#{File.size(o)} bytes) in #{format('%.02f', Time.now - start)}s")
   end
 end

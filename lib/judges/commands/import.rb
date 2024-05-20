@@ -40,6 +40,7 @@ class Judges::Import
     raise "File not found #{args[0].to_rel}" unless File.exist?(args[0])
     start = Time.now
     yaml = YAML.load_file(args[0], permitted_classes: [Time])
+    @loog.info("YAML loaded from #{args[0].to_rel} (#{yaml.size} facts)")
     impex = Judges::Impex.new(@loog, args[1])
     fb = impex.import(strict: false)
     fb = Factbase::Looged.new(fb, @loog)
