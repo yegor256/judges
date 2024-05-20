@@ -115,6 +115,8 @@ class App
     c.switch([:auto], default_value: false)
     c.desc 'Only the facts that match the expression are printed'
     c.flag([:query], default_value: '()')
+    c.desc 'Print even if target file already exists and is older than the factbase'
+    c.switch([:force], default_value: false)
     c.action do |global, options, args|
       require_relative '../lib/judges/commands/print'
       Judges::Print.new(loog).run(options, args)

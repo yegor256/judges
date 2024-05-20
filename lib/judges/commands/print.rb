@@ -36,16 +36,23 @@ class Judges::Print
 
   def run(opts, args)
     raise 'At lease one argument required' if args.empty?
-    o = args[1]
     f = args[0]
     fb = Judges::Impex.new(@loog, f).import
     fb.query("(not #{opts['query']})").delete! unless opts['query'].nil?
+    o = args[1]
     if o.nil?
       raise 'Either provide output file name or use --auto' unless opts[:auto]
       o = File.join(File.dirname(f), File.basename(f).gsub(/\.[^.]*$/, ''))
       o = "#{o}.#{opts[:format]}"
     end
     FileUtils.mkdir_p(File.dirname(o))
+    if !opts['force'] && File.exist?(o)
+      if File.mtime(f) < File.mtime(o)
+        @loog.info("No need to print to #{o.to_rel}, since it's up to date (#{File.size(o)} bytes)")
+        return
+      end
+      @loog.debug("The factbase #{f.to_rel} is younger than the target #{o.to_rel}, need to print")
+    end
     output =
       case opts[:format].downcase
         when 'yaml'

@@ -44,4 +44,19 @@ class TestPrint < Minitest::Test
       assert_equal(1, YAML.load_file(y)['facts'].size)
     end
   end
+
+  def test_print_twice
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert
+      File.binwrite(f, fb.export)
+      Judges::Print.new(Loog::NULL).run({ format: 'yaml', auto: true }, [f])
+      y = File.join(d, 'base.yaml')
+      assert(File.exist?(y))
+      mtime = File.mtime(y)
+      Judges::Print.new(Loog::NULL).run({ format: 'yaml', auto: true }, [f])
+      assert_equal(mtime, File.mtime(y))
+    end
+  end
 end
