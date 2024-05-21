@@ -90,7 +90,7 @@ class Judges::Update
           errors << p.script
         end
         after = fb.size
-        @loog.info("👍 Pack #{p.dir.to_rel} added #{after - before} facts") if after > before
+        @loog.info("👍 The judge #{p.dir.to_rel} added #{after - before} facts") if after > before
         diff += after - before
       end
       throw :"👍 #{done} judge(s) processed" if errors.empty?
