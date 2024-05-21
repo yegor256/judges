@@ -29,6 +29,7 @@ require_relative '../../judges'
 require_relative '../../judges/to_rel'
 require_relative '../../judges/packs'
 require_relative '../../judges/options'
+require_relative '../../judges/elapsed'
 
 # Test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -46,33 +47,29 @@ class Judges::Test
     errors = []
     done = 0
     global = {}
-    start = Time.now
-    Judges::Packs.new(dir, opts['lib'], @loog).each_with_index do |p, i|
-      local = {}
-      next unless include?(opts, p.name)
-      @loog.info("\n👉 Testing #{p.script} (##{i}) in #{p.dir.to_rel}...")
-      p.tests.each do |f|
-        yaml = YAML.load_file(f, permitted_classes: [Time])
-        @loog.info("Testing #{f.to_rel}:")
-        begin
-          test_one(p, global, local, yaml)
-        rescue StandardError => e
-          @loog.warn(Backtrace.new(e))
-          errors << f
+    elapsed(@loog) do
+      Judges::Packs.new(dir, opts['lib'], @loog).each_with_index do |p, i|
+        local = {}
+        next unless include?(opts, p.name)
+        @loog.info("\n👉 Testing #{p.script} (##{i}) in #{p.dir.to_rel}...")
+        p.tests.each do |f|
+          yaml = YAML.load_file(f, permitted_classes: [Time])
+          @loog.info("Testing #{f.to_rel}:")
+          begin
+            test_one(p, global, local, yaml)
+          rescue StandardError => e
+            @loog.warn(Backtrace.new(e))
+            errors << f
+          end
         end
+        done += 1
       end
-      done += 1
+      throw :'👍 No judges tested' if done.zero?
+      throw :"👍 All #{done} judge(s) tested successfully" if errors.empty?
+      throw :"❌ #{done} judge(s) tested, #{errors.size} of them failed"
     end
-    lapse = "in #{format('%.02f', Time.now - start)}s"
-    if done.zero?
-      raise 'No judges tested :(' unless opts['quiet']
-      @loog.warn("\n👍 No judges tested #{lapse}")
-    elsif errors.empty?
-      @loog.info("\n👍 All #{done} judge(s) tested successfully #{lapse}")
-    else
-      @loog.info("\n❌ #{done} judge(s) tested, #{errors.size} of them failed #{lapse}")
-      raise "#{errors.size} tests failed" unless opts['quiet']
-    end
+    raise "#{errors.size} tests failed" unless opts['quiet'] || errors.empty?
+    raise 'No judges tested :(' unless opts['quiet'] || !done.zero?
   end
 
   private

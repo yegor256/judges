@@ -20,38 +20,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'time'
-require_relative '../../judges'
-require_relative '../../judges/impex'
-require_relative '../../judges/elapsed'
-
-# Trim.
-# Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2024 Yegor Bugayenko
-# License:: MIT
-class Judges::Trim
-  def initialize(loog)
-    @loog = loog
-  end
-
-  def run(opts, args)
-    raise 'Exactly one argument required' unless args.size == 1
-    impex = Judges::Impex.new(@loog, args[0])
-    fb = impex.import
-    query = opts['query']
-    if query.nil?
-      days = opts['days']
-      day = Time.now - (days * 60 * 60 * 24)
-      query = "(lt time #{day.utc.iso8601})"
-      @loog.info("Deleting facts that are older than #{days} days")
-    else
-      raise 'Specify either --days or --query' unless opts['days'].nil?
-    end
-    elapsed(@loog) do
-      deleted = fb.query(query).delete!
-      throw :'No facts deleted' if deleted.zero?
-      impex.export(fb)
-      throw :"🗑 #{deleted} fact(s) deleted"
-    end
+def elapsed(loog)
+  start = Time.now
+  begin
+    yield
+  rescue UncaughtThrowError => e
+    tag = e.tag
+    throw e unless tag.is_a?(Symbol)
+    loog.info("#{tag} in #{format('%.02f', Time.now - start)}s")
   end
 end

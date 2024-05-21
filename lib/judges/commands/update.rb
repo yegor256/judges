@@ -27,6 +27,7 @@ require_relative '../../judges/to_rel'
 require_relative '../../judges/packs'
 require_relative '../../judges/options'
 require_relative '../../judges/impex'
+require_relative '../../judges/elapsed'
 
 # Update.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -48,23 +49,24 @@ class Judges::Update
     @loog.debug("The following options provided:\n\t#{options.to_s.gsub("\n", "\n\t")}")
     packs = Judges::Packs.new(dir, opts['lib'], @loog)
     c = 0
-    start = Time.now
-    loop do
-      c += 1
-      diff = cycle(opts, packs, fb, options)
-      impex.export(fb)
-      break if diff.zero?
-      if !opts['max-cycles'].nil? && c >= opts['max-cycles']
-        @loog.info('Too many cycles already, as set by --max-cycles, breaking')
-        break
+    elapsed(@loog) do
+      loop do
+        c += 1
+        diff = cycle(opts, packs, fb, options)
+        impex.export(fb)
+        break if diff.zero?
+        if !opts['max-cycles'].nil? && c >= opts['max-cycles']
+          @loog.info('Too many cycles already, as set by --max-cycles, breaking')
+          break
+        end
+        @loog.info(
+          "By #{diff} facts the factbase " \
+          "#{diff.positive? ? 'increased' : 'decreased'} " \
+          "its size at the cycle ##{c}"
+        )
       end
-      @loog.info(
-        "By #{diff} facts the factbase " \
-        "#{diff.positive? ? 'increased' : 'decreased'} " \
-        "its size at the cycle ##{c}"
-      )
+      throw :"Update finished: #{c} cycles"
     end
-    @loog.info("Update finished: #{c} cycles in #{format('%.02f', Time.now - start)}s")
   end
 
   private
@@ -73,26 +75,25 @@ class Judges::Update
     errors = []
     diff = 0
     global = {}
-    done = packs.each_with_index do |p, i|
-      local = {}
-      @loog.info("👉 Running #{p.name} (##{i}) at #{p.dir.to_rel}...")
-      before = fb.size
-      begin
-        p.run(fb, global, local, options)
-      rescue StandardError => e
-        @loog.warn(Backtrace.new(e))
-        errors << p.script
+    elapsed(@loog) do
+      done = packs.each_with_index do |p, i|
+        local = {}
+        @loog.info("👉 Running #{p.name} (##{i}) at #{p.dir.to_rel}...")
+        before = fb.size
+        begin
+          p.run(fb, global, local, options)
+        rescue StandardError => e
+          @loog.warn(Backtrace.new(e))
+          errors << p.script
+        end
+        after = fb.size
+        @loog.info("👍 Pack #{p.dir.to_rel} added #{after - before} facts") if after > before
+        diff += after - before
       end
-      after = fb.size
-      @loog.info("👍 Pack #{p.dir.to_rel} added #{after - before} facts") if after > before
-      diff += after - before
+      throw :"👍 #{done} judge(s) processed" if errors.empty?
+      throw :"❌ #{done} judge(s) processed with #{errors.size} errors"
     end
-    if errors.empty?
-      @loog.info("👍 #{done} judge(s) processed")
-    else
-      @loog.info("❌ #{done} judge(s) processed with #{errors.size} errors")
-      raise "Failed to update correctly (#{errors.size} errors)" unless opts['quiet']
-    end
+    raise "Failed to update correctly (#{errors.size} errors)" unless errors.empty? || opts['quiet']
     diff
   end
 end

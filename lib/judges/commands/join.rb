@@ -22,6 +22,7 @@
 
 require_relative '../../judges'
 require_relative '../../judges/impex'
+require_relative '../../judges/elapsed'
 
 # Join.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -36,9 +37,11 @@ class Judges::Join
     raise 'Exactly two arguments required' unless args.size == 2
     master = Judges::Impex.new(@loog, args[0])
     slave = Judges::Impex.new(@loog, args[1])
-    fb = master.import
-    slave.import_to(fb)
-    master.export(fb)
-    @loog.info('Two factbases joined')
+    elapsed(@loog) do
+      fb = master.import
+      slave.import_to(fb)
+      master.export(fb)
+      throw :'Two factbases joined'
+    end
   end
 end

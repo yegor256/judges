@@ -25,6 +25,7 @@ require 'factbase/looged'
 require_relative '../../judges'
 require_relative '../../judges/impex'
 require_relative '../../judges/to_rel'
+require_relative '../../judges/elapsed'
 
 # Import.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -38,19 +39,20 @@ class Judges::Import
   def run(_opts, args)
     raise 'Exactly two arguments required' unless args.size == 2
     raise "File not found #{args[0].to_rel}" unless File.exist?(args[0])
-    start = Time.now
-    yaml = YAML.load_file(args[0], permitted_classes: [Time])
-    @loog.info("YAML loaded from #{args[0].to_rel} (#{yaml.size} facts)")
-    impex = Judges::Impex.new(@loog, args[1])
-    fb = impex.import(strict: false)
-    fb = Factbase::Looged.new(fb, @loog)
-    yaml.each do |i|
-      f = fb.insert
-      i.each do |p, v|
-        f.send("#{p}=", v)
+    elapsed(@loog) do
+      yaml = YAML.load_file(args[0], permitted_classes: [Time])
+      @loog.info("YAML loaded from #{args[0].to_rel} (#{yaml.size} facts)")
+      impex = Judges::Impex.new(@loog, args[1])
+      fb = impex.import(strict: false)
+      fb = Factbase::Looged.new(fb, @loog)
+      yaml.each do |i|
+        f = fb.insert
+        i.each do |p, v|
+          f.send("#{p}=", v)
+        end
       end
+      impex.export(fb)
+      throw :"Import of #{yaml.size} facts finished"
     end
-    impex.export(fb)
-    @loog.info("Import finished in #{format('%.02f', Time.now - start)}s")
   end
 end

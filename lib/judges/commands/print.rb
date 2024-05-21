@@ -24,6 +24,7 @@ require 'fileutils'
 require 'factbase'
 require_relative '../../judges'
 require_relative '../../judges/impex'
+require_relative '../../judges/elapsed'
 
 # Update.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -53,20 +54,21 @@ class Judges::Print
       end
       @loog.debug("The factbase #{f.to_rel} is younger than the target #{o.to_rel}, need to print")
     end
-    start = Time.now
-    output =
-      case opts[:format].downcase
-        when 'yaml'
-          require 'factbase/to_yaml'
-          Factbase::ToYAML.new(fb).yaml
-        when 'json'
-          require 'factbase/to_json'
-          Factbase::ToJSON.new(fb).json
-        when 'xml'
-          require 'factbase/to_xml'
-          Factbase::ToXML.new(fb).xml
-      end
-    File.binwrite(o, output)
-    @loog.info("Factbase printed to #{o.to_rel} (#{File.size(o)} bytes) in #{format('%.02f', Time.now - start)}s")
+    elapsed(@loog) do
+      output =
+        case opts[:format].downcase
+          when 'yaml'
+            require 'factbase/to_yaml'
+            Factbase::ToYAML.new(fb).yaml
+          when 'json'
+            require 'factbase/to_json'
+            Factbase::ToJSON.new(fb).json
+          when 'xml'
+            require 'factbase/to_xml'
+            Factbase::ToXML.new(fb).xml
+        end
+      File.binwrite(o, output)
+      throw :"Factbase printed to #{o.to_rel} (#{File.size(o)} bytes)"
+    end
   end
 end
