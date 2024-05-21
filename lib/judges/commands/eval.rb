@@ -20,13 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'backtrace'
 require 'factbase/looged'
 require_relative '../../judges'
-require_relative '../../judges/to_rel'
-require_relative '../../judges/packs'
-require_relative '../../judges/options'
 require_relative '../../judges/impex'
+require_relative '../../judges/elapsed'
 
 # Eval.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -40,12 +37,15 @@ class Judges::Eval
   def run(_opts, args)
     raise 'Exactly two arguments required' unless args.size == 2
     impex = Judges::Impex.new(@loog, args[0])
-    $fb = impex.import(strict: false)
-    $fb = Factbase::Looged.new($fb, @loog)
-    expr = args[1]
-    # rubocop:disable Security/Eval
-    eval(expr)
-    # rubocop:enable Security/Eval
-    impex.export($fb)
+    elapsed(@loog) do
+      $fb = impex.import(strict: false)
+      $fb = Factbase::Looged.new($fb, @loog)
+      expr = args[1]
+      # rubocop:disable Security/Eval
+      eval(expr)
+      # rubocop:enable Security/Eval
+      impex.export($fb)
+      throw :'Evaluated successfully'
+    end
   end
 end
