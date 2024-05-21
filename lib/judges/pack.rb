@@ -22,6 +22,7 @@
 
 require_relative '../judges'
 require_relative '../judges/to_rel'
+require_relative '../judges/elapsed'
 require_relative '../judges/fb/once'
 require_relative '../judges/fb/if_absent'
 
@@ -55,10 +56,13 @@ class Judges::Pack
     end
     s = File.join(@dir, script)
     raise "Can't load '#{s}'" unless File.exist?(s)
-    begin
-      load(s, true)
-    ensure
-      $fb = $judge = $options = $loog = nil
+    elapsed(@loog) do
+      begin
+        load(s, true)
+        throw :"#{name} finished"
+      ensure
+        $fb = $judge = $options = $loog = nil
+      end
     end
   end
 
