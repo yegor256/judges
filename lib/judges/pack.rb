@@ -57,12 +57,10 @@ class Judges::Pack
     s = File.join(@dir, script)
     raise "Can't load '#{s}'" unless File.exist?(s)
     elapsed(@loog) do
-      begin
-        load(s, true)
-        throw :"#{name} finished"
-      ensure
-        $fb = $judge = $options = $loog = nil
-      end
+      load(s, true)
+      throw :"#{name} finished"
+    ensure
+      $fb = $judge = $options = $loog = nil
     end
   end
 

@@ -13,5 +13,5 @@ Feature: Import
       z: 3.14
     """
     Then I run bin/judges with "--verbose import simple.yaml simple.fb"
-    Then Stdout contains "Import finished"
+    Then Stdout contains "Import of 2 facts finished"
     And Exit code is zero
