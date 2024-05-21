@@ -52,6 +52,7 @@ class Judges::Update
     elapsed(@loog) do
       loop do
         c += 1
+        @loog.info("\n\nStarting cycle ##{c}...") if c > 1
         diff = cycle(opts, packs, fb, options)
         impex.export(fb)
         break if diff.zero?
