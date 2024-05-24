@@ -33,7 +33,7 @@ jobs:
       - uses: actions/checkout@v4
       - shell: bash
         run: |
-          header="Copyright (c) $(date +%Y) Zerocracy"
+          header="Copyright (c) $(date +%Y) Yegor Bugayenko"
           failed="false"
           while IFS= read -r file; do
             if ! grep -q "${header}" "${file}"; then
