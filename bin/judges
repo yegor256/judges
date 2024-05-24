@@ -32,7 +32,7 @@ Encoding.default_internal = Encoding::UTF_8
 class App
   extend GLI::App
 
-  ver = '0.0.0'
+  ver = '0.0.32'
 
   loog = Loog::REGULAR
 
