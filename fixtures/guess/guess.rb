@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Copyright (c) 2024 Yegor Bugayenko
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -17,18 +19,10 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
----
-input:
-  -
-    kind: bug was accepted
-    reporter: yegor256
-    time: 2024-01-01T03:15:45
-    seen:
-      - one
-      - two
-      - three
-expected:
-  - /fb[count(f)=2]
-  - /fb/f[kind='nominate for good bug']
-  - /fb/f[payee='yegor256']
-  - /fb/f[amount='15']
+
+$loog.info("Trying to guess a number (judge=#{$judge})...")
+$fb.txn do |fbt|
+  n = fbt.insert
+  n.number = Random.rand(100)
+  n.time = Time.now
+end

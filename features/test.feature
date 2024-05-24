@@ -8,7 +8,7 @@ Feature: Test
     And Exit code is zero
 
   Scenario: Simple test of just one pack
-    Given I run bin/judges with "test --pack reward_for_good_bug ./fixtures"
+    Given I run bin/judges with "test --pack guess ./fixtures"
     Then Stdout contains "judge(s) tested successfully"
     And Exit code is zero
 
