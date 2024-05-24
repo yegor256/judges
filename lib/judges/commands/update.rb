@@ -85,7 +85,7 @@ class Judges::Update
         before = fb.size
         begin
           p.run(fb, global, local, options)
-        rescue StandardError => e
+        rescue StandardError, SyntaxError => e
           @loog.warn(Backtrace.new(e))
           errors << p.script
         end
@@ -96,7 +96,10 @@ class Judges::Update
       throw :"👍 #{done} judge(s) processed" if errors.empty?
       throw :"❌ #{done} judge(s) processed with #{errors.size} errors"
     end
-    raise "Failed to update correctly (#{errors.size} errors)" unless errors.empty? || opts['quiet']
+    unless errors.empty?
+      raise "Failed to update correctly (#{errors.size} errors)" unless opts['quiet']
+      @loog.info('Not failing because of the --quiet flag provided')
+    end
     diff
   end
 end

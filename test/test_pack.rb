@@ -107,4 +107,28 @@ class TestPack < Minitest::Test
       assert_equal(42, fb.query('()').each.to_a.first.bar)
     end
   end
+
+  def test_with_broken_ruby_syntax
+    assert_raises do
+      Dir.mktmpdir do |d|
+        dir = File.join(d, 'packs')
+        FileUtils.mkdir_p(dir)
+        File.write(File.join(dir, 'x.rb'), 'this$is$broken$syntax')
+        pack = Judges::Pack.new(dir, lib, Loog::NULL)
+        pack.run(Factbase.new, {}, {}, {})
+      end
+    end
+  end
+
+  def test_with_runtime_ruby_error
+    assert_raises do
+      Dir.mktmpdir do |d|
+        dir = File.join(d, 'packs')
+        FileUtils.mkdir_p(dir)
+        File.write(File.join(dir, 'x.rb'), 'a < 1')
+        pack = Judges::Pack.new(dir, lib, Loog::NULL)
+        pack.run(Factbase.new, {}, {}, {})
+      end
+    end
+  end
 end

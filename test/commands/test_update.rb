@@ -62,9 +62,19 @@ class TestUpdate < Minitest::Test
 
   def test_update_with_error
     Dir.mktmpdir do |d|
-      File.write(File.join(d, 'foo.rb'), 'this is a broken Ruby script')
+      File.write(File.join(d, 'foo.rb'), 'this$is$a$broken$Ruby$script')
       file = File.join(d, 'base.fb')
       Judges::Update.new(Loog::NULL).run({ 'quiet' => true }, [d, file])
+    end
+  end
+
+  def test_update_with_error_no_quiet
+    assert_raises do
+      Dir.mktmpdir do |d|
+        File.write(File.join(d, 'foo.rb'), 'a < 1')
+        file = File.join(d, 'base.fb')
+        Judges::Update.new(Loog::NULL).run({ 'quiet' => false }, [d, file])
+      end
     end
   end
 end
