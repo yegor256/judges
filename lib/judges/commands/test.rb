@@ -52,6 +52,10 @@ class Judges::Test
         @loog.info("\n👉 Testing #{p.script} (##{i}) in #{p.dir.to_rel}...")
         p.tests.each do |f|
           yaml = YAML.load_file(f, permitted_classes: [Time])
+          if yaml['skip']
+            @loog.info("Skippped #{f.to_rel}")
+            next
+          end
           @loog.info("Testing #{f.to_rel}:")
           begin
             test_one(p, yaml)
