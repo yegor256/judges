@@ -45,7 +45,8 @@ class Judges::Test
     dir = args[0]
     @loog.info("Testing judges in #{dir.to_rel}...")
     errors = []
-    done = 0
+    packs = 0
+    tests = 0
     elapsed(@loog) do
       Judges::Packs.new(dir, opts['lib'], @loog).each_with_index do |p, i|
         next unless include?(opts, p.name)
@@ -59,19 +60,25 @@ class Judges::Test
           @loog.info("Testing #{f.to_rel}:")
           begin
             test_one(p, yaml)
+            tests += 1
           rescue StandardError => e
             @loog.warn(Backtrace.new(e))
             errors << f
           end
         end
-        done += 1
+        packs += 1
       end
-      throw :'👍 No judges tested' if done.zero?
-      throw :"👍 All #{done} judge(s) tested successfully" if errors.empty?
-      throw :"❌ #{done} judge(s) tested, #{errors.size} of them failed"
+      throw :'👍 No judges tested' if packs.zero?
+      throw :"👍 All #{packs} judge(s) and #{tests} tests passed" if errors.empty?
+      throw :"❌ #{packs} judge(s) tested, #{errors.size} of them failed"
     end
-    raise "#{errors.size} tests failed" unless opts['quiet'] || errors.empty?
-    raise 'No judges tested :(' unless opts['quiet'] || !done.zero?
+    unless errors.empty?
+      raise "#{errors.size} tests failed" unless opts['quiet']
+      @loog.debug('Not failing the build with tests failures, due to the --quiet option')
+    end
+    return unless packs.zero?
+    raise 'No judges tested :(' unless opts['quiet']
+    @loog.debug('Not failing the build with no judges tested, due to the --quiet option')
   end
 
   private

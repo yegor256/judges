@@ -4,12 +4,12 @@ Feature: Test
   Scenario: Simple test of a few judges
     Given I run bin/judges with "test ./fixtures"
     Then Stdout contains "👉 Testing"
-    Then Stdout contains "judge(s) tested successfully"
+    Then Stdout contains "All 2 judge(s) and 2 tests passed"
     And Exit code is zero
 
   Scenario: Simple test of just one pack
     Given I run bin/judges with "test --pack guess ./fixtures"
-    Then Stdout contains "judge(s) tested successfully"
+    Then Stdout contains "All 1 judge(s) and 1 tests passed"
     And Exit code is zero
 
   Scenario: Simple test of no packs
@@ -28,5 +28,5 @@ Feature: Test
       $foo = 42
     """
     Then I run bin/judges with "test --lib mylib mypacks"
-    Then Stdout contains "All 1 judge(s) tested successfully"
+    Then Stdout contains "All 1 judge(s) and 0 tests passed"
     And Exit code is zero
