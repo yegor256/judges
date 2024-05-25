@@ -66,9 +66,9 @@ class TestChain < Minitest::Test
     f1.foo = 42
     f2 = fb.insert
     f2.bar = 55
-    chain(fb, '(exists foo)', '(exists bar)', judge: 'x') do |fs|
-      assert_equal(42, fs[0].foo)
-      assert_equal(55, fs[1].bar)
+    chain(fb, '(exists foo)', '(exists bar)', judge: 'x') do |a, b|
+      assert_equal(42, a.foo)
+      assert_equal(55, b.bar)
     end
   end
 
