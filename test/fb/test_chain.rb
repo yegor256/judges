@@ -60,4 +60,30 @@ class TestChain < Minitest::Test
       assert_equal(55, fs[1].bar)
     end
   end
+
+  def test_with_modifications
+    fb = Factbase.new
+    f1 = fb.insert
+    f1.foo = 42
+    chain(fb, '(exists foo)', judge: 'xx').each do |fs|
+      fs[0].bar = 1
+    end
+    assert_equal(1, fb.query('(exists bar)').each.to_a.size)
+  end
+
+  def test_with_txn
+    fb = Factbase.new
+    f1 = fb.insert
+    f1.foo = 42
+    chain(fb, '(exists foo)', judge: 'xx').each do |fs|
+      fb.txn do |fbt|
+        f = fbt.insert
+        f.bar = 1
+      end
+      fs[0].xyz = 'hey'
+    end
+    assert_equal(1, fb.query('(exists seen)').each.to_a.size)
+    assert_equal(1, fb.query('(exists bar)').each.to_a.size)
+    assert_equal(1, fb.query('(exists xyz)').each.to_a.size)
+  end
 end
