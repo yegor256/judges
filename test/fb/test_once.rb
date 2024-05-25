@@ -21,7 +21,6 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
-require 'tmpdir'
 require 'factbase'
 require_relative '../../lib/judges'
 require_relative '../../lib/judges/fb/once'
@@ -32,9 +31,58 @@ require_relative '../../lib/judges/fb/once'
 # License:: MIT
 class TestOnce < Minitest::Test
   def test_touch_once
-    fb = once(Factbase.new, judge: 'something')
+    fb = Factbase.new
     fb.insert
-    assert(!fb.query('(always)').each.to_a.empty?)
-    assert(fb.query('(always)').each.to_a.empty?)
+    assert(!each_once(fb, '(always)', judge: 'something').to_a.empty?)
+    assert(each_once(fb, '(always)', judge: 'something').to_a.empty?)
+  end
+
+  def test_seen_property
+    fb = Factbase.new
+    f1 = fb.insert
+    f1.foo = 42
+    assert_equal(1, each_tuple_once(fb, '(eq foo 42)', judge: 'x').to_a.size)
+    assert(each_tuple_once(fb, '(eq foo 42)', judge: 'x').to_a.empty?)
+  end
+
+  def test_seen_all_or_nothing
+    fb = Factbase.new
+    f1 = fb.insert
+    f1.a = 1
+    assert(each_tuple_once(fb, '(exists a)', '(exists b)', judge: 'x').to_a.empty?)
+    f2 = fb.insert
+    f2.b = 1
+    assert(!each_tuple_once(fb, '(exists a)', '(exists b)', judge: 'x').to_a.empty?)
+    assert(each_tuple_once(fb, '(exists a)', '(exists b)', judge: 'x').to_a.empty?)
+  end
+
+  def test_with_txn
+    fb = Factbase.new
+    f1 = fb.insert
+    f1.foo = 42
+    each_tuple_once(fb, '(exists foo)', judge: 'xx') do |fs|
+      fb.txn do |fbt|
+        f = fbt.insert
+        f.bar = 1
+      end
+      fs[0].xyz = 'hey'
+    end
+    assert_equal(1, fb.query('(exists seen)').each.to_a.size)
+    assert_equal(1, fb.query('(exists bar)').each.to_a.size)
+    assert_equal(1, fb.query('(exists xyz)').each.to_a.size)
+  end
+
+  def test_with_chain_txn
+    fb = Factbase.new
+    f1 = fb.insert
+    f1.foo = 42
+    each_tuple_once_txn(fb, '(exists foo)', judge: 'xx') do |fbt, ff|
+      f = fbt.insert
+      f.bar = 1
+      ff.xyz = 'hey'
+    end
+    assert_equal(1, fb.query('(exists seen)').each.to_a.size)
+    assert_equal(1, fb.query('(exists bar)').each.to_a.size)
+    assert_equal(1, fb.query('(exists xyz)').each.to_a.size)
   end
 end

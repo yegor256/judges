@@ -21,44 +21,34 @@
 # SOFTWARE.
 
 require 'judges'
+require 'factbase/tuples'
 
-# Returns a decorated global factbase, which only touches facts once
-def once(fb, judge: $judge)
-  Judges::Once.new(fb, judge)
+# Returns a decorated global factbase, which only touches facts once.
+def each_once(fb, query, judge: $judge)
+  return to_enum(__method__, fb, query, judge:) unless block_given?
+  q = "(and #{query} (not (eq seen '#{judge}')))"
+  fb.query(q).each do |f|
+    yield f
+    f.seen = judge
+  end
 end
 
-# Runs only once.
-# Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2024 Yegor Bugayenko
-# License:: MIT
-class Judges::Once
-  def initialize(fb, func)
-    @fb = fb
-    @func = func
-  end
-
-  def query(expr)
-    expr = "(and #{expr} (not (eq seen '#{@func}')))"
-    After.new(@fb.query(expr), @func)
-  end
-
-  def insert
-    @fb.insert
-  end
-
-  # What happens after a fact is processed.
-  class After
-    def initialize(query, func)
-      @query = query
-      @func = func
+# Returns a decorated global factbase, which only touches a tuple once.
+def each_tuple_once(fb, *queries, judge: $judge)
+  return to_enum(__method__, fb, *queries, judge:) unless block_given?
+  qq = queries.map { |q| "(and #{q} (not (eq seen '#{judge}')))" }
+  Factbase::Tuples.new(fb, qq).each do |fs|
+    yield fs
+    fs.each do |f|
+      f.seen = judge
     end
+  end
+end
 
-    def each
-      return to_enum(__method__) unless block_given?
-      @query.each do |f|
-        yield f
-        f.seen = @func
-      end
+def each_tuple_once_txn(fb, *queries, judge: $judge)
+  fb.txn do |fbt|
+    each_tuple_once(fb, *queries, judge:) do |fs|
+      yield [fbt] + fs
     end
   end
 end

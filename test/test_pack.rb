@@ -57,7 +57,7 @@ class TestPack < Minitest::Test
 
   def test_with_supplemenary_functions
     Dir.mktmpdir do |d|
-      File.write(File.join(d, 'x.rb'), 'once($fb).insert')
+      File.write(File.join(d, 'x.rb'), 'each_once($fb, "(always)").to_a')
       pack = Judges::Pack.new(d, nil, Loog::NULL)
       pack.run(Factbase.new, {}, {}, {})
     end
@@ -97,7 +97,7 @@ class TestPack < Minitest::Test
     Dir.mktmpdir do |d|
       dir = File.join(d, 'packs')
       FileUtils.mkdir_p(dir)
-      File.write(File.join(dir, 'x.rb'), 'once($fb).insert.bar = $foo')
+      File.write(File.join(dir, 'x.rb'), '$fb.insert.bar = $foo; each_once($fb, "(always)").to_a')
       lib = File.join(d, 'lib')
       FileUtils.mkdir_p(lib)
       File.write(File.join(lib, 'y.rb'), '$foo = 42')

@@ -29,11 +29,11 @@ Gem::Specification.new do |s|
   s.version = '0.0.0'
   s.license = 'MIT'
   s.summary = 'Command-Line Tool for a Factbase'
-  s.description = '
-  Runs a collection of \"judges\" against a \"factbase,\" modifying it and updating.
-  Also, helps printing a factbase, merge with another one, inspect, and so on.
-  Also, helps run automated tests for a set of judges.
-  '
+  s.description =
+    'Runs a collection of \"judges\" against a \"factbase,\" modifying ' \
+    'it and updating. Also, helps printing a factbase, merge with ' \
+    'another one, inspect, and so on. Also, helps run automated tests ' \
+    'for a set of judges.'
   s.authors = ['Yegor Bugayenko']
   s.email = 'yegor256@gmail.com'
   s.homepage = 'http://github.com/yegor256/judges'
@@ -42,7 +42,7 @@ Gem::Specification.new do |s|
   s.rdoc_options = ['--charset=UTF-8']
   s.extra_rdoc_files = ['README.md', 'LICENSE.txt']
   s.add_runtime_dependency 'backtrace', '~> 0.3'
-  s.add_runtime_dependency 'factbase', '~>0.0.33'
+  s.add_runtime_dependency 'factbase', '~>0.0.34'
   s.add_runtime_dependency 'gli', '~>2.21'
   s.add_runtime_dependency 'loog', '~>0.2'
   s.add_runtime_dependency 'nokogiri', '~> 1.10'
