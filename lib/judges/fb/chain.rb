@@ -22,6 +22,15 @@
 
 require_relative 'once'
 
+# Chains queries, inside a transaction.
+def chain_txn(fb, *queries, judge: $judge, &)
+  fb.txn do |fbt|
+    chain(fb, *queries, judge:) do |fs|
+      yield [fs, fbt]
+    end
+  end
+end
+
 # Chains queries.
 def chain(fb, *queries, judge: $judge, &)
   unless block_given?

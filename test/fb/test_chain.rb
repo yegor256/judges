@@ -55,7 +55,7 @@ class TestChain < Minitest::Test
     f1.foo = 42
     f2 = fb.insert
     f2.bar = 55
-    chain(fb, '(exists foo)', '(exists bar)', judge: 'x').each do |fs|
+    chain(fb, '(exists foo)', '(exists bar)', judge: 'x') do |fs|
       assert_equal(42, fs[0].foo)
       assert_equal(55, fs[1].bar)
     end
@@ -65,7 +65,7 @@ class TestChain < Minitest::Test
     fb = Factbase.new
     f1 = fb.insert
     f1.foo = 42
-    chain(fb, '(exists foo)', judge: 'xx').each do |fs|
+    chain(fb, '(exists foo)', judge: 'xx') do |fs|
       fs[0].bar = 1
     end
     assert_equal(1, fb.query('(exists bar)').each.to_a.size)
@@ -75,11 +75,25 @@ class TestChain < Minitest::Test
     fb = Factbase.new
     f1 = fb.insert
     f1.foo = 42
-    chain(fb, '(exists foo)', judge: 'xx').each do |fs|
+    chain(fb, '(exists foo)', judge: 'xx') do |fs|
       fb.txn do |fbt|
         f = fbt.insert
         f.bar = 1
       end
+      fs[0].xyz = 'hey'
+    end
+    assert_equal(1, fb.query('(exists seen)').each.to_a.size)
+    assert_equal(1, fb.query('(exists bar)').each.to_a.size)
+    assert_equal(1, fb.query('(exists xyz)').each.to_a.size)
+  end
+
+  def test_with_chain_txn
+    fb = Factbase.new
+    f1 = fb.insert
+    f1.foo = 42
+    chain_txn(fb, '(exists foo)', judge: 'xx') do |fs, fbt|
+      f = fbt.insert
+      f.bar = 1
       fs[0].xyz = 'hey'
     end
     assert_equal(1, fb.query('(exists seen)').each.to_a.size)
