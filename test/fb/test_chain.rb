@@ -48,4 +48,16 @@ class TestChain < Minitest::Test
     assert_equal(1, chain(fb, '(eq foo 42)', judge: 'x').to_a.size)
     assert(chain(fb, '(eq foo 42)', judge: 'x').to_a.empty?)
   end
+
+  def test_passes_facts
+    fb = Factbase.new
+    f1 = fb.insert
+    f1.foo = 42
+    f2 = fb.insert
+    f2.bar = 55
+    chain(fb, '(exists foo)', '(exists bar)', judge: 'x').each do |fs|
+      assert_equal(42, fs[0].foo)
+      assert_equal(55, fs[1].bar)
+    end
+  end
 end

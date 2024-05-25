@@ -40,10 +40,11 @@ def chain_rec(fb, queries, judge, facts = [], &block)
     facts[Regexp.last_match[1].to_i].send(Regexp.last_match[2])
   end
   once(fb, judge:).query(qt).each do |f|
+    fs = facts + [f]
     if queries.empty?
-      yield f
+      yield fs
     else
-      chain_rec(fb, queries, judge, facts + [f], &block)
+      chain_rec(fb, queries, judge, fs, &block)
     end
   end
 end
