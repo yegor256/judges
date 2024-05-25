@@ -102,10 +102,10 @@ class TestChain < Minitest::Test
     fb = Factbase.new
     f1 = fb.insert
     f1.foo = 42
-    chain_txn(fb, '(exists foo)', judge: 'xx') do |fbt, fs|
+    chain_txn(fb, '(exists foo)', judge: 'xx') do |fbt, ff|
       f = fbt.insert
       f.bar = 1
-      fs[0].xyz = 'hey'
+      ff.xyz = 'hey'
     end
     assert_equal(1, fb.query('(exists seen)').each.to_a.size)
     assert_equal(1, fb.query('(exists bar)').each.to_a.size)

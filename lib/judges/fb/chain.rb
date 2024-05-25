@@ -26,7 +26,7 @@ require_relative 'once'
 def chain_txn(fb, *queries, judge: $judge, &)
   fb.txn do |fbt|
     chain(fb, *queries, judge:) do |fs|
-      yield [fbt, fs]
+      yield [fbt] + fs
     end
   end
 end
