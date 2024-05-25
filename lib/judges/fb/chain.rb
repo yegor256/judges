@@ -20,21 +20,30 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'minitest/autorun'
-require 'tmpdir'
-require 'factbase'
-require_relative '../../lib/judges'
-require_relative '../../lib/judges/fb/once'
+require_relative 'once'
 
-# Test.
-# Author:: Yegor Bugayenko (yegor256@gmail.com)
-# Copyright:: Copyright (c) 2024 Yegor Bugayenko
-# License:: MIT
-class TestOnce < Minitest::Test
-  def test_touch_once
-    fb = once(Factbase.new, judge: 'something')
-    fb.insert
-    assert(!fb.query('(always)').each.to_a.empty?)
-    assert(fb.query('(always)').each.to_a.empty?)
+# Chains queries.
+def chain(fb, *queries, judge: $judge, &)
+  unless block_given?
+    facts = []
+    chain_rec(fb, queries, judge) do |f|
+      facts << f
+    end
+    return facts
+  end
+  chain_rec(fb, queries, judge, &)
+end
+
+def chain_rec(fb, queries, judge, facts = [], &block)
+  q = queries.shift
+  qt = q.gsub(/\{f([0-9]+).([a-z0-9_]+)\}/) do
+    facts[Regexp.last_match[1].to_i].send(Regexp.last_match[2])
+  end
+  once(fb, judge:).query(qt).each do |f|
+    if queries.empty?
+      yield f
+    else
+      chain_rec(fb, queries, judge, facts + [f], &block)
+    end
   end
 end

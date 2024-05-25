@@ -21,20 +21,31 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
-require 'tmpdir'
 require 'factbase'
+require 'factbase/to_xml'
 require_relative '../../lib/judges'
-require_relative '../../lib/judges/fb/once'
+require_relative '../../lib/judges/fb/chain'
 
 # Test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
-class TestOnce < Minitest::Test
-  def test_touch_once
-    fb = once(Factbase.new, judge: 'something')
-    fb.insert
-    assert(!fb.query('(always)').each.to_a.empty?)
-    assert(fb.query('(always)').each.to_a.empty?)
+class TestChain < Minitest::Test
+  def test_simple_use
+    fb = Factbase.new
+    f1 = fb.insert
+    f1.foo = 42
+    f1.v = 7
+    f2 = fb.insert
+    f2.bar = 7
+    assert_equal(1, chain(fb, '(eq foo 42)', '(eq bar {f0.v})', judge: 'foo').to_a.size)
+  end
+
+  def test_seen_property
+    fb = Factbase.new
+    f1 = fb.insert
+    f1.foo = 42
+    assert_equal(1, chain(fb, '(eq foo 42)', judge: 'x').to_a.size)
+    assert(chain(fb, '(eq foo 42)', judge: 'x').to_a.empty?)
   end
 end
