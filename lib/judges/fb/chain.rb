@@ -48,10 +48,14 @@ def chain_rec(fb, queries, judge, facts = [], &block)
   qt = q.gsub(/\{f([0-9]+).([a-z0-9_]+)\}/) do
     facts[Regexp.last_match[1].to_i].send(Regexp.last_match[2])
   end
-  once(fb, judge:).query(qt).each do |f|
+  qt = "(and #{qt} (not (eq seen '#{judge}')))"
+  fb.query(qt).each do |f|
     fs = facts + [f]
     if queries.empty?
       yield fs
+      fs.each do |fact|
+        fact.seen = judge
+      end
     else
       chain_rec(fb, queries, judge, fs, &block)
     end

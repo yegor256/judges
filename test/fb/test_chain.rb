@@ -49,6 +49,17 @@ class TestChain < Minitest::Test
     assert(chain(fb, '(eq foo 42)', judge: 'x').to_a.empty?)
   end
 
+  def test_seen_all_or_nothing
+    fb = Factbase.new
+    f1 = fb.insert
+    f1.a = 1
+    assert(chain(fb, '(exists a)', '(exists b)', judge: 'x').to_a.empty?)
+    f2 = fb.insert
+    f2.b = 1
+    assert(!chain(fb, '(exists a)', '(exists b)', judge: 'x').to_a.empty?)
+    assert(chain(fb, '(exists a)', '(exists b)', judge: 'x').to_a.empty?)
+  end
+
   def test_passes_facts
     fb = Factbase.new
     f1 = fb.insert
