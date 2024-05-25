@@ -102,7 +102,7 @@ class TestChain < Minitest::Test
     fb = Factbase.new
     f1 = fb.insert
     f1.foo = 42
-    chain_txn(fb, '(exists foo)', judge: 'xx') do |fs, fbt|
+    chain_txn(fb, '(exists foo)', judge: 'xx') do |fbt, fs|
       f = fbt.insert
       f.bar = 1
       fs[0].xyz = 'hey'
