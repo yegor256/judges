@@ -58,7 +58,6 @@ class Judges::Pack
     raise "Can't load '#{s}'" unless File.exist?(s)
     elapsed(@loog) do
       load(s, true)
-      throw :"#{name} finished"
     ensure
       $fb = $judge = $options = $loog = nil
     end
