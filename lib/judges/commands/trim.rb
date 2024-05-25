@@ -38,17 +38,8 @@ class Judges::Trim
     raise 'Exactly one argument required' unless args.size == 1
     impex = Judges::Impex.new(@loog, args[0])
     fb = impex.import
-    query = opts['query']
-    if query.nil?
-      days = opts['days']
-      day = Time.now - (days * 60 * 60 * 24)
-      query = "(lt time #{day.utc.iso8601})"
-      @loog.info("Deleting facts that are older than #{days} days")
-    else
-      raise 'Specify either --days or --query' unless opts['days'].nil?
-    end
     elapsed(@loog) do
-      deleted = fb.query(query).delete!
+      deleted = fb.query(opts['query']).delete!
       throw :'No facts deleted' if deleted.zero?
       impex.export(fb)
       throw :"🗑 #{deleted} fact(s) deleted"

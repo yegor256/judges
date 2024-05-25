@@ -39,7 +39,7 @@ class TestTrim < Minitest::Test
       before.insert.time = Time.now + 1
       before.insert.time = Time.now - (100 * 24 * 60 * 60)
       File.binwrite(file, before.export)
-      Judges::Trim.new(Loog::NULL).run({ 'days' => 10 }, [file])
+      Judges::Trim.new(Loog::NULL).run({ 'query' => "(lt time #{Time.now.utc.iso8601})" }, [file])
       after = Factbase.new
       after.import(File.binread(file))
       assert_equal(1, after.size)

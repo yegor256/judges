@@ -1,17 +1,16 @@
 Feature: Trim
   I want to trim a factbase
 
-  Scenario: Simple trimming of a factbase
-    Given I make a temp directory
-    Then I run bin/judges with "--verbose eval simple.fb '$fb.insert.time = Time.now - 100 * 60 * 60 * 24'"
-    Then I run bin/judges with "--verbose update . simple.fb"
-    Given I run bin/judges with "trim --days 5 simple.fb"
-    Then Stdout contains "1 fact(s) deleted"
-    And Exit code is zero
-
   Scenario: Simple trimming of a factbase, with a query
     Given I make a temp directory
     Then I run bin/judges with "--verbose eval simple.fb '$fb.insert.foo = 42'"
     Given I run bin/judges with "trim --query '(eq foo 42)' simple.fb"
     Then Stdout contains "1 fact(s) deleted"
+    And Exit code is zero
+
+  Scenario: Delete nothing by default
+    Given I make a temp directory
+    Then I run bin/judges with "--verbose eval simple.fb '$fb.insert.foo = 42'"
+    Given I run bin/judges with "trim simple.fb"
+    Then Stdout contains "No facts deleted"
     And Exit code is zero

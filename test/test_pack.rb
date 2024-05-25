@@ -104,7 +104,7 @@ class TestPack < Minitest::Test
       pack = Judges::Pack.new(dir, lib, Loog::NULL)
       fb = Factbase.new
       pack.run(fb, {}, {}, {})
-      assert_equal(42, fb.query('()').each.to_a.first.bar)
+      assert_equal(42, fb.query('(always)').each.to_a.first.bar)
     end
   end
 

@@ -34,7 +34,7 @@ class TestOnce < Minitest::Test
   def test_touch_once
     fb = once(Factbase.new, judge: 'something')
     fb.insert
-    fb.query('()').each { |f| f.foo = 42 }
-    assert(fb.query('()').extend(Enumerable).to_a.empty?)
+    fb.query('(always)').each { |f| f.foo = 42 }
+    assert(fb.query('(always)').extend(Enumerable).to_a.empty?)
   end
 end
