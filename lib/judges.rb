@@ -24,4 +24,6 @@
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
-module Judges; end
+module Judges
+  VERSION = '0.0.0'
+end
