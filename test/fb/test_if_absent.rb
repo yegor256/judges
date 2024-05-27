@@ -93,7 +93,7 @@ class TestIfAbsent < Minitest::Test
     f1.z = t
     f1.bar = 3.14
     n = if_absent(fb) do |f|
-      f.foo = "hello, \\\"dude\\\" \\' \\' ( \n\n ) (!"
+      f.foo = "hello, \\\"dude\\\" \\' \\' ( \n\n ) (!   '"
       f.abc = 42
       f.z = t + 1
       f.bar = 3.15

@@ -31,9 +31,9 @@ def if_absent(fb)
   q = attrs.map do |k, v|
     vv = v.to_s
     if v.is_a?(String)
-      vv = "'#{vv.gsub('"', '\\"').gsub("'", "\\'")}'"
+      vv = "'#{vv.gsub('"', '\\\\"').gsub("'", "\\\\'")}'"
     elsif v.is_a?(Time)
-      vv = v.iso8601
+      vv = v.utc.iso8601
     end
     "(eq #{k} #{vv})"
   end.join(' ')
