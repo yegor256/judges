@@ -30,7 +30,8 @@ Gem::Specification.new do |s|
   s.license = 'MIT'
   s.summary = 'Command-Line Tool for a Factbase'
   s.description =
-    'Runs a collection of \"judges\" against a \"factbase,\" modifying ' \
+    'A command-line tool that runs a collection of \"judges\" ' \
+    'against a \"factbase,\" modifying ' \
     'it and updating. Also, helps printing a factbase, merge with ' \
     'another one, inspect, and so on. Also, helps run automated tests ' \
     'for a set of judges.'
@@ -42,7 +43,7 @@ Gem::Specification.new do |s|
   s.rdoc_options = ['--charset=UTF-8']
   s.extra_rdoc_files = ['README.md', 'LICENSE.txt']
   s.add_runtime_dependency 'backtrace', '~> 0.3'
-  s.add_runtime_dependency 'factbase', '~>0.0.36'
+  s.add_runtime_dependency 'factbase', '~>0.0.37'
   s.add_runtime_dependency 'gli', '~>2.21'
   s.add_runtime_dependency 'loog', '~>0.2'
   s.add_runtime_dependency 'nokogiri', '~> 1.10'

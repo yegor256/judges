@@ -55,8 +55,11 @@ class Judges::Accumulator
 
   def method_missing(*args)
     k = args[0]
-    raise "Unexpected interation with the fact: '#{k}'" unless k.end_with?('=')
-    @map[k[0..-2]] = args[1]
+    if k.end_with?('=')
+      @map[k[0..-2].to_sym] = args[1]
+    else
+      @map[k.to_sym]
+    end
   end
 
   # rubocop:disable Style/OptionalBooleanParameter

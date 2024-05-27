@@ -60,6 +60,13 @@ class TestIfAbsent < Minitest::Test
     assert_equal(42, n.foo)
   end
 
+  def test_injects_and_reads
+    if_absent(Factbase.new) do |f|
+      f.foo = 42
+      assert_equal(42, f.foo)
+    end
+  end
+
   def test_complex_ignores
     fb = Factbase.new
     f1 = fb.insert
