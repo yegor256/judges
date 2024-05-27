@@ -57,9 +57,12 @@ class Judges::Update
         end
         diff = cycle(opts, packs, fb, options)
         impex.export(fb)
-        break if diff.zero?
+        if diff.zero?
+          @loog.info("The update cycle ##{c} has made no changes to the factbase, let's stop")
+          break
+        end
         if !opts['max-cycles'].nil? && c >= opts['max-cycles']
-          @loog.info('Too many cycles already, as set by --max-cycles, breaking')
+          @loog.info("Too many cycles already, as set by --max-cycles=#{opts['max-cycles']}, breaking")
           break
         end
         @loog.info(
