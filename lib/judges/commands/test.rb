@@ -29,6 +29,7 @@ require_relative '../../judges'
 require_relative '../../judges/to_rel'
 require_relative '../../judges/packs'
 require_relative '../../judges/options'
+require_relative '../../judges/categories'
 require_relative '../../judges/elapsed'
 
 # Test.
@@ -55,6 +56,10 @@ class Judges::Test
           yaml = YAML.load_file(f, permitted_classes: [Time])
           if yaml['skip']
             @loog.info("Skippped #{f.to_rel}")
+            next
+          end
+          unless Judges::Categories.new(opts['enable'], opts['disable']).ok?(yaml['category'])
+            @loog.info("Skippped #{f.to_rel} because of its category")
             next
           end
           @loog.info("Testing #{f.to_rel}:")
@@ -91,7 +96,8 @@ class Judges::Test
 
   def test_one(opts, pack, yaml)
     fb = Factbase.new
-    yaml['input'].each do |i|
+    inputs = yaml['input']
+    inputs&.each do |i|
       f = fb.insert
       i.each do |k, vv|
         if vv.is_a?(Array)
@@ -105,8 +111,10 @@ class Judges::Test
     end
     options = Judges::Options.new(opts['option']) + Judges::Options.new(yaml['options'])
     pack.run(Factbase::Looged.new(fb, @loog), {}, {}, options)
+    xpaths = yaml['expected']
+    return if xpaths.nil?
     xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
-    yaml['expected'].each do |xp|
+    xpaths.each do |xp|
       raise "#{pack.script} doesn't match '#{xp}':\n#{xml}" if xml.xpath(xp).empty?
     end
   end

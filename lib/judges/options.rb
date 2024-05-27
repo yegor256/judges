@@ -28,7 +28,7 @@ require_relative '../judges'
 # License:: MIT
 class Judges::Options
   # Ctor.
-  # @param pairs [Array<String>] List of pairs, like ["token=af73cd3", "max_speed=1"]
+  # @param [Array<String>] pairs List of pairs, like ["token=af73cd3", "max_speed=1"]
   def initialize(pairs = nil)
     @pairs = pairs
   end

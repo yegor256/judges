@@ -30,3 +30,34 @@ Feature: Test
     Then I run bin/judges with "test --lib mylib mypacks"
     Then Stdout contains "All 1 judge(s) and 0 tests passed"
     And Exit code is zero
+
+  Scenario: Enable only one category
+    Given I make a temp directory
+    Then I have a "mypacks/good/good.rb" file with content:
+    """
+    n = $fb.insert
+    """
+    Then I have a "mypacks/good/good.yml" file with content:
+    """
+    ---
+    category: good
+    input: []
+    """
+    Then I have a "mypacks/bad/bad.rb" file with content:
+    """
+    broken$ruby$syntax
+    """
+    Then I have a "mypacks/bad/bad.yml" file with content:
+    """
+    ---
+    category: bad
+    """
+    Then I run bin/judges with "test --enable good mypacks"
+    Then Stdout contains "All 2 judge(s) and 1 tests passed"
+    And Exit code is zero
+    Then I run bin/judges with "test --disable bad mypacks"
+    Then Stdout contains "All 2 judge(s) and 1 tests passed"
+    And Exit code is zero
+    Then I run bin/judges with "test --enable bad mypacks"
+    Then Stdout contains "Testing mypacks/bad/bad.yml"
+    And Exit code is not zero

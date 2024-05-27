@@ -132,6 +132,10 @@ class App
   command :test do |c|
     c.desc 'Options to pass to every judge (may be overwritten by YAML)'
     c.flag([:o, :option], multiple: true, arg_name: '<key=value>')
+    c.desc 'Categories of tests to disable'
+    c.flag([:disable], multiple: true)
+    c.desc 'Categories of tests to enable'
+    c.flag([:enable], multiple: true)
     c.desc 'Name of the test pack to run'
     c.flag([:pack], multiple: true)
     c.desc 'The location of a Ruby library (directory with .rb files to include)'
