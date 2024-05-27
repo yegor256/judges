@@ -33,6 +33,16 @@ class Judges::Options
     @pairs = pairs
   end
 
+  def +(other)
+    touch # this will trigger method_missing() method, which will create @hash
+    h = @hash.dup
+    other.touch # this will trigger method_missing() method, which will create @hash
+    other.instance_variable_get(:@hash).each do |k, v|
+      h[k] = v
+    end
+    Judges::Options.new(h.map { |k, v| "#{k}=#{v}" })
+  end
+
   # Convert them all to a string (printable in a log).
   def to_s
     touch # this will trigger method_missing() method, which will create @hash

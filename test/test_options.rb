@@ -75,4 +75,12 @@ class TestOptions < Minitest::Test
     assert(s.include?('foo → "44"'))
     assert(s.include?('"long********************"'))
   end
+
+  def test_merge
+    left = Judges::Options.new(['a = 1', 'b = 4'])
+    right = Judges::Options.new(['a = 44', 'c = 3'])
+    opts = left + right
+    assert_equal(44, opts.a)
+    assert_equal(3, opts.c)
+  end
 end

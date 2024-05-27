@@ -59,7 +59,7 @@ class Judges::Test
           end
           @loog.info("Testing #{f.to_rel}:")
           begin
-            test_one(p, yaml)
+            test_one(opts, p, yaml)
             tests += 1
           rescue StandardError => e
             @loog.warn(Backtrace.new(e))
@@ -89,7 +89,7 @@ class Judges::Test
     packs.include?(name)
   end
 
-  def test_one(pack, yaml)
+  def test_one(opts, pack, yaml)
     fb = Factbase.new
     yaml['input'].each do |i|
       f = fb.insert
@@ -103,7 +103,8 @@ class Judges::Test
         end
       end
     end
-    pack.run(Factbase::Looged.new(fb, @loog), {}, {}, Judges::Options.new(yaml['options']))
+    options = Judges::Options.new(opts['option']) + Judges::Options.new(yaml['options'])
+    pack.run(Factbase::Looged.new(fb, @loog), {}, {}, options)
     xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
     yaml['expected'].each do |xp|
       raise "#{pack.script} doesn't match '#{xp}':\n#{xml}" if xml.xpath(xp).empty?
