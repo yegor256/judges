@@ -48,7 +48,7 @@ class Judges::Print
     end
     FileUtils.mkdir_p(File.dirname(o))
     if !opts['force'] && File.exist?(o)
-      if File.mtime(f) < File.mtime(o)
+      if File.mtime(f) <= File.mtime(o)
         @loog.info("No need to print to #{o.to_rel}, since it's up to date (#{File.size(o)} bytes)")
         return
       end

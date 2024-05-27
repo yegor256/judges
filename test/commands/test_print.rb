@@ -51,11 +51,11 @@ class TestPrint < Minitest::Test
       fb = Factbase.new
       fb.insert
       File.binwrite(f, fb.export)
-      Judges::Print.new(Loog::VERBOSE).run({ format: 'yaml', auto: true }, [f])
+      Judges::Print.new(Loog::NULL).run({ format: 'yaml', auto: true }, [f])
       y = File.join(d, 'base.yaml')
       assert(File.exist?(y))
       mtime = File.mtime(y)
-      Judges::Print.new(Loog::VERBOSE).run({ format: 'yaml', auto: true }, [f])
+      Judges::Print.new(Loog::NULL).run({ format: 'yaml', auto: true }, [f])
       assert_equal(mtime, File.mtime(y))
     end
   end
