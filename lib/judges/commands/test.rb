@@ -62,7 +62,7 @@ class Judges::Test
             @loog.info("Skippped #{f.to_rel} because of its category")
             next
           end
-          @loog.info("Testing #{f.to_rel}:")
+          @loog.info("🛠️ Testing #{f.to_rel}:")
           begin
             test_one(opts, p, yaml)
             tests += 1
