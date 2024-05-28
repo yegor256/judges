@@ -24,6 +24,7 @@ require 'typhoeus'
 require 'iri'
 require_relative '../../judges'
 require_relative '../../judges/impex'
+require_relative '../../judges/http_body'
 
 # Pull.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -53,8 +54,7 @@ class Judges::Pull
           f.write(chunk)
         end
         request.run
-        ret = request.response
-        raise "Invalid response code #{ret.code}" unless ret.code == 200
+        Judges::HttpBody.new(request.response).body
       end
       fb.import(File.binread(file))
     end
@@ -68,8 +68,7 @@ class Judges::Pull
     ret = Typhoeus::Request.get(
       home.append('recent').append("#{name}.txt").to_s,
     )
-    raise "Invalid response code #{ret.code}" unless ret.code == 200
-    job = ret.body.to_i
+    job = Judges::HttpBody.new(ret).body.to_i
     @loog.info("The latest job \"#{name}\" ID is ##{job}")
     job
   end

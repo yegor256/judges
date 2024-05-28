@@ -20,42 +20,26 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'minitest/autorun'
+require 'webmock/minitest'
 require 'typhoeus'
-require 'iri'
-require_relative '../../judges'
-require_relative '../../judges/impex'
-require_relative '../../judges/http_body'
+require_relative '../lib/judges'
+require_relative '../lib/judges/http_body'
 
-# Push.
+# Test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
-class Judges::Push
-  def initialize(loog)
-    @loog = loog
-  end
-
-  def run(opts, args)
-    raise 'Exactly two arguments required' unless args.size == 2
-    name = args[0]
-    fb = Judges::Impex.new(@loog, args[1]).import
-    ret = Typhoeus::Request.put(
-      Iri.new('')
-        .host(opts['host'])
-        .port(opts['port'].to_i)
-        .scheme(opts['ssl'] ? 'https' : 'http')
-        .append('push')
-        .to_s,
-      body: fb.export,
-      headers: {
-        'Content-Type': 'text/plain',
-        'User-Agent': "judges #{Judges::VERSION}",
-        'Connection': 'close',
-      },
-      connecttimeout: (opts['timeout'] || 5).to_i,
-      timeout: (opts['timeout'] || 5).to_i
+class TestHttpBody < Minitest::Test
+  def test_basic
+    WebMock.disable_net_connect!
+    stub_request(:get, 'http://example.org/foo').to_return(
+      status: 500,
+      headers: { 'X-Zerocracy-Flash' => 'some error' }
     )
-    Judges::HttpBody.new(ret).body
-    @loog.info("Pushed #{fb.size} facts")
+    ret = Typhoeus::Request.get('http://example.org/foo')
+    assert_raises do
+      Judges::HttpBody.new(ret).body
+    end
   end
 end
