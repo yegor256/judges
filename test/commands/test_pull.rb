@@ -20,17 +20,37 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-source 'https://rubygems.org'
-gemspec
+require 'minitest/autorun'
+require 'webmock/minitest'
+require 'loog'
+require 'factbase'
+require_relative '../../lib/judges'
+require_relative '../../lib/judges/commands/pull'
 
-gem 'cucumber', '9.2.0', require: false
-gem 'minitest', '5.23.1', require: false
-gem 'rake', '13.2.1', require: false
-gem 'rspec-rails', '6.1.2', require: false
-gem 'rubocop', '1.64.0', require: false
-gem 'rubocop-performance', '1.21.0', require: false
-gem 'rubocop-rspec', '2.29.2', require: false
-gem 'simplecov', '0.22.0', require: false
-gem 'simplecov-cobertura', '2.1.0', require: false
-gem 'webmock', '3.19.1', require: false
-gem 'yard', '0.9.36', require: false
+# Test.
+# Author:: Yegor Bugayenko (yegor256@gmail.com)
+# Copyright:: Copyright (c) 2024 Yegor Bugayenko
+# License:: MIT
+class TestPull < Minitest::Test
+  def test_pull_simple_factbase
+    WebMock.disable_net_connect!
+    stub_request(:get, 'http://example.org/recent/foo.txt').to_return(body: '42')
+    fb = Factbase.new
+    fb.insert.foo = 42
+    stub_request(:get, 'http://example.org/pull/42.fb').to_return(body: fb.export)
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      Judges::Pull.new(Loog::NULL).run(
+        {
+          'token' => '000',
+          'host' => 'example.org',
+          'port' => 80,
+          'ssl' => false
+        },
+        ['foo', file]
+      )
+      fb = Factbase.new
+      fb.import(File.binread(file))
+    end
+  end
+end

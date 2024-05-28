@@ -147,6 +147,42 @@ class App
       Judges::Test.new(loog).run(options, args)
     end
   end
+
+  desc 'Push the factbase to the server'
+  command :push do |c|
+    c.desc 'Authentication token'
+    c.flag([:token])
+    c.desc 'The IP/hostname of the server'
+    c.flag([:host], default_value: 'www.zerocracy.com')
+    c.desc 'The TCP port number of the server'
+    c.flag([:port], default_value: 443)
+    c.desc 'Connection and read time in seconds'
+    c.flag([:timeout], default_value: 30)
+    c.desc 'Shall SSL be used?'
+    c.switch([:ssl], default_value: true)
+    c.action do |global, options, args|
+      require_relative '../lib/judges/commands/push'
+      Judges::Push.new(loog).run(options, args)
+    end
+  end
+
+  desc 'Pull the factbase from the server'
+  command :pull do |c|
+    c.desc 'Authentication token'
+    c.flag([:token])
+    c.desc 'The IP/hostname of the server'
+    c.flag([:host], default_value: 'www.zerocracy.com')
+    c.desc 'The TCP port number of the server'
+    c.flag([:port], default_value: 443)
+    c.desc 'Connection and read time in seconds'
+    c.flag([:timeout], default_value: 30)
+    c.desc 'Shall SSL be used?'
+    c.switch([:ssl], default_value: true)
+    c.action do |global, options, args|
+      require_relative '../lib/judges/commands/pull'
+      Judges::Pull.new(loog).run(options, args)
+    end
+  end
 end
 
 exit App.run(ARGV)

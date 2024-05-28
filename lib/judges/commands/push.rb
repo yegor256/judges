@@ -20,17 +20,41 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-source 'https://rubygems.org'
-gemspec
+require 'typhoeus'
+require 'iri'
+require_relative '../../judges'
+require_relative '../../judges/impex'
 
-gem 'cucumber', '9.2.0', require: false
-gem 'minitest', '5.23.1', require: false
-gem 'rake', '13.2.1', require: false
-gem 'rspec-rails', '6.1.2', require: false
-gem 'rubocop', '1.64.0', require: false
-gem 'rubocop-performance', '1.21.0', require: false
-gem 'rubocop-rspec', '2.29.2', require: false
-gem 'simplecov', '0.22.0', require: false
-gem 'simplecov-cobertura', '2.1.0', require: false
-gem 'webmock', '3.19.1', require: false
-gem 'yard', '0.9.36', require: false
+# Push.
+# Author:: Yegor Bugayenko (yegor256@gmail.com)
+# Copyright:: Copyright (c) 2024 Yegor Bugayenko
+# License:: MIT
+class Judges::Push
+  def initialize(loog)
+    @loog = loog
+  end
+
+  def run(opts, args)
+    raise 'Exactly two arguments required' unless args.size == 2
+    name = args[0]
+    fb = Judges::Impex.new(@loog, args[1]).import
+    ret = Typhoeus::Request.put(
+      Iri.new('')
+        .host(opts['host'])
+        .port(opts['port'].to_i)
+        .scheme(opts['ssl'] ? 'https' : 'http')
+        .append('push')
+        .to_s,
+      body: fb.export,
+      headers: {
+        'Content-Type': 'text/plain',
+        'User-Agent': "judges #{Judges::VERSION}",
+        'Connection': 'close',
+      },
+      connecttimeout: (opts['timeout'] || 5).to_i,
+      timeout: (opts['timeout'] || 5).to_i
+    )
+    raise "Failed to push, HTTP response code is #{ret.code}" unless ret.code == 200
+    @loog.info("Pushed #{fb.size} facts")
+  end
+end
