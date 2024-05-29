@@ -130,11 +130,16 @@ class Judges::Baza
 
   def check_code(ret, allowed = [200])
     allowed = [allowed] unless allowed.is_a?(Array)
+    mtd = (ret.request.original_options[:method] || '???').upcase
+    url = ret.effective_url
+    @loog.debug(
+      "#{mtd} #{url} -> #{ret.code}\n  " \
+      "#{(ret.headers || {}).map { |k, v| "#{k}: #{v}" }.join("\n  ")}"
+    )
     return if allowed.include?(ret.code)
     msg =
       "Invalid response code ##{ret.code} " \
-      "at #{ret.request.original_options[:method].upcase} #{ret.effective_url} "\
-      "(#{ret.headers['X-Zerocracy-Flash']})"
+      "at #{mtd} #{url} (#{ret.headers['X-Zerocracy-Flash']})"
     if ret.code == 503
       msg +=
         ", most probably it's an internal error on the server, " \
