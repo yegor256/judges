@@ -49,7 +49,8 @@ class Judges::Baza
         home.append('push').append(name).to_s,
         body: data,
         headers: headers.merge(
-          'Content-type' => 'application/x-www-form-urlencoded'
+          'Content-Type' => 'application/octet-stream',
+          'Content-Length' => data.size
         ),
         connecttimeout: @timeout,
         timeout: @timeout
@@ -68,7 +69,9 @@ class Judges::Baza
         File.open(file, 'wb') do |f|
           request = Typhoeus::Request.new(
             home.append('pull').append("#{id}.fb").to_s,
-            headers:,
+            headers: headers.merge(
+              'Accept' => 'application/octet-stream'
+            ),
             connecttimeout: @timeout,
             timeout: @timeout
           )
