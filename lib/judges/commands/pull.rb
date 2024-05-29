@@ -45,14 +45,24 @@ class Judges::Pull
     name = args[0]
     elapsed(@loog) do
       if baza.name_exists?(name)
-        id = baza.recent(name)
-        data = baza.pull(id)
-        fb.import(data)
+        fb.import(baza.pull(wait(baza, baza.recent(name))))
         Judges::Impex.new(@loog, args[1]).export(fb)
         throw :"Pulled #{fb.size} facts by the name '#{name}'"
       else
         throw :"There is nothing to pull, the name '#{name}' is absent on the server"
       end
     end
+  end
+
+  private
+
+  def wait(baza, id)
+    start = Time.now
+    loop do
+      break if baza.finished?(id)
+      sleep 1
+      raise 'Time is over, the job is still not finished' if Time.now - start > 10 * 60
+    end
+    id
   end
 end

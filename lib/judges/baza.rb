@@ -52,8 +52,8 @@ class Judges::Baza
         connecttimeout: @timeout,
         timeout: @timeout
       )
-      check_code(ret, 302)
-      id = ret.headers['X-Zerocracy-JobId'].to_i
+      check_code(ret)
+      id = ret.body.to_i
       throw :"Pushed #{data.size} bytes to #{@host}, job ID is ##{id}"
     end
     id
@@ -81,6 +81,21 @@ class Judges::Baza
       end
     end
     data
+  end
+
+  # The job with this ID is finished already?
+  def finished?(id)
+    finished = false
+    elapsed(@loog) do
+      ret = Typhoeus::Request.get(
+        home.append('finished').append(id).to_s,
+        headers: headers
+      )
+      check_code(ret)
+      finished = ret.body == 'yes'
+      throw :"The job ##{id} is #{finished ? '' : 'not yet '}finished at #{@host}"
+    end
+    finished
   end
 
   def recent(name)

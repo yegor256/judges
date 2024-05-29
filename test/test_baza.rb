@@ -34,8 +34,7 @@ class TestBaza < Minitest::Test
   def test_simple_push
     WebMock.disable_net_connect!
     stub_request(:put, 'https://example.org/push/simple').to_return(
-      status: 302,
-      headers: { 'X-Zerocracy-JobId' => '42' }
+      status: 200, body: '42'
     )
     assert_equal(
       42,

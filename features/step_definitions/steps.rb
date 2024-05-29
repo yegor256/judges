@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'tmpdir'
+require 'net/ping'
 require 'English'
 
 Before do
@@ -32,6 +33,10 @@ After do
     Dir.chdir(@cwd)
     FileUtils.rm_rf(@tmp)
   end
+end
+
+Given(/^We are online$/) do
+  pending unless Net::Ping::External.new("8.8.8.8").ping?
 end
 
 Given(/^I make a temp directory$/) do

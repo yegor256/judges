@@ -34,8 +34,7 @@ class TestPush < Minitest::Test
   def test_push_simple_factbase
     WebMock.disable_net_connect!
     stub_request(:put, 'https://example.org/push/foo').to_return(
-      status: 302,
-      headers: { 'X-Zerocracy-JobId' => '42' }
+      status: 200, body: '42'
     )
     Dir.mktmpdir do |d|
       file = File.join(d, 'base.fb')
