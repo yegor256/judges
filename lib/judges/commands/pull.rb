@@ -24,7 +24,7 @@ require 'typhoeus'
 require 'iri'
 require_relative '../../judges'
 require_relative '../../judges/impex'
-require_relative '../../judges/http_body'
+require_relative '../../judges/baza'
 
 # Pull.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -37,39 +37,22 @@ class Judges::Pull
 
   def run(opts, args)
     raise 'Exactly two arguments required' unless args.size == 2
-    home = Iri.new('')
-        .host(opts['host'])
-        .port(opts['port'].to_i)
-        .scheme(opts['ssl'] ? 'https' : 'http')
-    name = args[0]
     fb = Factbase.new
-    Tempfile.open do |file|
-      File.open(file, 'wb') do |f|
-        request = Typhoeus::Request.new(
-          home.append('pull').append("#{recent(home, name)}.fb").to_s,
-          connecttimeout: (opts['timeout'] || 5).to_i,
-          timeout: (opts['timeout'] || 5).to_i
-        )
-        request.on_body do |chunk|
-          f.write(chunk)
-        end
-        request.run
-        Judges::HttpBody.new(request.response).body
-      end
-      fb.import(File.binread(file))
-    end
-    Judges::Impex.new(@loog, args[1]).export(fb)
-    @loog.info("Pulled #{fb.size} facts")
-  end
-
-  private
-
-  def recent(home, name)
-    ret = Typhoeus::Request.get(
-      home.append('recent').append("#{name}.txt").to_s,
+    baza = Judges::Baza.new(
+      opts['host'], opts['port'].to_i, opts['ssl'],
+      opts['token'], (opts['timeout'] || 5).to_i, loog: @loog
     )
-    job = Judges::HttpBody.new(ret).body.to_i
-    @loog.info("The latest job \"#{name}\" ID is ##{job}")
-    job
+    name = args[0]
+    elapsed(@loog) do
+      if baza.name_exists?(name)
+        id = baza.recent(name)
+        data = baza.pull(id)
+        fb.import(data)
+        Judges::Impex.new(@loog, args[1]).export(fb)
+        throw :"Pulled #{fb.size} facts by the name '#{name}'"
+      else
+        throw :"There is nothing to pull, the name '#{name}' is absent on the server"
+      end
+    end
   end
 end

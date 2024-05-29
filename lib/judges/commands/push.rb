@@ -24,7 +24,7 @@ require 'typhoeus'
 require 'iri'
 require_relative '../../judges'
 require_relative '../../judges/impex'
-require_relative '../../judges/http_body'
+require_relative '../../judges/baza'
 
 # Push.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -39,23 +39,13 @@ class Judges::Push
     raise 'Exactly two arguments required' unless args.size == 2
     name = args[0]
     fb = Judges::Impex.new(@loog, args[1]).import
-    ret = Typhoeus::Request.put(
-      Iri.new('')
-        .host(opts['host'])
-        .port(opts['port'].to_i)
-        .scheme(opts['ssl'] ? 'https' : 'http')
-        .append('push')
-        .to_s,
-      body: fb.export,
-      headers: {
-        'Content-Type': 'text/plain',
-        'User-Agent': "judges #{Judges::VERSION}",
-        'Connection': 'close',
-      },
-      connecttimeout: (opts['timeout'] || 5).to_i,
-      timeout: (opts['timeout'] || 5).to_i
+    baza = Judges::Baza.new(
+      opts['host'], opts['port'].to_i, opts['ssl'],
+      opts['token'], (opts['timeout'] || 5).to_i, loog: @loog
     )
-    Judges::HttpBody.new(ret).body
-    @loog.info("Pushed #{fb.size} facts")
+    elapsed(@loog) do
+      id = baza.push(name, fb.export)
+      throw :"Pushed #{fb.size} facts, job ID is #{id}"
+    end
   end
 end

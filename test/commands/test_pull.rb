@@ -34,6 +34,7 @@ require_relative '../../lib/judges/commands/pull'
 class TestPull < Minitest::Test
   def test_pull_simple_factbase
     WebMock.disable_net_connect!
+    stub_request(:get, 'http://example.org/exists/foo').to_return(body: 'yes')
     stub_request(:get, 'http://example.org/recent/foo.txt').to_return(body: '42')
     fb = Factbase.new
     fb.insert.foo = 42

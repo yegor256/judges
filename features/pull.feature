@@ -3,7 +3,7 @@ Feature: Pull
 
   Scenario: Pull a small factbase
     Given I make a temp directory
-    Then I run bin/judges with "pull --token 0000-0000-0000-0000 simple simple.fb"
+    Then I run bin/judges with "pull --token 00000000-0000-0000-0000-000000000000 simple simple.fb"
     Then Stdout contains "Pulled"
     And Exit code is zero
     Then I run bin/judges with "inspect simple.fb"

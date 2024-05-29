@@ -23,56 +23,62 @@
 require 'minitest/autorun'
 require 'webmock/minitest'
 require 'loog'
-require_relative '../../lib/judges'
-require_relative '../../lib/judges/commands/push'
+require_relative '../lib/judges'
+require_relative '../lib/judges/baza'
 
 # Test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
-class TestPush < Minitest::Test
-  def test_push_simple_factbase
+class TestBaza < Minitest::Test
+  def test_simple_push
     WebMock.disable_net_connect!
-    stub_request(:put, 'https://example.org/push/foo').to_return(
+    stub_request(:put, 'https://example.org/push/simple').to_return(
       status: 302,
       headers: { 'X-Zerocracy-JobId' => '42' }
     )
-    Dir.mktmpdir do |d|
-      file = File.join(d, 'base.fb')
-      fb = Factbase.new
-      fb.insert.foo_bar = 42
-      File.binwrite(file, fb.export)
-      Judges::Push.new(Loog::NULL).run(
-        {
-          'token' => '000',
-          'host' => 'example.org',
-          'port' => 443,
-          'ssl' => true
-        },
-        ['foo', file]
-      )
-    end
+    assert_equal(
+      42,
+      Judges::Baza.new(
+        'example.org', 443, true, '000', 5, loog: Loog::NULL
+      ).push('simple', 'hello, world!')
+    )
   end
 
-  def test_fails_on_http_error
+  def test_simple_recent_check
     WebMock.disable_net_connect!
-    stub_request(:put, 'http://example.org/push/foo').to_return(status: 500)
-    Dir.mktmpdir do |d|
-      file = File.join(d, 'base.fb')
-      fb = Factbase.new
-      fb.insert.foo_bar = 42
-      File.binwrite(file, fb.export)
-      assert_raises do
-        Judges::Push.new(Loog::NULL).run(
-          {
-            'token' => '000',
-            'host' => 'example.org',
-            'port' => 80,
-            'ssl' => false
-          },
-          ['foo', file]
-        )
-      end
-    end
+    stub_request(:get, 'https://example.org/recent/simple.txt').to_return(
+      status: 200, body: '42'
+    )
+    assert_equal(
+      42,
+      Judges::Baza.new(
+        'example.org', 443, true, '000', 5, loog: Loog::NULL
+      ).recent('simple')
+    )
+  end
+
+  def test_simple_exists_check
+    WebMock.disable_net_connect!
+    stub_request(:get, 'https://example.org/exists/simple').to_return(
+      status: 200, body: 'yes'
+    )
+    assert(
+      Judges::Baza.new(
+        'example.org', 443, true, '000', 5, loog: Loog::NULL
+      ).name_exists?('simple')
+    )
+  end
+
+  def test_simple_pull
+    WebMock.disable_net_connect!
+    stub_request(:get, 'https://example.org/pull/333.fb').to_return(
+      status: 200, body: 'hello, world!'
+    )
+    assert(
+      Judges::Baza.new(
+        'example.org', 443, true, '000', 5, loog: Loog::NULL
+      ).pull(333).start_with?('hello')
+    )
   end
 end
