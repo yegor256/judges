@@ -40,6 +40,8 @@ Layout/MultilineMethodCallIndentation:
   Enabled: false
 Metrics/AbcSize:
   Enabled: false
+Metrics/ClassLength:
+  Enabled: false
 Metrics/BlockLength:
   Enabled: false
 Metrics/CyclomaticComplexity:

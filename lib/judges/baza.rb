@@ -31,7 +31,9 @@ require_relative '../judges/elapsed'
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
 class Judges::Baza
-  def initialize(host, port, ssl, token, timeout, loog: Loog::NULL)
+  # rubocop:disable Metrics/ParameterLists
+  def initialize(host, port, token, ssl: true, timeout: 5, loog: Loog::NULL)
+    # rubocop:enable Metrics/ParameterLists
     @host = host
     @port = port
     @ssl = ssl
@@ -66,7 +68,7 @@ class Judges::Baza
         File.open(file, 'wb') do |f|
           request = Typhoeus::Request.new(
             home.append('pull').append("#{id}.fb").to_s,
-            headers: headers,
+            headers:,
             connecttimeout: @timeout,
             timeout: @timeout
           )
@@ -89,7 +91,7 @@ class Judges::Baza
     elapsed(@loog) do
       ret = Typhoeus::Request.get(
         home.append('finished').append(id).to_s,
-        headers: headers
+        headers:
       )
       check_code(ret)
       finished = ret.body == 'yes'
@@ -103,7 +105,7 @@ class Judges::Baza
     elapsed(@loog) do
       ret = Typhoeus::Request.get(
         home.append('recent').append("#{name}.txt").to_s,
-        headers: headers
+        headers:
       )
       check_code(ret)
       job = ret.body.to_i
@@ -116,8 +118,8 @@ class Judges::Baza
     exists = 0
     elapsed(@loog) do
       ret = Typhoeus::Request.get(
-        home.append('exists').append("#{name}").to_s,
-        headers: headers
+        home.append('exists').append(name).to_s,
+        headers:
       )
       check_code(ret)
       exists = ret.body == 'yes'
@@ -131,7 +133,7 @@ class Judges::Baza
   def headers
     {
       'User-Agent': "judges #{Judges::VERSION}",
-      'Connection': 'close',
+      Connection: 'close',
       'X-Zerocracy-Token': @token
     }
   end
@@ -157,12 +159,12 @@ class Judges::Baza
       "at #{mtd} #{url} (#{ret.headers['X-Zerocracy-Flash']})"
     if ret.code == 503
       msg +=
-        ", most probably it's an internal error on the server, " \
-        "please report this to https://github.com/yegor256/judges"
+        ', most probably it\'s an internal error on the server, ' \
+        'please report this to https://github.com/yegor256/judges'
     elsif ret.code == 404
       msg +=
-        ", most probably you are trying to reach a wrong server, which doesn't " \
-        "have the URL that it is expected to have"
+        ', most probably you are trying to reach a wrong server, which doesn\'t ' \
+        'have the URL that it is expected to have'
     end
     raise msg
   end

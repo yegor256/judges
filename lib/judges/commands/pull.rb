@@ -39,8 +39,10 @@ class Judges::Pull
     raise 'Exactly two arguments required' unless args.size == 2
     fb = Factbase.new
     baza = Judges::Baza.new(
-      opts['host'], opts['port'].to_i, opts['ssl'],
-      opts['token'], (opts['timeout'] || 5).to_i, loog: @loog
+      opts['host'], opts['port'].to_i, opts['token'],
+      ssl: opts['ssl'],
+      timeout: (opts['timeout'] || 5).to_i,
+      loog: @loog
     )
     name = args[0]
     elapsed(@loog) do

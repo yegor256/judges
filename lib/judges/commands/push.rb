@@ -40,8 +40,10 @@ class Judges::Push
     name = args[0]
     fb = Judges::Impex.new(@loog, args[1]).import
     baza = Judges::Baza.new(
-      opts['host'], opts['port'].to_i, opts['ssl'],
-      opts['token'], (opts['timeout'] || 5).to_i, loog: @loog
+      opts['host'], opts['port'].to_i, opts['token'],
+      ssl: opts['ssl'],
+      timeout: (opts['timeout'] || 5).to_i,
+      loog: @loog
     )
     elapsed(@loog) do
       id = baza.push(name, fb.export)

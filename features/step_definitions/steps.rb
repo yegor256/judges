@@ -36,7 +36,7 @@ After do
 end
 
 Given(/^We are online$/) do
-  pending unless Net::Ping::External.new("8.8.8.8").ping?
+  pending unless Net::Ping::External.new('8.8.8.8').ping?
 end
 
 Given(/^I make a temp directory$/) do

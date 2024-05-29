@@ -38,9 +38,7 @@ class TestBaza < Minitest::Test
     )
     assert_equal(
       42,
-      Judges::Baza.new(
-        'example.org', 443, true, '000', 5, loog: Loog::NULL
-      ).push('simple', 'hello, world!')
+      Judges::Baza.new('example.org', 443, '000').push('simple', 'hello, world!')
     )
   end
 
@@ -51,9 +49,7 @@ class TestBaza < Minitest::Test
     )
     assert_equal(
       42,
-      Judges::Baza.new(
-        'example.org', 443, true, '000', 5, loog: Loog::NULL
-      ).recent('simple')
+      Judges::Baza.new('example.org', 443, '000').recent('simple')
     )
   end
 
@@ -63,9 +59,7 @@ class TestBaza < Minitest::Test
       status: 200, body: 'yes'
     )
     assert(
-      Judges::Baza.new(
-        'example.org', 443, true, '000', 5, loog: Loog::NULL
-      ).name_exists?('simple')
+      Judges::Baza.new('example.org', 443, '000').name_exists?('simple')
     )
   end
 
@@ -75,9 +69,7 @@ class TestBaza < Minitest::Test
       status: 200, body: 'hello, world!'
     )
     assert(
-      Judges::Baza.new(
-        'example.org', 443, true, '000', 5, loog: Loog::NULL
-      ).pull(333).start_with?('hello')
+      Judges::Baza.new('example.org', 443, '000').pull(333).start_with?('hello')
     )
   end
 end
