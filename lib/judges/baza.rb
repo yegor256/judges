@@ -152,11 +152,12 @@ class Judges::Baza
     allowed = [allowed] unless allowed.is_a?(Array)
     mtd = (ret.request.original_options[:method] || '???').upcase
     url = ret.effective_url
-    @loog.debug(
-      "#{mtd} #{url} -> #{ret.code}\n  " \
-      "#{(ret.headers || {}).map { |k, v| "#{k}: #{v}" }.join("\n  ")}"
-    )
-    return if allowed.include?(ret.code)
+    log = "#{mtd} #{url} -> #{ret.code}"
+    if allowed.include?(ret.code)
+      @loog.debug(log)
+      return
+    end
+    @loog.debug("#{log}\n  #{(ret.headers || {}).map { |k, v| "#{k}: #{v}" }.join("\n  ")}")
     msg =
       "Invalid response code ##{ret.code} " \
       "at #{mtd} #{url} (#{ret.headers['X-Zerocracy-Flash']})"
