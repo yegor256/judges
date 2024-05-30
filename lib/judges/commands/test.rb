@@ -74,6 +74,7 @@ class Judges::Test
         packs += 1
       end
       throw :'👍 No judges tested' if packs.zero?
+      throw :"👍 All #{packs} judge(s) but no tests passed" if tests.zero?
       throw :"👍 All #{packs} judge(s) and #{tests} tests passed" if errors.empty?
       throw :"❌ #{packs} judge(s) tested, #{errors.size} of them failed"
     end

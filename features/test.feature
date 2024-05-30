@@ -28,7 +28,7 @@ Feature: Test
       $foo = 42
     """
     Then I run bin/judges with "test --lib mylib mypacks"
-    Then Stdout contains "All 1 judge(s) and 0 tests passed"
+    Then Stdout contains "All 1 judge(s) but no tests passed"
     And Exit code is zero
 
   Scenario: Enable only one category
