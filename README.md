@@ -24,19 +24,22 @@ global variables available to it:
 * `$loog` — an instance
   of [`Loog`](https://www.rubydoc.info/gems/loog/0.5.1/Loog),
   where `.info` and `.debug` logs are welcome;
-* `$options` — a holder of options coming from `.yml` files;
+* `$options` — a holder of options coming from either the `--option` command
+  line flag or the `.yml` file during testing;
 * `$local` — a hash map that is cleaned up when the execution of
   a judge is finished;
 * `$global` — a hash map that is never cleaned up;
-* `$judge` — the name of the directory, where the `.rb` script is located.
+* `$judge` — the basename of the directory, where the `.rb` script is located.
 
 Every `.yml` file must be formatted as such:
 
 ```yaml
+skip: false
 input:
   -
     foo: 42
     bar: Hello, world!
+    many: [1, 2, -10]
 options:
   max: 100
 expected:
@@ -44,8 +47,8 @@ expected:
 ```
 
 Here, the `input` is an array of facts to be placed into the Factbase before
-the test starts; the `options` is a hash map of options to be passed
-via command line `--option` of the `update` command; and `expected` is
+the test starts; the `options` is a hash map of options as if they are passed
+via the command line `--option` flag of the `update` command; and `expected` is
 an array of XPath expressions that must be present in the XML of the Factbase
 when the test is finished.
 
@@ -55,7 +58,7 @@ Read
 [these guidelines](https://www.yegor256.com/2014/04/15/github-guidelines.html).
 Make sure you build is green before you contribute
 your pull request. You will need to have
-[Ruby](https://www.ruby-lang.org/en/) 2.3+ and
+[Ruby](https://www.ruby-lang.org/en/) 3.0+ and
 [Bundler](https://bundler.io/) installed. Then:
 
 ```bash
