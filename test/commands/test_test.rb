@@ -88,7 +88,7 @@ class TestTest < Minitest::Test
     end
   end
 
-  def test_one_pack_negative
+  def test_one_judge_negative
     Dir.mktmpdir do |d|
       File.write(File.join(d, 'foo.rb'), '')
       File.write(
@@ -100,7 +100,7 @@ class TestTest < Minitest::Test
         YAML
       )
       assert_raises do
-        Judges::Test.new(Loog::NULL).run({ 'pack' => [File.basename(dir)] }, [d])
+        Judges::Test.new(Loog::NULL).run({ 'judge' => [File.basename(dir)] }, [d])
       end
     end
   end

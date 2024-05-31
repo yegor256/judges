@@ -21,13 +21,27 @@
 # SOFTWARE.
 
 require 'minitest/autorun'
+require 'tmpdir'
+require 'loog'
+require_relative '../lib/judges'
+require_relative '../lib/judges/judges'
 
 # Test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
-class TestJudges < Minitest::Test
+class TestPacks < Minitest::Test
   def test_basic
-    # Nothing yet
+    Dir.mktmpdir do |d|
+      File.write(File.join(d, 'foo.rb'), 'hey')
+      File.write(File.join(d, 'something.yml'), "---\nfoo: 42")
+      found = 0
+      Judges::Judges.new(d, nil, Loog::NULL).each do |p|
+        assert_equal('foo.rb', p.script)
+        found += 1
+        assert_equal('something.yml', File.basename(p.tests.first))
+      end
+      assert_equal(1, found)
+    end
   end
 end

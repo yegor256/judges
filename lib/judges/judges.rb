@@ -20,28 +20,37 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-require 'minitest/autorun'
-require 'tmpdir'
-require 'loog'
-require_relative '../lib/judges'
-require_relative '../lib/judges/packs'
+require_relative '../judges'
+require_relative 'judge'
 
-# Test.
+# Collection of all judges to run.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
-class TestPacks < Minitest::Test
-  def test_basic
-    Dir.mktmpdir do |d|
-      File.write(File.join(d, 'foo.rb'), 'hey')
-      File.write(File.join(d, 'something.yml'), "---\nfoo: 42")
-      found = 0
-      Judges::Packs.new(d, nil, Loog::NULL).each do |p|
-        assert_equal('foo.rb', p.script)
-        found += 1
-        assert_equal('something.yml', File.basename(p.tests.first))
-      end
-      assert_equal(1, found)
+class Judges::Judges
+  def initialize(dir, lib, loog)
+    @dir = dir
+    @lib = lib
+    @loog = loog
+  end
+
+  # Iterate over them all.
+  # @yield [Pack]
+  def each
+    Dir.glob(File.join(@dir, '**/*.rb')).each do |f|
+      d = File.dirname(File.absolute_path(f))
+      yield Judges::Judge.new(d, @lib, @loog)
     end
+  end
+
+  # Iterate over them all.
+  # @yield [(Pack, Integer)]
+  def each_with_index
+    idx = 0
+    each do |p|
+      yield [p, idx]
+      idx += 1
+    end
+    idx
   end
 end

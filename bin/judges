@@ -136,8 +136,8 @@ class App
     c.flag([:disable], multiple: true)
     c.desc 'Categories of tests to enable'
     c.flag([:enable], multiple: true)
-    c.desc 'Name of the test pack to run'
-    c.flag([:pack], multiple: true)
+    c.desc 'Name of the judge to run (directory name)'
+    c.flag([:judge], multiple: true)
     c.desc 'The location of a Ruby library (directory with .rb files to include)'
     c.flag([:lib])
     c.desc 'Stay quiet even if some tests fail or simply no tests executed?'

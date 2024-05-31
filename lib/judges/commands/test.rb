@@ -27,7 +27,7 @@ require 'factbase/looged'
 require 'factbase/to_xml'
 require_relative '../../judges'
 require_relative '../../judges/to_rel'
-require_relative '../../judges/packs'
+require_relative '../../judges/judges'
 require_relative '../../judges/options'
 require_relative '../../judges/categories'
 require_relative '../../judges/elapsed'
@@ -46,10 +46,10 @@ class Judges::Test
     dir = args[0]
     @loog.info("Testing judges in #{dir.to_rel}...")
     errors = []
-    packs = 0
+    judges = 0
     tests = 0
     elapsed(@loog) do
-      Judges::Packs.new(dir, opts['lib'], @loog).each_with_index do |p, i|
+      Judges::Judges.new(dir, opts['lib'], @loog).each_with_index do |p, i|
         next unless include?(opts, p.name)
         @loog.info("\n👉 Testing #{p.script} (##{i}) in #{p.dir.to_rel}...")
         p.tests.each do |f|
@@ -71,18 +71,18 @@ class Judges::Test
             errors << f
           end
         end
-        packs += 1
+        judges += 1
       end
-      throw :'👍 No judges tested' if packs.zero?
-      throw :"👍 All #{packs} judge(s) but no tests passed" if tests.zero?
-      throw :"👍 All #{packs} judge(s) and #{tests} tests passed" if errors.empty?
-      throw :"❌ #{packs} judge(s) tested, #{errors.size} of them failed"
+      throw :'👍 No judges tested' if judges.zero?
+      throw :"👍 All #{judges} judge(s) but no tests passed" if tests.zero?
+      throw :"👍 All #{judges} judge(s) and #{tests} tests passed" if errors.empty?
+      throw :"❌ #{judges} judge(s) tested, #{errors.size} of them failed"
     end
     unless errors.empty?
       raise "#{errors.size} tests failed" unless opts['quiet']
       @loog.debug('Not failing the build with tests failures, due to the --quiet option')
     end
-    return unless packs.zero?
+    return unless judges.zero?
     raise 'No judges tested :(' unless opts['quiet']
     @loog.debug('Not failing the build with no judges tested, due to the --quiet option')
   end
@@ -90,12 +90,12 @@ class Judges::Test
   private
 
   def include?(opts, name)
-    packs = opts['pack'] || []
-    return true if packs.empty?
-    packs.include?(name)
+    judges = opts['judge'] || []
+    return true if judges.empty?
+    judges.include?(name)
   end
 
-  def test_one(opts, pack, yaml)
+  def test_one(opts, judge, yaml)
     fb = Factbase.new
     inputs = yaml['input']
     inputs&.each do |i|
@@ -111,12 +111,12 @@ class Judges::Test
       end
     end
     options = Judges::Options.new(opts['option']) + Judges::Options.new(yaml['options'])
-    pack.run(Factbase::Looged.new(fb, @loog), {}, {}, options)
+    judge.run(Factbase::Looged.new(fb, @loog), {}, {}, options)
     xpaths = yaml['expected']
     return if xpaths.nil?
     xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
     xpaths.each do |xp|
-      raise "#{pack.script} doesn't match '#{xp}':\n#{xml}" if xml.xpath(xp).empty?
+      raise "#{judge.script} doesn't match '#{xp}':\n#{xml}" if xml.xpath(xp).empty?
     end
   end
 end

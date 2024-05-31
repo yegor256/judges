@@ -25,7 +25,7 @@ require 'tmpdir'
 require 'loog'
 require 'factbase'
 require_relative '../lib/judges'
-require_relative '../lib/judges/pack'
+require_relative '../lib/judges/judge'
 
 # Test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -35,9 +35,9 @@ class TestPack < Minitest::Test
   def test_basic_run
     Dir.mktmpdir do |d|
       File.write(File.join(d, 'foo.rb'), '$fb.insert')
-      pack = Judges::Pack.new(d, nil, Loog::NULL)
+      judge = Judges::Judge.new(d, nil, Loog::NULL)
       fb = Factbase.new
-      pack.run(fb, {}, {}, {})
+      judge.run(fb, {}, {}, {})
       assert_equal(1, fb.size)
     end
   end
@@ -45,12 +45,12 @@ class TestPack < Minitest::Test
   def test_run_isolated
     Dir.mktmpdir do |d|
       File.write(File.join(d, 'bar.rb'), '$fb.insert')
-      pack = Judges::Pack.new(d, nil, Loog::NULL)
+      judge = Judges::Judge.new(d, nil, Loog::NULL)
       fb1 = Factbase.new
-      pack.run(fb1, {}, {}, {})
+      judge.run(fb1, {}, {}, {})
       assert_equal(1, fb1.size)
       fb2 = Factbase.new
-      pack.run(fb2, {}, {}, {})
+      judge.run(fb2, {}, {}, {})
       assert_equal(1, fb2.size)
     end
   end
@@ -58,8 +58,8 @@ class TestPack < Minitest::Test
   def test_with_supplemenary_functions
     Dir.mktmpdir do |d|
       File.write(File.join(d, 'x.rb'), 'each_once($fb, "(always)").to_a')
-      pack = Judges::Pack.new(d, nil, Loog::NULL)
-      pack.run(Factbase.new, {}, {}, {})
+      judge = Judges::Judge.new(d, nil, Loog::NULL)
+      judge.run(Factbase.new, {}, {}, {})
     end
   end
 
@@ -72,11 +72,11 @@ class TestPack < Minitest::Test
         $local[:foo] = $local[:foo] + 1
         '
       )
-      pack = Judges::Pack.new(d, nil, Loog::NULL)
+      judge = Judges::Judge.new(d, nil, Loog::NULL)
       local = {}
-      pack.run(Factbase.new, {}, local, {})
-      pack.run(Factbase.new, {}, local, {})
-      pack.run(Factbase.new, {}, local, {})
+      judge.run(Factbase.new, {}, local, {})
+      judge.run(Factbase.new, {}, local, {})
+      judge.run(Factbase.new, {}, local, {})
       assert_equal(45, local[:foo])
     end
   end
@@ -88,22 +88,22 @@ class TestPack < Minitest::Test
       FileUtils.mkdir(dir)
       File.write(File.join(dir, 'foo.rb'), '$loog.info("judge=" + $judge)')
       log = Loog::Buffer.new
-      Judges::Pack.new(dir, nil, log).run(Factbase.new, {}, {}, {})
+      Judges::Judge.new(dir, nil, log).run(Factbase.new, {}, {}, {})
       assert(log.to_s.include?("judge=#{j}"))
     end
   end
 
   def test_with_library
     Dir.mktmpdir do |d|
-      dir = File.join(d, 'packs')
+      dir = File.join(d, 'judges')
       FileUtils.mkdir_p(dir)
       File.write(File.join(dir, 'x.rb'), '$fb.insert.bar = $foo; each_once($fb, "(always)").to_a')
       lib = File.join(d, 'lib')
       FileUtils.mkdir_p(lib)
       File.write(File.join(lib, 'y.rb'), '$foo = 42')
-      pack = Judges::Pack.new(dir, lib, Loog::NULL)
+      judge = Judges::Judge.new(dir, lib, Loog::NULL)
       fb = Factbase.new
-      pack.run(fb, {}, {}, {})
+      judge.run(fb, {}, {}, {})
       assert_equal(42, fb.query('(always)').each.to_a.first.bar)
     end
   end
@@ -111,11 +111,11 @@ class TestPack < Minitest::Test
   def test_with_broken_ruby_syntax
     assert_raises do
       Dir.mktmpdir do |d|
-        dir = File.join(d, 'packs')
+        dir = File.join(d, 'judges')
         FileUtils.mkdir_p(dir)
         File.write(File.join(dir, 'x.rb'), 'this$is$broken$syntax')
-        pack = Judges::Pack.new(dir, lib, Loog::NULL)
-        pack.run(Factbase.new, {}, {}, {})
+        judge = Judges::Judge.new(dir, lib, Loog::NULL)
+        judge.run(Factbase.new, {}, {}, {})
       end
     end
   end
@@ -123,11 +123,11 @@ class TestPack < Minitest::Test
   def test_with_runtime_ruby_error
     assert_raises do
       Dir.mktmpdir do |d|
-        dir = File.join(d, 'packs')
+        dir = File.join(d, 'judges')
         FileUtils.mkdir_p(dir)
         File.write(File.join(dir, 'x.rb'), 'a < 1')
-        pack = Judges::Pack.new(dir, lib, Loog::NULL)
-        pack.run(Factbase.new, {}, {}, {})
+        judge = Judges::Judge.new(dir, lib, Loog::NULL)
+        judge.run(Factbase.new, {}, {}, {})
       end
     end
   end

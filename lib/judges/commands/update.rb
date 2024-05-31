@@ -24,7 +24,7 @@ require 'backtrace'
 require 'factbase/looged'
 require_relative '../../judges'
 require_relative '../../judges/to_rel'
-require_relative '../../judges/packs'
+require_relative '../../judges/judges'
 require_relative '../../judges/options'
 require_relative '../../judges/impex'
 require_relative '../../judges/elapsed'
@@ -47,7 +47,7 @@ class Judges::Update
     fb = Factbase::Looged.new(fb, @loog)
     options = Judges::Options.new(opts['option'])
     @loog.debug("The following options provided:\n\t#{options.to_s.gsub("\n", "\n\t")}")
-    packs = Judges::Packs.new(dir, opts['lib'], @loog)
+    judges = Judges::Judges.new(dir, opts['lib'], @loog)
     c = 0
     elapsed(@loog) do
       loop do
@@ -55,7 +55,7 @@ class Judges::Update
         if c > 1
           @loog.info("\n\nStarting cycle ##{c}#{opts['max-cycles'] ? " (out of #{opts['max-cycles']})" : ''}...")
         end
-        diff = cycle(opts, packs, fb, options)
+        diff = cycle(opts, judges, fb, options)
         impex.export(fb)
         if diff.zero?
           @loog.info("The update cycle ##{c} has made no changes to the factbase, let's stop")
@@ -77,12 +77,12 @@ class Judges::Update
 
   private
 
-  def cycle(opts, packs, fb, options)
+  def cycle(opts, judges, fb, options)
     errors = []
     diff = 0
     global = {}
     elapsed(@loog) do
-      done = packs.each_with_index do |p, i|
+      done = judges.each_with_index do |p, i|
         local = {}
         @loog.info("👉 Running #{p.name} (##{i}) at #{p.dir.to_rel}...")
         before = fb.size

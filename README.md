@@ -25,8 +25,8 @@ global variables available to it:
   of [`Loog`](https://www.rubydoc.info/gems/loog/0.5.1/Loog),
   where `.info` and `.debug` logs are welcome;
 * `$options` — a holder of options coming from `.yml` files;
-* `$local` — a hash map that is cleaned up when all tests
-  in the pack are finished;
+* `$local` — a hash map that is cleaned up when the execution of
+  a judge is finished;
 * `$global` — a hash map that is never cleaned up;
 * `$judge` — the name of the directory, where the `.rb` script is located.
 

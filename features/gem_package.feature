@@ -1,8 +1,8 @@
 Feature: Gem Package
   As a source code writer I want to be able to
-  package the Gem into .gem file
+  judgeage the Gem into .gem file
 
-  Scenario: Gem can be packaged
+  Scenario: Gem can be judgeaged
     Given I make a temp directory
     Then I have a "execs.rb" file with content:
     """

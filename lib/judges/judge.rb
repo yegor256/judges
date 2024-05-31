@@ -26,11 +26,11 @@ require_relative '../judges/elapsed'
 require_relative '../judges/fb/once'
 require_relative '../judges/fb/if_absent'
 
-# A single pack.
+# A single judge.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
-class Judges::Pack
+class Judges::Judge
   attr_reader :dir
 
   def initialize(dir, lib, loog)
@@ -63,12 +63,12 @@ class Judges::Pack
     end
   end
 
-  # Get the name of the pack.
+  # Get the name of the judge.
   def name
     File.basename(@dir)
   end
 
-  # Get the name of the .rb script in the pack.
+  # Get the name of the .rb script in the judge.
   def script
     s = Dir.glob(File.join(@dir, '*.rb')).first
     raise "No *.rb scripts in #{@dir.to_rel}" if s.nil?
