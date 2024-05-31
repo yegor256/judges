@@ -11,7 +11,7 @@
 [![Hits-of-Code](https://hitsofcode.com/github/yegor256/judges)](https://hitsofcode.com/view/github/yegor256/judges)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/yegor256/judges/blob/master/LICENSE.txt)
 
-A command line tool and a Ruby gem for running so called judges agains a
+A command line tool and a Ruby gem for running so called judges against a
 [factbase](https://github.com/yegor256/factbase).
 
 Every "judge" is a directory with a single `.rb` file and a number
