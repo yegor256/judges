@@ -92,6 +92,7 @@ GEM
     ffi (1.17.0-aarch64-linux-gnu)
     ffi (1.17.0-arm-linux-gnu)
     ffi (1.17.0-arm64-darwin)
+    ffi (1.17.0-x64-mingw-ucrt)
     ffi (1.17.0-x86-linux-gnu)
     ffi (1.17.0-x86_64-darwin)
     ffi (1.17.0-x86_64-linux-gnu)
@@ -120,6 +121,8 @@ GEM
     nokogiri (1.16.5-arm-linux)
       racc (~> 1.4)
     nokogiri (1.16.5-arm64-darwin)
+      racc (~> 1.4)
+    nokogiri (1.16.5-x64-mingw-ucrt)
       racc (~> 1.4)
     nokogiri (1.16.5-x86-linux)
       racc (~> 1.4)
@@ -244,6 +247,7 @@ PLATFORMS
   aarch64-linux
   arm-linux
   arm64-darwin
+  x64-mingw-ucrt
   x86-linux
   x86_64-darwin
   x86_64-linux
