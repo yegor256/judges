@@ -55,14 +55,6 @@ class TestPack < Minitest::Test
     end
   end
 
-  def test_with_supplemenary_functions
-    Dir.mktmpdir do |d|
-      File.write(File.join(d, 'x.rb'), 'each_once($fb, "(always)").to_a')
-      judge = Judges::Judge.new(d, nil, Loog::NULL)
-      judge.run(Factbase.new, {}, {}, {})
-    end
-  end
-
   def test_passes_local_vars_between_tests
     Dir.mktmpdir do |d|
       File.write(
@@ -90,21 +82,6 @@ class TestPack < Minitest::Test
       log = Loog::Buffer.new
       Judges::Judge.new(dir, nil, log).run(Factbase.new, {}, {}, {})
       assert(log.to_s.include?("judge=#{j}"))
-    end
-  end
-
-  def test_with_library
-    Dir.mktmpdir do |d|
-      dir = File.join(d, 'judges')
-      FileUtils.mkdir_p(dir)
-      File.write(File.join(dir, 'x.rb'), '$fb.insert.bar = $foo; each_once($fb, "(always)").to_a')
-      lib = File.join(d, 'lib')
-      FileUtils.mkdir_p(lib)
-      File.write(File.join(lib, 'y.rb'), '$foo = 42')
-      judge = Judges::Judge.new(dir, lib, Loog::NULL)
-      fb = Factbase.new
-      judge.run(fb, {}, {}, {})
-      assert_equal(42, fb.query('(always)').each.to_a.first.bar)
     end
   end
 

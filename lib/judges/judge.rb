@@ -23,8 +23,6 @@
 require_relative '../judges'
 require_relative '../judges/to_rel'
 require_relative '../judges/elapsed'
-require_relative '../judges/fb/once'
-require_relative '../judges/fb/if_absent'
 
 # A single judge.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

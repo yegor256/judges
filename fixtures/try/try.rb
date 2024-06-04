@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-each_once($fb, "(and (exists number) (lt time #{Time.now.utc.iso8601}))") do |f|
+$fb.query("(and (exists number) (lt time #{Time.now.utc.iso8601}))").each do |f|
   n = $fb.insert
   n.guess = f.number
 end
