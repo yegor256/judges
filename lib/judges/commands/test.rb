@@ -48,11 +48,16 @@ class Judges::Test
     errors = []
     judges = 0
     tests = 0
+    visible = []
     elapsed(@loog) do
       Judges::Judges.new(dir, opts['lib'], @loog).each_with_index do |p, i|
+        visible << p.name
         next unless include?(opts, p.name)
         @loog.info("\n👉 Testing #{p.script} (##{i}) in #{p.dir.to_rel}...")
         p.tests.each do |f|
+          tname = File.basename(f).gsub(/\.yml$/, '')
+          visible << "  #{p.name}/#{tname}"
+          next unless include?(opts, p.name, tname)
           yaml = YAML.load_file(f, permitted_classes: [Time])
           if yaml['skip']
             @loog.info("Skippped #{f.to_rel}")
@@ -82,17 +87,23 @@ class Judges::Test
       raise "#{errors.size} tests failed" unless opts['quiet']
       @loog.debug('Not failing the build with tests failures, due to the --quiet option')
     end
-    return unless judges.zero?
-    raise 'No judges tested :(' unless opts['quiet']
-    @loog.debug('Not failing the build with no judges tested, due to the --quiet option')
+    return unless judges.zero? || tests.zero?
+    if opts['judge'].nil?
+      raise 'There are seems to be no judges' unless opts['quiet']
+      @loog.debug('Not failing the build with no judges tested, due to the --quiet option')
+    else
+      raise 'There are seems to be no judges' if visible.empty?
+      @loog.info("The following judges are available to use with the --judge option:\n  #{visible.join("\n  ")}")
+    end
   end
 
   private
 
-  def include?(opts, name)
+  def include?(opts, name, tname = nil)
     judges = opts['judge'] || []
     return true if judges.empty?
-    judges.include?(name)
+    tre = tname.nil? ? '.+' : tname
+    judges.any? { |n| n.match?(%r{^#{name}(/#{tre})?$}) }
   end
 
   def test_one(opts, judge, yaml)

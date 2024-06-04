@@ -45,6 +45,7 @@ class Judges::Update
     impex = Judges::Impex.new(@loog, args[1])
     fb = impex.import(strict: false)
     fb = Factbase::Looged.new(fb, @loog)
+    before = fb.size
     options = Judges::Options.new(opts['option'])
     @loog.debug("The following options provided:\n\t#{options.to_s.gsub("\n", "\n\t")}")
     judges = Judges::Judges.new(dir, opts['lib'], @loog)
@@ -66,12 +67,12 @@ class Judges::Update
           break
         end
         @loog.info(
-          "By #{diff} facts the factbase " \
+          "By #{diff.abs} fact(s) the factbase " \
           "#{diff.positive? ? 'increased' : 'decreased'} " \
           "its size at the cycle ##{c}"
         )
       end
-      throw :"Update finished: #{c} cycles"
+      throw :"Update finished in #{c} cycle(s), #{format('+%d', fb.size - before)} fact(s)"
     end
   end
 

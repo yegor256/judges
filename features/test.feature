@@ -14,6 +14,16 @@ Feature: Test
 
   Scenario: Simple test of no judges
     Given I run bin/judges with "test --judge absent_for_sure ./fixtures"
+    Then Exit code is zero
+
+  Scenario: Simple test of no judges at all
+    Given I make a temp directory
+    Given I run bin/judges with "test ."
+    Then Exit code is not zero
+
+  Scenario: Simple test of no judges at all
+    Given I make a temp directory
+    Given I run bin/judges with "test --judge some ."
     Then Exit code is not zero
 
   Scenario: Simple test of a few judges, with a lib
@@ -23,12 +33,18 @@ Feature: Test
       n = $fb.insert
       n.foo = $foo
     """
+    Then I have a "myjudges/myjudge/good.yml" file with content:
+    """
+    ---
+    category: good
+    input: []
+    """
     Then I have a "mylib/foo.rb" file with content:
     """
       $foo = 42
     """
     Then I run bin/judges with "test --lib mylib myjudges"
-    Then Stdout contains "All 1 judge(s) but no tests passed"
+    Then Stdout contains "All 1 judge(s) and 1 tests passed"
     And Exit code is zero
 
   Scenario: Enable only one category
