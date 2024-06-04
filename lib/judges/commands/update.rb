@@ -85,7 +85,7 @@ class Judges::Update
     elapsed(@loog) do
       done = judges.each_with_index do |p, i|
         local = {}
-        @loog.info("👉 Running #{p.name} (##{i}) at #{p.dir.to_rel}...")
+        @loog.info("\n👉 Running #{p.name} (##{i}) at #{p.dir.to_rel}...")
         before = fb.size
         begin
           p.run(fb, global, local, options)
