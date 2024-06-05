@@ -56,9 +56,9 @@ class Judges::Update
         if c > 1
           @loog.info("\n\nStarting cycle ##{c}#{opts['max-cycles'] ? " (out of #{opts['max-cycles']})" : ''}...")
         end
-        diff = cycle(opts, judges, fb, options)
+        churn = cycle(opts, judges, fb, options)
         impex.export(fb)
-        if diff.zero?
+        if churn.zero?
           @loog.info("The update cycle ##{c} has made no changes to the factbase, let's stop")
           break
         end
@@ -66,21 +66,42 @@ class Judges::Update
           @loog.info("Too many cycles already, as set by --max-cycles=#{opts['max-cycles']}, breaking")
           break
         end
-        @loog.info(
-          "By #{diff.abs} fact(s) the factbase " \
-          "#{diff.positive? ? 'increased' : 'decreased'} " \
-          "its size at the cycle ##{c}"
-        )
+        @loog.info("At the cycle #{c}, the factbase was modified by #{churn} fact(s)")
       end
       throw :"Update finished in #{c} cycle(s), #{format('+%d', fb.size - before)} fact(s)"
     end
   end
 
+  # How many facts were modified.
+  class Churn
+    def initialize(added, removed)
+      @added = added
+      @removed = removed
+    end
+
+    def to_s
+      "#{format('+%d', @added)}/#{format('+%d', -@removed)}"
+    end
+
+    def zero?
+      @added.zero? && @removed.zero?
+    end
+
+    def +(other)
+      Churn.new(@added + other, @removed)
+    end
+
+    def -(other)
+      Churn.new(@added, @removed + other)
+    end
+  end
+
   private
 
+  # @return [Churn] How many modifications have been made
   def cycle(opts, judges, fb, options)
     errors = []
-    diff = 0
+    churn = Churn.new(0, 0)
     global = {}
     elapsed(@loog) do
       done = judges.each_with_index do |p, i|
@@ -94,8 +115,13 @@ class Judges::Update
           errors << p.script
         end
         after = fb.size
-        @loog.info("👍 The judge #{p.dir.to_rel} added #{after - before} facts") if after > before
-        diff += after - before
+        diff = after - before
+        if diff.positive?
+          churn += diff
+        else
+          churn -= diff
+        end
+        @loog.info("👍 The judge #{p.dir.to_rel} modified #{churn} facts")
       end
       throw :"👍 #{done} judge(s) processed" if errors.empty?
       throw :"❌ #{done} judge(s) processed with #{errors.size} errors"
@@ -104,6 +130,6 @@ class Judges::Update
       raise "Failed to update correctly (#{errors.size} errors)" unless opts['quiet']
       @loog.info('Not failing because of the --quiet flag provided')
     end
-    diff
+    churn
   end
 end
