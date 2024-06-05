@@ -121,7 +121,7 @@ class Judges::Update
         else
           churn -= diff
         end
-        @loog.info("👍 The judge #{p.dir.to_rel} modified #{churn} facts")
+        @loog.info("👍 The judge #{p.name} modified #{churn} facts")
       end
       throw :"👍 #{done} judge(s) processed" if errors.empty?
       throw :"❌ #{done} judge(s) processed with #{errors.size} errors"
