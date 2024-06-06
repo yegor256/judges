@@ -74,6 +74,8 @@ class Judges::Update
 
   # How many facts were modified.
   class Churn
+    attr_reader :added, :removed
+
     def initialize(added, removed)
       @added = added
       @removed = removed
@@ -88,16 +90,13 @@ class Judges::Update
     end
 
     def +(other)
-      Churn.new(@added + other, @removed)
-    end
-
-    def -(other)
-      Churn.new(@added, @removed + other)
+      Churn.new(@added + other.added, @removed + other.removed)
     end
   end
 
   private
 
+  # Run all judges in a full cycle, one by one.
   # @return [Churn] How many modifications have been made
   def cycle(opts, judges, fb, options)
     errors = []
@@ -105,23 +104,12 @@ class Judges::Update
     global = {}
     elapsed(@loog) do
       done = judges.each_with_index do |p, i|
-        local = {}
         @loog.info("\n👉 Running #{p.name} (##{i}) at #{p.dir.to_rel}...")
-        before = fb.size
-        begin
-          p.run(fb, global, local, options)
-        rescue StandardError, SyntaxError => e
-          @loog.warn(Backtrace.new(e))
-          errors << p.script
-        end
-        after = fb.size
-        diff = after - before
-        if diff.positive?
-          churn += diff
-        else
-          churn -= diff
-        end
+        churn += one_judge(fb, p, global, options)
         @loog.info("👍 The judge #{p.name} modified #{churn} facts")
+      rescue StandardError, SyntaxError => e
+        @loog.warn(Backtrace.new(e))
+        errors << p.script
       end
       throw :"👍 #{done} judge(s) processed" if errors.empty?
       throw :"❌ #{done} judge(s) processed with #{errors.size} errors"
@@ -131,5 +119,20 @@ class Judges::Update
       @loog.info('Not failing because of the --quiet flag provided')
     end
     churn
+  end
+
+  # Run a single judge.
+  # @return [Churn] How many modifications have been made
+  def one_judge(fb, judge, global, options)
+    local = {}
+    before = fb.size
+    judge.run(fb, global, local, options)
+    after = fb.size
+    diff = after - before
+    if diff.positive?
+      Churn.new(diff, 0)
+    else
+      Churn.new(0, diff)
+    end
   end
 end
