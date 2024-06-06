@@ -69,7 +69,7 @@ class Judges::Test
           end
           @loog.info("🛠️ Testing #{f.to_rel}:")
           begin
-            test_one(opts, p, yaml)
+            test_one(opts, p, tname, yaml)
             tests += 1
           rescue StandardError => e
             @loog.warn(Backtrace.new(e))
@@ -106,7 +106,7 @@ class Judges::Test
     judges.any? { |n| n.match?(%r{^#{name}(/#{tre})?$}) }
   end
 
-  def test_one(opts, judge, yaml)
+  def test_one(opts, judge, tname, yaml)
     fb = Factbase.new
     inputs = yaml['input']
     inputs&.each do |i|
@@ -127,7 +127,7 @@ class Judges::Test
     return if xpaths.nil?
     xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
     xpaths.each do |xp|
-      raise "#{judge.script} doesn't match '#{xp}':\n#{xml}" if xml.xpath(xp).empty?
+      raise "#{judge.name}/#{tname} doesn't match '#{xp}':\n#{xml}" if xml.xpath(xp).empty?
     end
   end
 end
