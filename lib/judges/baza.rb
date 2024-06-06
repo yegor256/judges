@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 require 'typhoeus'
+require 'retries'
 require 'iri'
 require 'loog'
 require_relative '../judges'
@@ -45,17 +46,20 @@ class Judges::Baza
   def push(name, data)
     id = 0
     elapsed(@loog) do
-      ret = Typhoeus::Request.put(
-        home.append('push').append(name).to_s,
-        body: data,
-        headers: headers.merge(
-          'Content-Type' => 'application/octet-stream',
-          'Content-Length' => data.size
-        ),
-        connecttimeout: @timeout,
-        timeout: @timeout
-      )
-      check_code(ret)
+      ret = with_retries do
+        checked(
+          Typhoeus::Request.put(
+            home.append('push').append(name).to_s,
+            body: data,
+            headers: headers.merge(
+              'Content-Type' => 'application/octet-stream',
+              'Content-Length' => data.size
+            ),
+            connecttimeout: @timeout,
+            timeout: @timeout
+          )
+        )
+      end
       id = ret.body.to_i
       throw :"Pushed #{data.size} bytes to #{@host}, job ID is ##{id}"
     end
@@ -79,7 +83,7 @@ class Judges::Baza
             f.write(chunk)
           end
           request.run
-          check_code(request.response)
+          checked(request.response)
         end
         data = File.binread(file)
         throw :"Pulled #{data.size} bytes of job ##{id} factbase at #{@host}"
@@ -92,11 +96,14 @@ class Judges::Baza
   def finished?(id)
     finished = false
     elapsed(@loog) do
-      ret = Typhoeus::Request.get(
-        home.append('finished').append(id).to_s,
-        headers:
-      )
-      check_code(ret)
+      ret = with_retries do
+        checked(
+          Typhoeus::Request.get(
+            home.append('finished').append(id).to_s,
+            headers:
+          )
+        )
+      end
       finished = ret.body == 'yes'
       throw :"The job ##{id} is #{finished ? '' : 'not yet '}finished at #{@host}"
     end
@@ -106,11 +113,14 @@ class Judges::Baza
   def recent(name)
     job = 0
     elapsed(@loog) do
-      ret = Typhoeus::Request.get(
-        home.append('recent').append("#{name}.txt").to_s,
-        headers:
-      )
-      check_code(ret)
+      ret = with_retries do
+        checked(
+          Typhoeus::Request.get(
+            home.append('recent').append("#{name}.txt").to_s,
+            headers:
+          )
+        )
+      end
       job = ret.body.to_i
       throw :"The recent \"#{name}\" job's ID is ##{job} at #{@host}"
     end
@@ -120,11 +130,12 @@ class Judges::Baza
   def name_exists?(name)
     exists = 0
     elapsed(@loog) do
-      ret = Typhoeus::Request.get(
-        home.append('exists').append(name).to_s,
-        headers:
+      ret = checked(
+        Typhoeus::Request.get(
+          home.append('exists').append(name).to_s,
+          headers:
+        )
       )
-      check_code(ret)
       exists = ret.body == 'yes'
       throw :"The name \"#{name}\" #{exists ? 'exists' : "doesn't exist"} at #{@host}"
     end
@@ -148,14 +159,14 @@ class Judges::Baza
       .scheme(@ssl ? 'https' : 'http')
   end
 
-  def check_code(ret, allowed = [200])
+  def checked(ret, allowed = [200])
     allowed = [allowed] unless allowed.is_a?(Array)
     mtd = (ret.request.original_options[:method] || '???').upcase
     url = ret.effective_url
     log = "#{mtd} #{url} -> #{ret.code}"
     if allowed.include?(ret.code)
       @loog.debug(log)
-      return
+      return ret
     end
     @loog.debug("#{log}\n  #{(ret.headers || {}).map { |k, v| "#{k}: #{v}" }.join("\n  ")}")
     msg =
