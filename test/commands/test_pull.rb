@@ -47,7 +47,8 @@ class TestPull < Minitest::Test
           'token' => '000',
           'host' => 'example.org',
           'port' => 80,
-          'ssl' => false
+          'ssl' => false,
+          'wait' => 10
         },
         ['foo', file]
       )

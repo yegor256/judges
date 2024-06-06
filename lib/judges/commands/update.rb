@@ -82,7 +82,7 @@ class Judges::Update
     end
 
     def to_s
-      "#{format('+%d', @added)}/#{format('+%d', -@removed)}"
+      "#{@added}/-#{@removed}"
     end
 
     def zero?
@@ -107,7 +107,7 @@ class Judges::Update
         @loog.info("\n👉 Running #{p.name} (##{i}) at #{p.dir.to_rel}...")
         elapsed(@loog) do
           churn += one_judge(fb, p, global, options)
-          throw :"👍 The judge #{p.name} modified #{churn} facts"
+          throw :"👍 The judge #{p.name} modified #{churn} facts\n"
         end
       rescue StandardError, SyntaxError => e
         @loog.warn(Backtrace.new(e))
@@ -134,7 +134,7 @@ class Judges::Update
     if diff.positive?
       Churn.new(diff, 0)
     else
-      Churn.new(0, diff)
+      Churn.new(0, -diff)
     end
   end
 end
