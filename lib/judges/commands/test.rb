@@ -122,7 +122,9 @@ class Judges::Test
       end
     end
     options = Judges::Options.new(opts['option']) + Judges::Options.new(yaml['options'])
-    judge.run(Factbase::Looged.new(fb, @loog), {}, {}, options)
+    (1..(opts['runs'] || 1)).each do
+      judge.run(Factbase::Looged.new(fb, @loog), {}, {}, options)
+    end
     xpaths = yaml['expected']
     return if xpaths.nil?
     xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
