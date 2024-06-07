@@ -104,10 +104,10 @@ class Judges::Update
     global = {}
     elapsed(@loog) do
       done = judges.each_with_index do |p, i|
-        @loog.info("\n👉 Running #{p.name} (##{i}) at #{p.dir.to_rel}...")
+        @loog.info("\n\n👉 Running #{p.name} (##{i}) at #{p.dir.to_rel}...")
         elapsed(@loog) do
           churn += one_judge(fb, p, global, options)
-          throw :"👍 The judge #{p.name} modified #{churn} facts\n"
+          throw :"👍 The judge #{p.name} modified #{churn} facts"
         end
       rescue StandardError, SyntaxError => e
         @loog.warn(Backtrace.new(e))
