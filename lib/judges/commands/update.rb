@@ -82,7 +82,7 @@ class Judges::Update
     end
 
     def to_s
-      "#{@added}/-#{@removed}"
+      "+#{@added}/-#{@removed}"
     end
 
     def zero?
