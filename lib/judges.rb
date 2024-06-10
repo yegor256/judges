@@ -25,5 +25,5 @@
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
 module Judges
-  VERSION = '0.0.0'
+  VERSION = '0.7.0'
 end
