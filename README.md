@@ -34,6 +34,7 @@ global variables available to it:
 Every `.yml` file must be formatted as such:
 
 ```yaml
+category: slow
 skip: false
 input:
   -
@@ -51,6 +52,9 @@ the test starts; the `options` is a hash map of options as if they are passed
 via the command line `--option` flag of the `update` command; and `expected` is
 an array of XPath expressions that must be present in the XML of the Factbase
 when the test is finished.
+
+The `category` may have one or an array of categories, which then may be
+turned on via the `--category` command line flag.
 
 ## How to contribute
 
