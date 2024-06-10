@@ -25,6 +25,7 @@ require 'factbase/looged'
 require_relative '../../judges'
 require_relative '../../judges/to_rel'
 require_relative '../../judges/judges'
+require_relative '../../judges/churn'
 require_relative '../../judges/options'
 require_relative '../../judges/impex'
 require_relative '../../judges/elapsed'
@@ -72,35 +73,13 @@ class Judges::Update
     end
   end
 
-  # How many facts were modified.
-  class Churn
-    attr_reader :added, :removed
-
-    def initialize(added, removed)
-      @added = added
-      @removed = removed
-    end
-
-    def to_s
-      "+#{@added}/-#{@removed}"
-    end
-
-    def zero?
-      @added.zero? && @removed.zero?
-    end
-
-    def +(other)
-      Churn.new(@added + other.added, @removed + other.removed)
-    end
-  end
-
   private
 
   # Run all judges in a full cycle, one by one.
   # @return [Churn] How many modifications have been made
   def cycle(opts, judges, fb, options)
     errors = []
-    churn = Churn.new(0, 0)
+    churn = Judges::Churn.new(0, 0)
     global = {}
     elapsed(@loog) do
       done = judges.each_with_index do |p, i|
@@ -132,9 +111,9 @@ class Judges::Update
     after = fb.size
     diff = after - before
     if diff.positive?
-      Churn.new(diff, 0)
+      Judges::Churn.new(diff, 0)
     else
-      Churn.new(0, -diff)
+      Judges::Churn.new(0, -diff)
     end
   end
 end
