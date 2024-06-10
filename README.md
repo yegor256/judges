@@ -35,6 +35,7 @@ Every `.yml` file must be formatted as such:
 
 ```yaml
 category: slow
+runs: 1
 skip: false
 input:
   -
@@ -53,8 +54,11 @@ via the command line `--option` flag of the `update` command; and `expected` is
 an array of XPath expressions that must be present in the XML of the Factbase
 when the test is finished.
 
-The `category` may have one or an array of categories, which then may be
-turned on via the `--category` command line flag.
+The `category` (default: `[]`) may have one or an array of categories,
+which then may be turned on via the `--category` command line flag.
+
+The `runs` (default: `1`) is the number of times the `.rb` script should
+be executed. After each execution, all expected XPath expressions are validated.
 
 ## How to contribute
 

@@ -122,7 +122,7 @@ class Judges::Test
       end
     end
     options = Judges::Options.new(opts['option']) + Judges::Options.new(yaml['options'])
-    (1..(opts['runs'] || 1)).each do
+    (1..(opts['runs'] || yaml['runs'] || 1)).each do
       judge.run(Factbase::Looged.new(fb, @loog), {}, {}, options)
     end
     xpaths = yaml['expected']
