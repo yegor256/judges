@@ -64,6 +64,8 @@ class App
     c.flag([:'max-cycles'], default_value: 8, type: Integer)
     c.desc 'Stay quiet even if some judges fail'
     c.switch([:q, :quiet], default_value: false)
+    c.desc 'Use default logging facility'
+    c.switch([:log], default_value: true)
     c.action do |global, options, args|
       require_relative '../lib/judges/commands/update'
       Judges::Update.new(loog).run(options, args)
