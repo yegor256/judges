@@ -87,7 +87,7 @@ class Judges::Update
         elapsed(@loog) do
           c = one_judge(fb, p, global, options)
           churn += c
-          throw :"👍 The judge #{p.name} modified #{c} facts"
+          throw :"👍 The judge #{p.name} modified #{c.zero? ? 'no' : c} facts"
         end
       rescue StandardError, SyntaxError => e
         @loog.warn(Backtrace.new(e))
