@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'tago'
+
 def elapsed(loog)
   start = Time.now
   begin
@@ -27,6 +29,6 @@ def elapsed(loog)
   rescue UncaughtThrowError => e
     tag = e.tag
     throw e unless tag.is_a?(Symbol)
-    loog.info("#{tag} in #{format('%.02f', Time.now - start)}s")
+    loog.info("#{tag} in #{start.ago}")
   end
 end
