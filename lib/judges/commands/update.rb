@@ -46,20 +46,21 @@ class Judges::Update
     impex = Judges::Impex.new(@loog, args[1])
     fb = impex.import(strict: false)
     fb = Factbase::Looged.new(fb, @loog) if opts['log']
-    before = fb.size
     options = Judges::Options.new(opts['option'])
     @loog.debug("The following options provided:\n\t#{options.to_s.gsub("\n", "\n\t")}")
     judges = Judges::Judges.new(dir, opts['lib'], @loog)
     c = 0
+    churn = Judges::Churn.new(0, 0)
     elapsed(@loog) do
       loop do
         c += 1
         if c > 1
           @loog.info("\n\nStarting cycle ##{c}#{opts['max-cycles'] ? " (out of #{opts['max-cycles']})" : ''}...")
         end
-        churn = cycle(opts, judges, fb, options)
+        delta = cycle(opts, judges, fb, options)
+        churn += delta
         impex.export(fb)
-        if churn.zero?
+        if delta.zero?
           @loog.info("The update cycle ##{c} has made no changes to the factbase, let's stop")
           break
         end
@@ -67,9 +68,9 @@ class Judges::Update
           @loog.info("Too many cycles already, as set by --max-cycles=#{opts['max-cycles']}, breaking")
           break
         end
-        @loog.info("At the cycle #{c}, the factbase was modified by #{churn} fact(s)")
+        @loog.info("The cycle #{c} modified #{delta} fact(s)")
       end
-      throw :"Update finished in #{c} cycle(s), #{format('+%d', fb.size - before)} fact(s)"
+      throw :"Update finished in #{c} cycle(s), modified #{churn} fact(s)"
     end
   end
 

@@ -12,7 +12,7 @@ Feature: Update
     Then Stdout contains "foo → "
     Then Stdout contains "bar → "
     Then Stdout contains "1 judge(s) processed"
-    Then Stdout contains "Update finished in 3 cycle(s), +3 fact(s)"
+    Then Stdout contains "Update finished in 3 cycle(s), modified 3/0 fact(s)"
     And Exit code is zero
 
   Scenario: Simple run of a few judges, with a lib
