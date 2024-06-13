@@ -66,6 +66,26 @@ Feature: Test
     Then Stdout contains "All 1 judge(s) and 1 tests passed"
     And Exit code is zero
 
+  Scenario: Simple test with many runs and many asserts
+    Given I make a temp directory
+    Then I have a "foo/simple.rb" file with content:
+    """
+      n = $fb.insert
+      n.foo = $fb.size
+    """
+    Then I have a "foo/good.yml" file with content:
+    """
+    ---
+    runs: 5
+    input: []
+    assert_once: false
+    expected:
+      - /fb/f[foo = 1]
+    """
+    Then I run bin/judges with "test ."
+    Then Stdout contains "All 1 judge(s) and 1 tests passed"
+    And Exit code is zero
+
   Scenario: Enable only one category
     Given I make a temp directory
     Then I have a "mine/good/good.rb" file with content:

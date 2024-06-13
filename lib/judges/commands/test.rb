@@ -122,12 +122,13 @@ class Judges::Test
       end
     end
     options = Judges::Options.new(opts['option']) + Judges::Options.new(yaml['options'])
-    (1..(opts['runs'] || yaml['runs'] || 1)).each do
+    runs = opts['runs'] || yaml['runs'] || 1
+    (1..runs).each do |r|
       fbx = fb
       fbx = Factbase::Looged.new(fb, @loog) if opts['log']
       judge.run(fbx, {}, {}, options)
+      assert(judge, tname, fb, yaml) if r == runs || opts['assert_once'].is_a?(FalseClass)
     end
-    assert(judge, tname, fb, yaml)
   end
 
   def assert(judge, tname, fb, yaml)
