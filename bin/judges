@@ -147,6 +147,8 @@ class App
     c.flag([:lib])
     c.desc 'Stay quiet even if some tests fail or simply no tests executed?'
     c.switch([:quiet], default_value: false)
+    c.desc 'Use default logging facility'
+    c.switch([:log], default_value: true)
     c.action do |global, options, args|
       require_relative '../lib/judges/commands/test'
       Judges::Test.new(loog).run(options, args)
