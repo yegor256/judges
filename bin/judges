@@ -50,8 +50,8 @@ class App
     if global[:verbose]
       loog = Loog::VERBOSE
     end
-    loog.debug("judges #{Judges::VERSION}")
-    loog.debug("facbase #{Factbase::VERSION}")
+    loog.debug("Judges #{Judges::VERSION}")
+    loog.debug("Factbase #{Factbase::VERSION}")
     true
   end
 
