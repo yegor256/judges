@@ -51,6 +51,7 @@ class App
       loog = Loog::VERBOSE
     end
     loog.debug("judges #{Judges::VERSION}")
+    loog.debug("facbase #{Factbase::VERSION}")
     true
   end
 
