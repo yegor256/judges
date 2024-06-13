@@ -127,6 +127,10 @@ class Judges::Test
       fbx = Factbase::Looged.new(fb, @loog) if opts['log']
       judge.run(fbx, {}, {}, options)
     end
+    assert(judge, tname, fb, yaml)
+  end
+
+  def assert(judge, tname, fb, yaml)
     xpaths = yaml['expected']
     return if xpaths.nil?
     xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
