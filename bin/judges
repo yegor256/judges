@@ -142,7 +142,7 @@ class App
     c.desc 'Name of the judge to run (directory name)'
     c.flag([:judge], multiple: true)
     c.desc 'How many times to run?'
-    c.flag([:runs], type: Integer, default_value: 1)
+    c.flag([:runs], type: Integer)
     c.desc 'The location of a Ruby library (directory with .rb files to include)'
     c.flag([:lib])
     c.desc 'Stay quiet even if some tests fail or simply no tests executed?'

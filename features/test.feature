@@ -47,7 +47,7 @@ Feature: Test
     Then Stdout contains "All 1 judge(s) and 1 tests passed"
     And Exit code is zero
 
-  Scenario: Simple test with two runs
+  Scenario: Simple test with many runs
     Given I make a temp directory
     Then I have a "foo/simple.rb" file with content:
     """
@@ -57,10 +57,10 @@ Feature: Test
     Then I have a "foo/good.yml" file with content:
     """
     ---
-    runs: 3
+    runs: 5
     input: []
     expected:
-      - /fb/f[foo=count(/fb/f)]
+      - /fb[count(f)=5]
     """
     Then I run bin/judges with "test ."
     Then Stdout contains "All 1 judge(s) and 1 tests passed"
