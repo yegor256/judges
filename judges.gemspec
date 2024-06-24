@@ -50,6 +50,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'loog', '~>0.2'
   s.add_runtime_dependency 'moments', '~>0.3'
   s.add_runtime_dependency 'nokogiri', '~>1.10'
+  s.add_runtime_dependency 'others', '~>0.0'
   s.add_runtime_dependency 'retries', '~>0.0'
   s.add_runtime_dependency 'tago', '~>0.0'
   s.add_runtime_dependency 'typhoeus', '~>1.3'

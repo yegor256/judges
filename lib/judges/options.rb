@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'others'
 require_relative '../judges'
 
 # Options for Ruby scripts in the judges.
@@ -54,7 +55,7 @@ class Judges::Options
   end
 
   # Get option by name.
-  def method_missing(*args)
+  others do |*args|
     @hash ||= begin
       pp = @pairs || []
       pp = @pairs.map { |k, v| "#{k}=#{v}" } if pp.is_a?(Hash)
@@ -71,15 +72,5 @@ class Judges::Options
     end
     k = args[0].downcase
     @hash[k]
-  end
-
-  # rubocop:disable Style/OptionalBooleanParameter
-  def respond_to?(_method, _include_private = false)
-    # rubocop:enable Style/OptionalBooleanParameter
-    true
-  end
-
-  def respond_to_missing?(_method, _include_private = false)
-    true
   end
 end
