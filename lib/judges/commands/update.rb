@@ -84,7 +84,7 @@ class Judges::Update
     global = {}
     elapsed(@loog) do
       done = judges.each_with_index do |p, i|
-        @loog.info("\n\n👉 Running #{p.name} (##{i}) at #{p.dir.to_rel}...")
+        @loog.info("\n👉 Running #{p.name} (##{i}) at #{p.dir.to_rel}...")
         elapsed(@loog) do
           c = one_judge(fb, p, global, options)
           churn += c
