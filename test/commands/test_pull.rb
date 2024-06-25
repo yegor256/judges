@@ -34,6 +34,7 @@ require_relative '../../lib/judges/commands/pull'
 class TestPull < Minitest::Test
   def test_pull_simple_factbase
     WebMock.disable_net_connect!
+    stub_request(:get, 'http://example.org/lock/foo?owner=none').to_return(status: 302)
     stub_request(:get, 'http://example.org/exists/foo').to_return(body: 'yes')
     stub_request(:get, 'http://example.org/recent/foo.txt').to_return(body: '42')
     stub_request(:get, 'http://example.org/finished/42').to_return(body: 'yes')
@@ -48,7 +49,8 @@ class TestPull < Minitest::Test
           'host' => 'example.org',
           'port' => 80,
           'ssl' => false,
-          'wait' => 10
+          'wait' => 10,
+          'owner' => 'none'
         },
         ['foo', file]
       )

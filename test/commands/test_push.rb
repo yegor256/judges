@@ -33,6 +33,8 @@ require_relative '../../lib/judges/commands/push'
 class TestPush < Minitest::Test
   def test_push_simple_factbase
     WebMock.disable_net_connect!
+    stub_request(:get, 'https://example.org/lock/foo?owner=none').to_return(status: 302)
+    stub_request(:get, 'https://example.org/unlock/foo?owner=none').to_return(status: 302)
     stub_request(:put, 'https://example.org/push/foo').to_return(
       status: 200, body: '42'
     )
@@ -46,7 +48,8 @@ class TestPush < Minitest::Test
           'token' => '000',
           'host' => 'example.org',
           'port' => 443,
-          'ssl' => true
+          'ssl' => true,
+          'owner' => 'none'
         },
         ['foo', file]
       )
@@ -55,6 +58,7 @@ class TestPush < Minitest::Test
 
   def test_fails_on_http_error
     WebMock.disable_net_connect!
+    stub_request(:get, 'http://example.org/lock/foo?owner=none').to_return(status: 302)
     stub_request(:put, 'http://example.org/push/foo').to_return(status: 500)
     Dir.mktmpdir do |d|
       file = File.join(d, 'base.fb')
@@ -67,7 +71,8 @@ class TestPush < Minitest::Test
             'token' => '000',
             'host' => 'example.org',
             'port' => 80,
-            'ssl' => false
+            'ssl' => false,
+            'owner' => 'none'
           },
           ['foo', file]
         )

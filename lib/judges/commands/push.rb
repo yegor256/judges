@@ -46,7 +46,9 @@ class Judges::Push
       loog: @loog
     )
     elapsed(@loog) do
+      baza.lock(name, opts['owner'])
       id = baza.push(name, fb.export)
+      baza.unlock(name, opts['owner'])
       throw :"Pushed #{fb.size} facts, job ID is #{id}"
     end
   end

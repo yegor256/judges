@@ -167,6 +167,8 @@ class App
     c.flag([:timeout], default_value: 30, type: Integer)
     c.desc 'Shall SSL be used?'
     c.switch([:ssl], default_value: true)
+    c.desc 'A unique name to use for a lock/unlock'
+    c.flag([:owner], default_value: 'default', type: String)
     c.action do |global, options, args|
       require_relative '../lib/judges/commands/push'
       Judges::Push.new(loog).run(options, args)
@@ -187,6 +189,8 @@ class App
     c.flag([:timeout], default_value: 30, type: Integer)
     c.desc 'Shall SSL be used?'
     c.switch([:ssl], default_value: true)
+    c.desc 'A unique name to use for a lock/unlock'
+    c.flag([:owner], default_value: 'default', type: String)
     c.action do |global, options, args|
       require_relative '../lib/judges/commands/pull'
       Judges::Pull.new(loog).run(options, args)

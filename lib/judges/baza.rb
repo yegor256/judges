@@ -110,6 +110,36 @@ class Judges::Baza
     finished
   end
 
+  # Lock the name.
+  def lock(name, owner)
+    elapsed(@loog) do
+      with_retries do
+        checked(
+          Typhoeus::Request.get(
+            home.append('lock').append(name).add(owner:).to_s,
+            headers:
+          ),
+          302
+        )
+      end
+    end
+  end
+
+  # Unlock the name.
+  def unlock(name, owner)
+    elapsed(@loog) do
+      with_retries do
+        checked(
+          Typhoeus::Request.get(
+            home.append('unlock').append(name).add(owner:).to_s,
+            headers:
+          ),
+          302
+        )
+      end
+    end
+  end
+
   def recent(name)
     job = 0
     elapsed(@loog) do
