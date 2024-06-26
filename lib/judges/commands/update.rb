@@ -72,6 +72,16 @@ class Judges::Update
       end
       throw :"Update finished in #{c} cycle(s), modified #{churn} fact(s)"
     end
+    return if churn.zero? || !opts['summary']
+    f = fb.insert
+    f.what = 'judges-summary'
+    f.when = Time.now
+    f.version = Judges::VERSION
+    f.cycles = c
+    f.added = churn.added.size
+    f.removed = churn.removed.size
+    churn.errors.each { |e| f.error = e }
+    impex.export(fb)
   end
 
   private
@@ -79,7 +89,6 @@ class Judges::Update
   # Run all judges in a full cycle, one by one.
   # @return [Churn] How many modifications have been made
   def cycle(opts, judges, fb, options)
-    errors = []
     churn = Judges::Churn.new(0, 0)
     global = {}
     elapsed(@loog) do
@@ -92,13 +101,13 @@ class Judges::Update
         end
       rescue StandardError, SyntaxError => e
         @loog.warn(Backtrace.new(e))
-        errors << p.script
+        churn << e.message
       end
-      throw :"👍 #{done} judge(s) processed" if errors.empty?
-      throw :"❌ #{done} judge(s) processed with #{errors.size} errors"
+      throw :"👍 #{done} judge(s) processed" if churn.errors.empty?
+      throw :"❌ #{done} judge(s) processed with #{churn.errors.size} errors"
     end
-    unless errors.empty?
-      raise "Failed to update correctly (#{errors.size} errors)" unless opts['quiet']
+    unless churn.errors.empty?
+      raise "Failed to update correctly (#{churn.errors.size} errors)" unless opts['quiet']
       @loog.info('Not failing because of the --quiet flag provided')
     end
     churn
