@@ -73,6 +73,7 @@ class Judges::Update
       throw :"Update finished in #{c} cycle(s), modified #{churn} fact(s)"
     end
     return if churn.zero? || !opts['summary']
+    fb.query('(eq what "judges-summary")').delete!
     f = fb.insert
     f.what = 'judges-summary'
     f.when = Time.now

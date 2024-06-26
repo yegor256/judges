@@ -82,13 +82,17 @@ class TestUpdate < Minitest::Test
     Dir.mktmpdir do |d|
       File.write(File.join(d, 'foo.rb'), 'this$is$a$broken$Ruby$script')
       file = File.join(d, 'base.fb')
-      Judges::Update.new(Loog::NULL).run(
-        { 'quiet' => true, 'summary' => true, 'max-cycles' => 2 },
-        [d, file]
-      )
+      2.times do
+        Judges::Update.new(Loog::NULL).run(
+          { 'quiet' => true, 'summary' => true, 'max-cycles' => 2 },
+          [d, file]
+        )
+      end
       fb = Factbase.new
       fb.import(File.binread(file))
-      f = fb.query('(eq what "judges-summary")').each.to_a[0]
+      sums = fb.query('(eq what "judges-summary")').each.to_a
+      assert_equal(1, sums.size)
+      f = sums.first
       assert(f.error.include?('unexpected global variable'), f.error)
     end
   end
