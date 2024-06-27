@@ -41,6 +41,11 @@ class TestOptions < Minitest::Test
     assert_equal(42, opts.max)
   end
 
+  def test_case_insensitive
+    opts = Judges::Options.new(['aBcDeF=1', 'aBCDEf=2'])
+    assert_equal(2, opts.abcdef)
+  end
+
   def test_with_nil
     opts = Judges::Options.new(nil)
     assert(opts.foo.nil?)

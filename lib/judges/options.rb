@@ -69,7 +69,7 @@ class Judges::Options
       pp.reject!(&:empty?)
       pp.map! do |pair|
         p = pair.split('=', 2)
-        k = p[0].strip
+        k = p[0].strip.downcase
         v = p[1]
         v = v.nil? ? 'true' : v.strip
         [k.to_sym, v.match?(/^[0-9]+$/) ? v.to_i : v]
