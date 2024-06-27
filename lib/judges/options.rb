@@ -34,6 +34,11 @@ class Judges::Options
     @pairs = pairs
   end
 
+  def empty?
+    touch # this will trigger method_missing() method, which will create @hash
+    @hash.empty?
+  end
+
   def +(other)
     touch # this will trigger method_missing() method, which will create @hash
     h = @hash.dup
@@ -62,13 +67,14 @@ class Judges::Options
       pp = pp.split(',') if pp.is_a?(String)
       pp.compact!
       pp.reject!(&:empty?)
-      pp.to_h do |pair|
+      pp.map! do |pair|
         p = pair.split('=', 2)
         k = p[0].strip
         v = p[1]
         v = v.nil? ? 'true' : v.strip
         [k.to_sym, v.match?(/^[0-9]+$/) ? v.to_i : v]
       end
+      pp.reject { |p| p[0].empty? }.to_h
     end
     k = args[0].downcase
     @hash[k]

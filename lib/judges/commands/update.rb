@@ -47,7 +47,11 @@ class Judges::Update
     fb = impex.import(strict: false)
     fb = Factbase::Looged.new(fb, @loog) if opts['log']
     options = Judges::Options.new(opts['option'])
-    @loog.debug("The following options provided:\n\t#{options.to_s.gsub("\n", "\n\t")}")
+    if options.empty?
+      @loog.debug('No options provided by the --option flag')
+    else
+      @loog.debug("The following options provided:\n\t#{options.to_s.gsub("\n", "\n\t")}")
+    end
     judges = Judges::Judges.new(dir, opts['lib'], @loog)
     c = 0
     churn = Judges::Churn.new(0, 0)
