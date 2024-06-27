@@ -73,7 +73,7 @@ class TestOptions < Minitest::Test
   def test_with_hash
     opts = Judges::Options.new('foo' => 42, 'bar' => 'hello')
     assert_equal(42, opts.foo)
-    assert_equal('hello', opts.bar)
+    assert_equal('hello', opts.Bar)
     assert(opts.xxx.nil?)
   end
 
