@@ -35,48 +35,53 @@ class Judges::Options
   end
 
   def empty?
-    touch # this will trigger method_missing() method, which will create @hash
-    @hash.empty?
+    to_h.empty?
   end
 
   def +(other)
-    touch # this will trigger method_missing() method, which will create @hash
-    h = @hash.dup
-    other.touch # this will trigger method_missing() method, which will create @hash
-    other.instance_variable_get(:@hash).each do |k, v|
+    h = to_h
+    other.to_h.each do |k, v|
       h[k] = v
     end
-    Judges::Options.new(h.map { |k, v| "#{k}=#{v}" })
+    Judges::Options.new(h)
   end
 
   # Convert them all to a string (printable in a log).
   def to_s
-    touch # this will trigger method_missing() method, which will create @hash
-    @hash.map do |k, v|
+    to_h.map do |k, v|
       v = v.to_s
       v = "#{v[0..3]}#{'*' * (v.length - 4)}" if v.length > 8
       "#{k} → \"#{v}\""
     end.join("\n")
   end
 
+  def to_h
+    @to_h ||= begin
+      pp = @pairs || []
+      pp = pp.split(',') if pp.is_a?(String)
+      if pp.is_a?(Array)
+        pp = pp
+          .compact
+          .map(&:strip)
+          .reject(&:empty?)
+          .map { |s| s.split('=', 2) }
+          .map { |a| a.size == 1 ? [a[0], nil] : a }
+          .reject { |a| a[0].empty? }
+          .to_h
+      end
+      pp
+        .reject { |k, _| k.nil? }
+        .reject { |k, _| k.is_a?(String) && k.empty? }
+        .to_h
+        .transform_values { |v| v.nil? ? 'true' : v }
+        .transform_values { |v| v.is_a?(String) ? v.strip : v }
+        .transform_values { |v| v.is_a?(String) && v.match?(/^[0-9]+$/) ? v.to_i : v }
+        .transform_keys { |k| k.to_s.strip.upcase.to_sym }
+    end
+  end
+
   # Get option by name.
   others do |*args|
-    @hash ||= begin
-      pp = @pairs || []
-      pp = @pairs.map { |k, v| "#{k}=#{v}" } if pp.is_a?(Hash)
-      pp = pp.split(',') if pp.is_a?(String)
-      pp.compact!
-      pp.reject!(&:empty?)
-      pp.map! do |pair|
-        p = pair.split('=', 2)
-        k = p[0].strip.upcase
-        v = p[1]
-        v = v.nil? ? 'true' : v.strip
-        [k.to_sym, v.match?(/^[0-9]+$/) ? v.to_i : v]
-      end
-      pp.reject { |p| p[0].empty? }.to_h
-    end
-    k = args[0].upcase
-    @hash[k]
+    to_h[args[0].upcase.to_sym]
   end
 end
