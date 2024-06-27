@@ -80,7 +80,7 @@ class TestOptions < Minitest::Test
   def test_converts_to_string
     opts = Judges::Options.new('foo' => 44, 'bar' => 'long-string-maybe-secret')
     s = opts.to_s
-    assert(s.include?('foo → "44"'))
+    assert(s.include?('FOO → "44"'))
     assert(s.include?('"long********************"'))
   end
 

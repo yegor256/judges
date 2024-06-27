@@ -69,14 +69,14 @@ class Judges::Options
       pp.reject!(&:empty?)
       pp.map! do |pair|
         p = pair.split('=', 2)
-        k = p[0].strip.downcase
+        k = p[0].strip.upcase
         v = p[1]
         v = v.nil? ? 'true' : v.strip
         [k.to_sym, v.match?(/^[0-9]+$/) ? v.to_i : v]
       end
       pp.reject { |p| p[0].empty? }.to_h
     end
-    k = args[0].downcase
+    k = args[0].upcase
     @hash[k]
   end
 end
