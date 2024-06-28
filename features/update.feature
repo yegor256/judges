@@ -19,8 +19,10 @@ Feature: Update
     Given I make a temp directory
     Then I have a "mine/judge1/simple_judge.rb" file with content:
     """
-      n = $fb.insert
-      n.foo = $foo
+      $valve.enter('boom') do
+        n = $fb.insert
+        n.foo = $foo
+      end
     """
     Then I have a "mylib/foo.rb" file with content:
     """

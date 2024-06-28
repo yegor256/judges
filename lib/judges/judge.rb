@@ -45,6 +45,7 @@ class Judges::Judge
     $loog = @loog
     $global = global
     $local = local
+    $valve = FakeValve.new if $valve.nil?
     unless @lib.nil?
       raise "Lib dir #{@lib.to_rel} is absent" unless File.exist?(@lib)
       raise "Lib #{@lib.to_rel} is not a directory" unless File.directory?(@lib)
@@ -76,5 +77,12 @@ class Judges::Judge
   # Return all .yml tests files.
   def tests
     Dir.glob(File.join(@dir, '*.yml'))
+  end
+
+  # Fake valve.
+  class FakeValve
+    def enter(_)
+      yield
+    end
   end
 end
