@@ -121,7 +121,7 @@ GEM
       nokogiri (>= 1.12.0)
     loog (0.5.2)
     mini_mime (1.1.5)
-    minitest (5.24.0)
+    minitest (5.24.1)
     moments (0.3.0)
     multi_test (1.1.0)
     mutex_m (0.2.0)
@@ -259,7 +259,7 @@ PLATFORMS
 DEPENDENCIES
   cucumber (= 9.2.0)
   judges!
-  minitest (= 5.24.0)
+  minitest (= 5.24.1)
   net-ping (= 2.0.8)
   rake (= 13.2.1)
   rspec-rails (= 6.1.3)
