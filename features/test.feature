@@ -30,8 +30,10 @@ Feature: Test
     Given I make a temp directory
     Then I have a "myjudges/myjudge/simple_judge.rb" file with content:
     """
-      n = $fb.insert
-      n.foo = $foo
+      $valve.enter('boom') do
+        n = $fb.insert
+        n.foo = $foo
+      end
     """
     Then I have a "myjudges/myjudge/good.yml" file with content:
     """
