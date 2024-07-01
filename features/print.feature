@@ -8,6 +8,13 @@ Feature: Print
     Then Stdout contains "printed"
     And Exit code is zero
 
+  Scenario: Simple print of a small factbase, to HTML
+    Given I make a temp directory
+    Then I run bin/judges with "--verbose eval simple.fb '$fb.insert.foo = 42'"
+    Then I run bin/judges with "print --format=html simple.fb simple.html"
+    Then Stdout contains "printed"
+    And Exit code is zero
+
   Scenario: Simple print of a small factbase, to JSON
     Given I make a temp directory
     Then I run bin/judges with "--verbose eval simple.fb '$fb.insert.foo = 42'"

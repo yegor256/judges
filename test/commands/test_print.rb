@@ -45,6 +45,20 @@ class TestPrint < Minitest::Test
     end
   end
 
+  def test_print_all_formats
+    %w[yaml html xml json].each do |fmt|
+      Dir.mktmpdir do |d|
+        f = File.join(d, 'base.fb')
+        fb = Factbase.new
+        fb.insert
+        File.binwrite(f, fb.export)
+        Judges::Print.new(Loog::NULL).run({ format: fmt, auto: true }, [f])
+        y = File.join(d, "base.#{fmt}")
+        assert(File.exist?(y))
+      end
+    end
+  end
+
   def test_print_twice
     Dir.mktmpdir do |d|
       f = File.join(d, 'base.fb')
