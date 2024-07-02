@@ -89,7 +89,7 @@ GEM
     erubi (1.13.0)
     ethon (0.16.0)
       ffi (>= 1.15.0)
-    factbase (0.0.58)
+    factbase (0.0.60)
       backtrace (~> 0.3)
       decoor (~> 0.0)
       json (~> 2.7)
@@ -149,7 +149,7 @@ GEM
       stringio
     public_suffix (6.0.0)
     racc (1.8.0)
-    rack (3.1.4)
+    rack (3.1.6)
     rack-session (2.0.0)
       rack (>= 3.0.0)
     rack-test (2.1.0)

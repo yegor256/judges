@@ -170,11 +170,8 @@ SOFTWARE.
         <td>
           <xsl:for-each select="$f/*">
             <xsl:if test="string-length(substring-before(concat(',', $columns, ','), concat(name(), ','))) = 0">
+              <xsl:value-of select="name()"/>
               <xsl:if test="string-length(substring-before(concat(',', $hidden, ','), concat(name(), ','))) = 0">
-                <xsl:if test="position() &gt; 1">
-                  <xsl:text>, </xsl:text>
-                </xsl:if>
-                <xsl:value-of select="name()"/>
                 <xsl:text>:</xsl:text>
                 <xsl:call-template name="value">
                   <xsl:with-param name="v" select="."/>
