@@ -215,6 +215,9 @@ SOFTWARE.
               <xsl:when test="$v/@t = 'I'">
                 <xsl:text>#212F3C</xsl:text>
               </xsl:when>
+              <xsl:when test="$v/@t = 'F'">
+                <xsl:text>#E74C3C</xsl:text>
+              </xsl:when>
             </xsl:choose>
           </xsl:attribute>
           <xsl:value-of select="$v"/>
