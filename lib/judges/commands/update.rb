@@ -102,7 +102,7 @@ class Judges::Update
         elapsed(@loog) do
           c = one_judge(fb, p, global, options)
           churn += c
-          throw :"👍 The judge #{p.name} modified #{c} facts"
+          throw :"👍 The judge #{p.name} modified #{c} facts out of #{fb.size}"
         end
       rescue StandardError, SyntaxError => e
         @loog.warn(Backtrace.new(e))
