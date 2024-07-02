@@ -24,6 +24,7 @@ require 'minitest/autorun'
 require 'loog'
 require 'factbase'
 require 'yaml'
+require 'securerandom'
 require_relative '../../lib/judges'
 require_relative '../../lib/judges/commands/print'
 
@@ -38,10 +39,30 @@ class TestPrint < Minitest::Test
       fb = Factbase.new
       fb.insert
       File.binwrite(f, fb.export)
-      Judges::Print.new(Loog::NULL).run({ format: 'yaml', auto: true }, [f])
+      Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml', 'auto' => true }, [f])
       y = File.join(d, 'base.yaml')
       assert(File.exist?(y))
       assert_equal(1, YAML.load_file(y).size)
+    end
+  end
+
+  def test_print_to_html
+    fb = Factbase.new
+    10.times do
+      f = fb.insert
+      f.what = SecureRandom.hex(10)
+      f.when = Time.now
+      f.details = 'hey, друг'
+      f.ticket = 42
+      f.ticket = 55
+    end
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'base.fb')
+      File.binwrite(f, fb.export)
+      Judges::Print.new(Loog::NULL).run(
+        { 'format' => 'html', 'columns' => 'what,when,ticket' },
+        [f, File.join(__dir__, '../../temp/base.html')]
+      )
     end
   end
 
@@ -52,7 +73,7 @@ class TestPrint < Minitest::Test
         fb = Factbase.new
         fb.insert
         File.binwrite(f, fb.export)
-        Judges::Print.new(Loog::NULL).run({ format: fmt, auto: true }, [f])
+        Judges::Print.new(Loog::NULL).run({ 'format' => fmt, 'auto' => true }, [f])
         y = File.join(d, "base.#{fmt}")
         assert(File.exist?(y))
       end
@@ -65,11 +86,11 @@ class TestPrint < Minitest::Test
       fb = Factbase.new
       fb.insert
       File.binwrite(f, fb.export)
-      Judges::Print.new(Loog::NULL).run({ format: 'yaml', auto: true }, [f])
+      Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml', 'auto' => true }, [f])
       y = File.join(d, 'base.yaml')
       assert(File.exist?(y))
       mtime = File.mtime(y)
-      Judges::Print.new(Loog::NULL).run({ format: 'yaml', auto: true }, [f])
+      Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml', 'auto' => true }, [f])
       assert_equal(mtime, File.mtime(y))
     end
   end

@@ -20,8 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'time'
 require 'fileutils'
 require 'factbase'
+require 'nokogiri'
 require_relative '../../judges'
 require_relative '../../judges/impex'
 require_relative '../../judges/elapsed'
@@ -41,10 +43,11 @@ class Judges::Print
     fb = Judges::Impex.new(@loog, f).import
     fb.query("(not #{opts['query']})").delete! unless opts['query'].nil?
     o = args[1]
+    fmt = opts['format']&.downcase
     if o.nil?
-      raise 'Either provide output file name or use --auto' unless opts[:auto]
+      raise 'Either provide output file name or use --auto' unless opts['auto']
       o = File.join(File.dirname(f), File.basename(f).gsub(/\.[^.]*$/, ''))
-      o = "#{o}.#{opts[:format]}"
+      o = "#{o}.#{fmt}"
     end
     FileUtils.mkdir_p(File.dirname(o))
     if !opts['force'] && File.exist?(o)
@@ -56,7 +59,7 @@ class Judges::Print
     end
     elapsed(@loog) do
       output =
-        case opts[:format].downcase
+        case fmt
           when 'yaml'
             require 'factbase/to_yaml'
             Factbase::ToYAML.new(fb).yaml
@@ -66,9 +69,30 @@ class Judges::Print
           when 'xml'
             require 'factbase/to_xml'
             Factbase::ToXML.new(fb).xml
+          when 'html'
+            to_html(opts, fb)
+          else
+            raise "Unknown format '#{fmt}'"
         end
       File.binwrite(o, output)
       throw :"Factbase printed to #{o.to_rel} (#{File.size(o)} bytes)"
     end
+  end
+
+  private
+
+  def to_html(opts, fb)
+    xslt = Nokogiri::XSLT(File.read(File.join(__dir__, '../../../assets/index.xsl')))
+    require 'factbase/to_xml'
+    xml = Factbase::ToXML.new(fb).xml
+    xslt.transform(
+      Nokogiri::XML(xml),
+      Nokogiri::XSLT.quote_params(
+        'name' => 'print',
+        'date' => Time.now.utc.iso8601,
+        'columns' => opts['columns'] || 'when,what',
+        'version' => Judges::VERSION
+      )
+    )
   end
 end
