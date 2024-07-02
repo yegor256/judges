@@ -28,6 +28,7 @@ SOFTWARE.
   <xsl:param name="date"/>
   <xsl:param name="version"/>
   <xsl:param name="columns"/>
+  <xsl:param name="hidden"/>
   <xsl:template name="javascript">
     <xsl:param name="url"/>
     <script type="text/javascript" src="{$url}">
@@ -169,14 +170,16 @@ SOFTWARE.
         <td>
           <xsl:for-each select="$f/*">
             <xsl:if test="string-length(substring-before(concat(',', $columns, ','), concat(name(), ','))) = 0">
-              <xsl:if test="position() &gt; 1">
-                <xsl:text>, </xsl:text>
+              <xsl:if test="string-length(substring-before(concat(',', $hidden, ','), concat(name(), ','))) = 0">
+                <xsl:if test="position() &gt; 1">
+                  <xsl:text>, </xsl:text>
+                </xsl:if>
+                <xsl:value-of select="name()"/>
+                <xsl:text>:</xsl:text>
+                <xsl:call-template name="value">
+                  <xsl:with-param name="v" select="."/>
+                </xsl:call-template>
               </xsl:if>
-              <xsl:value-of select="name()"/>
-              <xsl:text>:</xsl:text>
-              <xsl:call-template name="value">
-                <xsl:with-param name="v" select="."/>
-              </xsl:call-template>
             </xsl:if>
           </xsl:for-each>
         </td>

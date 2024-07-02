@@ -90,7 +90,8 @@ class Judges::Print
       Nokogiri::XSLT.quote_params(
         'name' => 'print',
         'date' => Time.now.utc.iso8601,
-        'columns' => opts['columns'] || 'when,what',
+        'columns' => opts['columns'] || 'when,what,who',
+        'hidden' => opts['hidden'] || '_id,_version,_time',
         'version' => Judges::VERSION
       )
     )
