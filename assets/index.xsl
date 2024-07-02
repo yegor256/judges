@@ -169,9 +169,19 @@ SOFTWARE.
       <xsl:otherwise>
         <td>
           <xsl:for-each select="$f/*">
+            <xsl:variable name="visible" select="string-length(substring-before(concat(',', $hidden, ','), concat(name(), ','))) != 0"/>
             <xsl:if test="string-length(substring-before(concat(',', $columns, ','), concat(name(), ','))) = 0">
-              <xsl:value-of select="name()"/>
-              <xsl:if test="string-length(substring-before(concat(',', $hidden, ','), concat(name(), ','))) = 0">
+              <xsl:choose>
+                <xsl:when test="not($visible)">
+                  <xsl:value-of select="name()"/>
+                </xsl:when>
+                <xsl:otherwise>
+                  <span style="color:gray;">
+                    <xsl:value-of select="name()"/>
+                  </span>
+                </xsl:otherwise>
+              </xsl:choose>
+              <xsl:if test="$visible">
                 <xsl:text>:</xsl:text>
                 <xsl:call-template name="value">
                   <xsl:with-param name="v" select="."/>
