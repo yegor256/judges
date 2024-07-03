@@ -24,7 +24,7 @@ SOFTWARE.
 -->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
   <xsl:output method="xml" doctype-system="about:legacy-compat" encoding="UTF-8" indent="yes"/>
-  <xsl:param name="name"/>
+  <xsl:param name="title"/>
   <xsl:param name="date"/>
   <xsl:param name="version"/>
   <xsl:param name="columns"/>
@@ -40,7 +40,7 @@ SOFTWARE.
       <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
         <title>
-          <xsl:value-of select="$name"/>
+          <xsl:value-of select="$title"/>
         </title>
         <meta charset="UTF-8"/>
         <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
