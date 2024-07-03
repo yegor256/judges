@@ -88,7 +88,7 @@ class Judges::Print
     xslt.transform(
       Nokogiri::XML(xml),
       Nokogiri::XSLT.quote_params(
-        'name' => 'print',
+        'title' => opts['title'],
         'date' => Time.now.utc.iso8601,
         'columns' => opts['columns'] || 'when,what,who',
         'hidden' => opts['hidden'] || '_id,_version,_time',

@@ -115,6 +115,8 @@ class App
     c.flag([:format], default_value: 'yaml')
     c.desc 'Generate output name of the file automatically'
     c.switch([:auto], default_value: false)
+    c.desc 'The title of the document to use'
+    c.flag([:title], default_value: 'summary')
     c.desc 'Only the facts that match the expression are printed'
     c.flag([:query], default_value: '(always)')
     c.desc 'Comma separated list of columns to show in HTML output (no spaces!)'

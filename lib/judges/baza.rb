@@ -33,7 +33,7 @@ require_relative '../judges/elapsed'
 # License:: MIT
 class Judges::Baza
   # rubocop:disable Metrics/ParameterLists
-  def initialize(host, port, token, ssl: true, timeout: 5, loog: Loog::NULL)
+  def initialize(host, port, token, ssl: true, timeout: 30, loog: Loog::NULL)
     # rubocop:enable Metrics/ParameterLists
     @host = host
     @port = port

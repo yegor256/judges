@@ -41,7 +41,7 @@ class Judges::Pull
     baza = Judges::Baza.new(
       opts['host'], opts['port'].to_i, opts['token'],
       ssl: opts['ssl'],
-      timeout: (opts['timeout'] || 5).to_i,
+      timeout: (opts['timeout'] || 30).to_i,
       loog: @loog
     )
     name = args[0]
