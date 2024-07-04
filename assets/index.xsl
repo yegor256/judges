@@ -40,7 +40,14 @@ SOFTWARE.
       <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
         <title>
-          <xsl:value-of select="$title"/>
+          <xsl:choose>
+            <xsl:when test="$title = ''">
+              <xsl:text>factbase</xsl:text>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:value-of select="$title"/>
+            </xsl:otherwise>
+          </xsl:choose>
         </title>
         <meta charset="UTF-8"/>
         <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -170,8 +177,8 @@ SOFTWARE.
         <td>
           <xsl:for-each select="$f/*">
             <xsl:text> </xsl:text>
-            <xsl:variable name="visible" select="string-length(substring-before(concat(',', $hidden, ','), concat(name(), ','))) = 0"/>
-            <xsl:if test="string-length(substring-before(concat(',', $columns, ','), concat(name(), ','))) = 0">
+            <xsl:variable name="visible" select="string-length(substring-before(concat(',', $hidden, ','), concat(',', name(), ','))) = 0"/>
+            <xsl:if test="string-length(substring-before(concat(',', $columns, ','), concat(',', name(), ','))) = 0">
               <xsl:choose>
                 <xsl:when test="$visible">
                   <xsl:value-of select="name()"/>

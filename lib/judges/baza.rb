@@ -160,12 +160,14 @@ class Judges::Baza
   def name_exists?(name)
     exists = 0
     elapsed(@loog) do
-      ret = checked(
-        Typhoeus::Request.get(
-          home.append('exists').append(name).to_s,
-          headers:
+      ret = with_retries do
+        checked(
+          Typhoeus::Request.get(
+            home.append('exists').append(name).to_s,
+            headers:
+          )
         )
-      )
+      end
       exists = ret.body == 'yes'
       throw :"The name \"#{name}\" #{exists ? 'exists' : "doesn't exist"} at #{@host}"
     end
