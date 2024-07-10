@@ -92,8 +92,9 @@ class TestUpdate < Minitest::Test
       fb.import(File.binread(file))
       sums = fb.query('(eq what "judges-summary")').each.to_a
       assert_equal(1, sums.size)
-      f = sums.first
-      assert(f.error.include?('unexpected global variable'), f.error)
+      sum = sums.first
+      assert(sum.error.include?('unexpected global variable'), sum.error)
+      assert(!sum.seconds.nil?)
     end
   end
 end

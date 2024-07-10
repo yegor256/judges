@@ -43,6 +43,7 @@ class Judges::Update
     raise 'Exactly two arguments required' unless args.size == 2
     dir = args[0]
     raise "The directory is absent: #{dir.to_rel}" unless File.exist?(dir)
+    start = Time.now
     impex = Judges::Impex.new(@loog, args[1])
     fb = impex.import(strict: false)
     fb = Factbase::Looged.new(fb, @loog) if opts['log']
@@ -82,6 +83,7 @@ class Judges::Update
     f.what = 'judges-summary'
     f.when = Time.now
     f.version = Judges::VERSION
+    f.seconds = Time.now - start
     f.cycles = c
     f.added = churn.added.size
     f.removed = churn.removed.size
