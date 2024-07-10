@@ -23,6 +23,8 @@
 require 'minitest/autorun'
 require 'webmock/minitest'
 require 'loog'
+require 'socket'
+require 'random-port'
 require_relative '../lib/judges'
 require_relative '../lib/judges/baza'
 
@@ -71,5 +73,27 @@ class TestBaza < Minitest::Test
     assert(
       Judges::Baza.new('example.org', 443, '000').pull(333).start_with?('hello')
     )
+  end
+
+  def test_real_http
+    WebMock.enable_net_connect!
+    req = []
+    host = '127.0.0.1'
+    RandomPort::Pool::SINGLETON.acquire do |port|
+      server = TCPServer.new(host, port)
+      t = Thread.new do
+        socket = server.accept
+        loop do
+          line = socket.gets
+          break if line == "\r\n"
+          req << line
+        end
+        socket.puts "HTTP/1.1 200 OK\r\nContent-Length: 3\r\n\r\nyes"
+        socket.close
+      end
+      Judges::Baza.new(host, port, '0000', ssl: false, timeout: 1).name_exists?('simple')
+      t.join
+    end
+    assert(req.include?("User-Agent: judges #{Judges::VERSION}\r\n"))
   end
 end
