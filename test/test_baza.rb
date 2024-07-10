@@ -44,9 +44,9 @@ class TestBaza < Minitest::Test
 
   def test_simple_recent_check
     WebMock.disable_net_connect!
-    stub_request(:get, 'https://example.org/recent/simple.txt').to_return(
-      status: 200, body: '42'
-    )
+    stub_request(:get, 'https://example.org/recent/simple.txt')
+      .with(body: '', headers: { 'User-Agent' => /^judges .*$/ })
+      .to_return(status: 200, body: '42')
     assert_equal(
       42,
       Judges::Baza.new('example.org', 443, '000').recent('simple')
