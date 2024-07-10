@@ -178,9 +178,9 @@ class Judges::Baza
 
   def headers
     {
-      'User-Agent': "judges #{Judges::VERSION}",
-      Connection: 'close',
-      'X-Zerocracy-Token': @token
+      'User-Agent' => "judges #{Judges::VERSION}",
+      'Connection' => 'close',
+      'X-Zerocracy-Token' => @token
     }
   end
 
