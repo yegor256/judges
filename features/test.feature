@@ -30,7 +30,7 @@ Feature: Test
     Given I make a temp directory
     Then I have a "myjudges/myjudge/simple_judge.rb" file with content:
     """
-      $valve.enter('boom') do
+      $valve.enter('boom', 'some reason') do
         n = $fb.insert
         n.foo = $foo
       end
