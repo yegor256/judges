@@ -45,7 +45,7 @@ class Judges::Judge
     $loog = @loog
     $global = global
     $local = local
-    $valve = FakeValve.new if $valve.nil?
+    $valve = FakeValve.new unless defined?($valve)
     unless @lib.nil?
       raise "Lib dir #{@lib.to_rel} is absent" unless File.exist?(@lib)
       raise "Lib #{@lib.to_rel} is not a directory" unless File.directory?(@lib)
