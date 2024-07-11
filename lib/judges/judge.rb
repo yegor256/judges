@@ -81,7 +81,7 @@ class Judges::Judge
 
   # Fake valve.
   class FakeValve
-    def enter(_)
+    def enter(_badge, _why: '')
       yield
     end
   end
