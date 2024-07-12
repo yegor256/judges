@@ -24,6 +24,7 @@ require 'typhoeus'
 require 'retries'
 require 'iri'
 require 'loog'
+require 'base64'
 require_relative '../judges'
 require_relative '../judges/elapsed'
 
@@ -43,18 +44,20 @@ class Judges::Baza
     @loog = loog
   end
 
-  def push(name, data)
+  def push(name, data, meta)
     id = 0
+    hdrs = headers.merge(
+      'Content-Type' => 'application/octet-stream',
+      'Content-Length' => data.size
+    )
+    hdrs['X-Zerocracy-Meta'] = meta.map { |v| Base64.encode64(v) } unless meta.empty?
     elapsed(@loog) do
       ret = with_retries do
         checked(
           Typhoeus::Request.put(
             home.append('push').append(name).to_s,
             body: data,
-            headers: headers.merge(
-              'Content-Type' => 'application/octet-stream',
-              'Content-Length' => data.size
-            ),
+            headers: hdrs,
             connecttimeout: @timeout,
             timeout: @timeout
           )

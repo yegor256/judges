@@ -40,7 +40,7 @@ class TestBaza < Minitest::Test
     )
     assert_equal(
       42,
-      Judges::Baza.new('example.org', 443, '000').push('simple', 'hello, world!')
+      Judges::Baza.new('example.org', 443, '000').push('simple', 'hello, world!', [])
     )
   end
 

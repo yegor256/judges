@@ -42,17 +42,17 @@ Gem::Specification.new do |s|
   s.executables = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
   s.rdoc_options = ['--charset=UTF-8']
   s.extra_rdoc_files = ['README.md', 'LICENSE.txt']
-  s.add_dependency 'backtrace'
+  s.add_dependency 'backtrace', '~>0'
   s.add_dependency 'concurrent-ruby', '~>1.2'
-  s.add_dependency 'factbase'
+  s.add_dependency 'factbase', '~>0'
   s.add_dependency 'gli', '~>2.21'
-  s.add_dependency 'iri'
-  s.add_dependency 'loog'
+  s.add_dependency 'iri', '~>0'
+  s.add_dependency 'loog', '~>0'
   s.add_dependency 'moments', '~>0.3'
   s.add_dependency 'nokogiri', '~>1.10'
-  s.add_dependency 'others'
-  s.add_dependency 'retries'
-  s.add_dependency 'tago'
+  s.add_dependency 'others', '~>0'
+  s.add_dependency 'retries', '~>0'
+  s.add_dependency 'tago', '~>0'
   s.add_dependency 'typhoeus', '~>1.3'
   s.metadata['rubygems_mfa_required'] = 'true'
 end
