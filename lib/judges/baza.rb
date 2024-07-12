@@ -34,7 +34,7 @@ require_relative '../judges/elapsed'
 # License:: MIT
 class Judges::Baza
   # rubocop:disable Metrics/ParameterLists
-  def initialize(host, port, token, ssl: true, timeout: 30, loog: Loog::NULL)
+  def initialize(host, port, token, ssl: true, timeout: 30, retries: 3, loog: Loog::NULL)
     # rubocop:enable Metrics/ParameterLists
     @host = host
     @port = port
@@ -42,6 +42,7 @@ class Judges::Baza
     @token = token
     @timeout = timeout
     @loog = loog
+    @retries = retries
   end
 
   def push(name, data, meta)
@@ -50,9 +51,11 @@ class Judges::Baza
       'Content-Type' => 'application/octet-stream',
       'Content-Length' => data.size
     )
-    hdrs = hdrs.merge('X-Zerocracy-Meta' => meta.map { |v| Base64.encode64(v).strip }.join(' ')) unless meta.empty?
+    unless meta.empty?
+      hdrs = hdrs.merge('X-Zerocracy-Meta' => meta.map { |v| Base64.encode64(v).gsub("\n", '') }.join(' '))
+    end
     elapsed(@loog) do
-      ret = with_retries do
+      ret = with_retries(max_tries: @retries) do
         checked(
           Typhoeus::Request.put(
             home.append('push').append(name).to_s,
@@ -85,7 +88,9 @@ class Judges::Baza
           request.on_body do |chunk|
             f.write(chunk)
           end
-          request.run
+          with_retries(max_tries: @retries) do
+            request.run
+          end
           checked(request.response)
         end
         data = File.binread(file)
@@ -99,7 +104,7 @@ class Judges::Baza
   def finished?(id)
     finished = false
     elapsed(@loog) do
-      ret = with_retries do
+      ret = with_retries(max_tries: @retries) do
         checked(
           Typhoeus::Request.get(
             home.append('finished').append(id).to_s,
@@ -116,7 +121,7 @@ class Judges::Baza
   # Lock the name.
   def lock(name, owner)
     elapsed(@loog) do
-      with_retries do
+      with_retries(max_tries: @retries) do
         checked(
           Typhoeus::Request.get(
             home.append('lock').append(name).add(owner:).to_s,
@@ -131,7 +136,7 @@ class Judges::Baza
   # Unlock the name.
   def unlock(name, owner)
     elapsed(@loog) do
-      with_retries do
+      with_retries(max_tries: @retries) do
         checked(
           Typhoeus::Request.get(
             home.append('unlock').append(name).add(owner:).to_s,
@@ -146,7 +151,7 @@ class Judges::Baza
   def recent(name)
     job = 0
     elapsed(@loog) do
-      ret = with_retries do
+      ret = with_retries(max_tries: @retries) do
         checked(
           Typhoeus::Request.get(
             home.append('recent').append("#{name}.txt").to_s,
@@ -163,7 +168,7 @@ class Judges::Baza
   def name_exists?(name)
     exists = 0
     elapsed(@loog) do
-      ret = with_retries do
+      ret = with_retries(max_tries: @retries) do
         checked(
           Typhoeus::Request.get(
             home.append('exists').append(name).to_s,

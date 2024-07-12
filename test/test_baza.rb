@@ -89,6 +89,21 @@ class TestBaza < Minitest::Test
     assert(req.include?("X-Zerocracy-Meta: Ym9vbSE= 0YXQtdC5IQ==\r\n"))
   end
 
+  def test_push_with_big_meta
+    req = with_http_server(200, 'yes') do |baza|
+      baza.push(
+        'simple',
+        'hello, world!',
+        [
+          'pages_url:https://zerocracy.github.io/zerocracy.html',
+          'others:https://zerocracy.github.io/zerocracy.html',
+          'duration:59595'
+        ]
+      )
+    end
+    assert(req.join.include?('X-Zerocracy-Meta: '))
+  end
+
   private
 
   def with_http_server(code, response)

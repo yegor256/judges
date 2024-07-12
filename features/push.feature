@@ -6,6 +6,6 @@ Feature: Push
     Given I make a temp directory
     Then I run bin/judges with "--verbose eval simple.fb '(0..1000).each { $fb.insert.foo = 42 }'"
     And Exit code is zero
-    Then I run bin/judges with "push --token 00000000-0000-0000-0000-000000000000 --meta a:b --meta foo:bar simple simple.fb"
+    Then I run bin/judges with "push --timeout 5 --token 00000000-0000-0000-0000-000000000000 --meta a:b --meta foo:bar --meta=pages_url:https://zerocracy.github.io/zerocracy.html --meta=duration:1055  simple simple.fb"
     Then Stdout contains "Pushed"
     And Exit code is zero
