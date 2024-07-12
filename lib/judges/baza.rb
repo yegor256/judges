@@ -50,7 +50,7 @@ class Judges::Baza
       'Content-Type' => 'application/octet-stream',
       'Content-Length' => data.size
     )
-    hdrs['X-Zerocracy-Meta'] = meta.map { |v| Base64.encode64(v) } unless meta.empty?
+    hdrs = hdrs.merge('X-Zerocracy-Meta' => meta.map { |v| Base64.encode64(v).strip }.join(' ')) unless meta.empty?
     elapsed(@loog) do
       ret = with_retries do
         checked(
@@ -206,12 +206,17 @@ class Judges::Baza
     @loog.debug("#{log}\n  #{(ret.headers || {}).map { |k, v| "#{k}: #{v}" }.join("\n  ")}")
     msg =
       "Invalid response code ##{ret.code} " \
-      "at #{mtd} #{url} (#{ret.headers['X-Zerocracy-Flash']})"
-    if ret.code == 503
+      "at #{mtd} #{url} (#{ret.headers['X-Zerocracy-Flash'].inspect})"
+    case ret.code
+    when 500
       msg +=
         ', most probably it\'s an internal error on the server, ' \
+        'please report this to https://github.com/zerocracy/baza'
+    when 503
+      msg +=
+        ", most probably it's an internal error on the server (#{ret.headers['X-Zerocracy-Failure'].inspect}), " \
         'please report this to https://github.com/yegor256/judges'
-    elsif ret.code == 404
+    when 404
       msg +=
         ', most probably you are trying to reach a wrong server, which doesn\'t ' \
         'have the URL that it is expected to have'
