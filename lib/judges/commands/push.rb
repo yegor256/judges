@@ -43,7 +43,8 @@ class Judges::Push
       opts['host'], opts['port'].to_i, opts['token'],
       ssl: opts['ssl'],
       timeout: (opts['timeout'] || 30).to_i,
-      loog: @loog
+      loog: @loog,
+      retries: (opts['retries'] || 3).to_i
     )
     elapsed(@loog) do
       baza.lock(name, opts['owner'])

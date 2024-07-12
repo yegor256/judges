@@ -179,6 +179,8 @@ class App
     c.flag([:owner], default_value: 'default', type: String)
     c.desc 'Supplementary meta information about the upload (key:value)'
     c.flag([:meta], type: String, multiple: true)
+    c.desc 'How many times to retry'
+    c.flag([:retries], type: Integer, default_value: 3)
     c.action do |global, options, args|
       require_relative '../lib/judges/commands/push'
       Judges::Push.new(loog).run(options, args)
@@ -201,6 +203,8 @@ class App
     c.switch([:ssl], default_value: true)
     c.desc 'A unique name to use for a lock/unlock'
     c.flag([:owner], default_value: 'default', type: String)
+    c.desc 'How many times to retry'
+    c.flag([:retries], type: Integer, default_value: 3)
     c.action do |global, options, args|
       require_relative '../lib/judges/commands/pull'
       Judges::Pull.new(loog).run(options, args)
