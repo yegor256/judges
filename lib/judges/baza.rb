@@ -225,6 +225,8 @@ class Judges::Baza
       msg +=
         ', most probably you are trying to reach a wrong server, which doesn\'t ' \
         'have the URL that it is expected to have'
+    when 0
+      msg += ', most likely an internal error'
     end
     raise msg
   end
