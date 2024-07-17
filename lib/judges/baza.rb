@@ -48,6 +48,11 @@ class Judges::Baza
     @retries = retries
   end
 
+  # Push factbase to the server.
+  # @param [String] name The name of the job on the server
+  # @param [Bytes] data The data to push to the server (binary)
+  # @param [Array<String>] meta List of metas, possibly empty
+  # @return [Integer] Job ID on the server
   def push(name, data, meta)
     id = 0
     hdrs = headers.merge(
@@ -75,6 +80,9 @@ class Judges::Baza
     id
   end
 
+  # Pull factbase from the server.
+  # @param [Integer] id The ID of the job on the server
+  # @return [Bytes] Binary data pulled
   def pull(id)
     data = 0
     elapsed(@loog) do
@@ -104,6 +112,8 @@ class Judges::Baza
   end
 
   # The job with this ID is finished already?
+  # @param [Integer] id The ID of the job on the server
+  # @return [Boolean] TRUE if the job is already finished
   def finished?(id)
     finished = false
     elapsed(@loog) do
@@ -122,6 +132,8 @@ class Judges::Baza
   end
 
   # Lock the name.
+  # @param [String] name The name of the job on the server
+  # @param [String] owner The owner of the lock (any string)
   def lock(name, owner)
     elapsed(@loog) do
       with_retries(max_tries: @retries) do
@@ -137,6 +149,8 @@ class Judges::Baza
   end
 
   # Unlock the name.
+  # @param [String] name The name of the job on the server
+  # @param [String] owner The owner of the lock (any string)
   def unlock(name, owner)
     elapsed(@loog) do
       with_retries(max_tries: @retries) do
@@ -151,6 +165,9 @@ class Judges::Baza
     end
   end
 
+  # Get the ID of the job by the name.
+  # @param [String] name The name of the job on the server
+  # @return [Integer] The ID of the job on the server
   def recent(name)
     job = 0
     elapsed(@loog) do
@@ -168,6 +185,9 @@ class Judges::Baza
     job
   end
 
+  # Check whether the name of the job exists on the server.
+  # @param [String] name The name of the job on the server
+  # @return [Boolean] TRUE if such name exists
   def name_exists?(name)
     exists = 0
     elapsed(@loog) do
