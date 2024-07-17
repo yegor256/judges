@@ -92,17 +92,9 @@ class TestTest < Minitest::Test
     Dir.mktmpdir do |d|
       home = File.join(d, 'judges')
       FileUtils.mkdir_p(File.join(home, 'first'))
-      File.write(File.join(d, 'judges/first/the-first.rb'), '$fb.insert.foo = 44')
+      File.write(File.join(d, 'judges/first/the-first.rb'), 'x = $fb.size; $fb.insert.foo = x')
       FileUtils.mkdir_p(File.join(home, 'second'))
-      File.write(File.join(d, 'judges/second/the-second.rb'), '$fb.insert.foo = 55')
-      File.write(
-        File.join(d, 'judges/first/something.yml'),
-        <<-YAML
-        input: []
-        expected:
-          - /fb[count(f)=1]
-        YAML
-      )
+      File.write(File.join(d, 'judges/second/the-second.rb'), '$fb.insert.bar = 55')
       File.write(
         File.join(d, 'judges/second/something.yml'),
         <<-YAML
@@ -113,9 +105,12 @@ class TestTest < Minitest::Test
           - first
         expected:
           - /fb[count(f)=3]
+          - /fb/f[hi=42]
+          - /fb/f[foo=1]
+          - /fb/f[bar=55]
         YAML
       )
-      Judges::Test.new(Loog::VERBOSE).run({}, [home])
+      Judges::Test.new(Loog::NULL).run({}, [home])
     end
   end
 

@@ -75,12 +75,12 @@ class Judges::Test
           @loog.info("🛠️ Testing #{f.to_rel}:")
           begin
             fb = Factbase.new
+            prepare(fb, yaml)
             yaml['before']&.each do |n|
               j = judges.get(n)
               @loog.info("Running #{j.script} judge as a pre-condition...")
               test_one(fb, opts, j, n, yaml, assert: false)
             end
-            prepare(fb, yaml)
             test_one(fb, opts, judge, tname, yaml)
             tests += 1
           rescue StandardError => e
