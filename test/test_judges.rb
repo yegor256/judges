@@ -30,7 +30,7 @@ require_relative '../lib/judges/judges'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
-class TestPacks < Minitest::Test
+class TestJudges < Minitest::Test
   def test_basic
     Dir.mktmpdir do |d|
       File.write(File.join(d, 'foo.rb'), 'hey')
@@ -42,6 +42,16 @@ class TestPacks < Minitest::Test
         assert_equal('something.yml', File.basename(p.tests.first))
       end
       assert_equal(1, found)
+    end
+  end
+
+  def test_get_one
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'boo/foo.rb')
+      FileUtils.mkdir_p(File.dirname(f))
+      File.write(f, 'hey')
+      j = Judges::Judges.new(d, nil, Loog::NULL).get('boo')
+      assert_equal('foo.rb', j.script)
     end
   end
 end

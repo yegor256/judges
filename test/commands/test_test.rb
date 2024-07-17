@@ -88,6 +88,35 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_with_before
+    Dir.mktmpdir do |d|
+      home = File.join(d, 'judges')
+      FileUtils.mkdir_p(File.join(home, 'first'))
+      File.write(File.join(d, 'judges/first/the-first.rb'), '$fb.insert.foo = 42')
+      FileUtils.mkdir_p(File.join(home, 'second'))
+      File.write(File.join(d, 'judges/second/the-second.rb'), '$fb.insert.foo = 55')
+      File.write(
+        File.join(d, 'judges/first/something.yml'),
+        <<-YAML
+        input: []
+        expected:
+          - /fb[count(f)=1]
+        YAML
+      )
+      File.write(
+        File.join(d, 'judges/second/something.yml'),
+        <<-YAML
+        input: []
+        before:
+          - first
+        expected:
+          - /fb[count(f)=2]
+        YAML
+      )
+      Judges::Test.new(Loog::NULL).run({}, [home])
+    end
+  end
+
   def test_one_judge_negative
     Dir.mktmpdir do |d|
       File.write(File.join(d, 'foo.rb'), '')

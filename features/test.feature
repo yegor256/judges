@@ -118,3 +118,26 @@ Feature: Test
     Then I run bin/judges with "test --enable bad mine"
     Then Stdout contains "Testing mine/bad/bad.yml"
     And Exit code is not zero
+
+  Scenario: Test with a pre-condition
+    Given I make a temp directory
+    Then I have a "mine/first/first.rb" file with content:
+    """
+    n = $fb.insert
+    n.foo = 42
+    """
+    Then I have a "mine/second/second.rb" file with content:
+    """
+    n = $fb.insert
+    n.foo = 55
+    """
+    Then I have a "mine/second/second.yml" file with content:
+    """
+    ---
+    before:
+      - first
+    expected:
+      - /fb[count(f)=2]
+    """
+    Then I run bin/judges with "test mine"
+    And Exit code is zero

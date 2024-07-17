@@ -28,6 +28,8 @@ AllCops:
   SuggestExtensions: false
   NewCops: enable
 
+Metrics/ParameterLists:
+  Enabled: false
 Style/GlobalVars:
   Enabled: false
 Metrics/MethodLength:

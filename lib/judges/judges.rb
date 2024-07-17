@@ -34,8 +34,16 @@ class Judges::Judges
     @loog = loog
   end
 
+  # Get one judge by name.
+  # @return [Judge]
+  def get(name)
+    d = File.absolute_path(File.join(@dir, name))
+    raise "Judge #{name} doesn't exist in #{@dir}" unless File.exist?(d)
+    Judges::Judge.new(d, @lib, @loog)
+  end
+
   # Iterate over them all.
-  # @yield [Pack]
+  # @yield [Judge]
   def each
     Dir.glob(File.join(@dir, '**/*.rb')).each do |f|
       d = File.dirname(File.absolute_path(f))
@@ -44,7 +52,7 @@ class Judges::Judges
   end
 
   # Iterate over them all.
-  # @yield [(Pack, Integer)]
+  # @yield [(Judge, Integer)]
   def each_with_index
     idx = 0
     each do |p|

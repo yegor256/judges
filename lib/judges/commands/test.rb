@@ -46,11 +46,12 @@ class Judges::Test
     dir = args[0]
     @loog.info("Testing judges in #{dir.to_rel}...")
     errors = []
-    judges = 0
+    tested = 0
     tests = 0
     visible = []
+    judges = Judges::Judges.new(dir, opts['lib'], @loog)
     elapsed(@loog) do
-      Judges::Judges.new(dir, opts['lib'], @loog).each_with_index do |judge, i|
+      judges.each_with_index do |judge, i|
         visible << judge.name
         next unless include?(opts, judge.name)
         @loog.info("\n👉 Testing #{judge.script} (##{i}) in #{judge.dir.to_rel}...")
@@ -70,6 +71,11 @@ class Judges::Test
           @loog.info("🛠️ Testing #{f.to_rel}:")
           begin
             fb = Factbase.new
+            yaml['before']&.each do |n|
+              j = judges.get(n)
+              @loog.info("Running #{j.script} judge as a pre-condition...")
+              test_one(fb, opts, j, n, yaml, assert: false)
+            end
             test_one(fb, opts, judge, tname, yaml)
             tests += 1
           rescue StandardError => e
@@ -77,18 +83,18 @@ class Judges::Test
             errors << f
           end
         end
-        judges += 1
+        tested += 1
       end
-      throw :'👍 No judges tested' if judges.zero?
-      throw :"👍 All #{judges} judge(s) but no tests passed" if tests.zero?
-      throw :"👍 All #{judges} judge(s) and #{tests} tests passed" if errors.empty?
-      throw :"❌ #{judges} judge(s) tested, #{errors.size} of them failed"
+      throw :'👍 No judges tested' if tested.zero?
+      throw :"👍 All #{tested} judge(s) but no tests passed" if tests.zero?
+      throw :"👍 All #{tested} judge(s) and #{tests} tests passed" if errors.empty?
+      throw :"❌ #{tested} judge(s) tested, #{errors.size} of them failed"
     end
     unless errors.empty?
       raise "#{errors.size} tests failed" unless opts['quiet']
       @loog.debug('Not failing the build with tests failures, due to the --quiet option')
     end
-    return unless judges.zero? || tests.zero?
+    return unless tested.zero? || tests.zero?
     if opts['judge'].nil?
       raise 'There are seems to be no judges' unless opts['quiet']
       @loog.debug('Not failing the build with no judges tested, due to the --quiet option')
@@ -107,7 +113,7 @@ class Judges::Test
     judges.any? { |n| n.match?(%r{^#{name}(/#{tre})?$}) }
   end
 
-  def test_one(fb, opts, judge, tname, yaml)
+  def test_one(fb, opts, judge, tname, yaml, assert: true)
     inputs = yaml['input']
     inputs&.each do |i|
       f = fb.insert
@@ -127,6 +133,7 @@ class Judges::Test
       fbx = fb
       fbx = Factbase::Looged.new(fb, @loog) if opts['log']
       judge.run(fbx, {}, {}, options)
+      next unless assert
       assert(judge, tname, fb, yaml) if r == runs || opts['assert_once'].is_a?(FalseClass)
     end
   end
