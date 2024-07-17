@@ -69,7 +69,8 @@ class Judges::Test
           end
           @loog.info("🛠️ Testing #{f.to_rel}:")
           begin
-            test_one(opts, judge, tname, yaml)
+            fb = Factbase.new
+            test_one(fb, opts, judge, tname, yaml)
             tests += 1
           rescue StandardError => e
             @loog.warn(Backtrace.new(e))
@@ -106,8 +107,7 @@ class Judges::Test
     judges.any? { |n| n.match?(%r{^#{name}(/#{tre})?$}) }
   end
 
-  def test_one(opts, judge, tname, yaml)
-    fb = Factbase.new
+  def test_one(fb, opts, judge, tname, yaml)
     inputs = yaml['input']
     inputs&.each do |i|
       f = fb.insert
