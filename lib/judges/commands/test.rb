@@ -32,7 +32,11 @@ require_relative '../../judges/options'
 require_relative '../../judges/categories'
 require_relative '../../judges/elapsed'
 
-# Test.
+# The +test+ command.
+#
+# This class is instantiated by the +bin/judge+ command line interface. You
+# are not supposed to instantiate it yourself.
+#
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT

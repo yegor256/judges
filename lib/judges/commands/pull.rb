@@ -26,7 +26,11 @@ require_relative '../../judges'
 require_relative '../../judges/impex'
 require_relative '../../judges/baza'
 
-# Pull.
+# The +pull+ command.
+#
+# This class is instantiated by the +bin/judge+ command line interface. You
+# are not supposed to instantiate it yourself.
+#
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
