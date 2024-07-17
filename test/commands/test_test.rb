@@ -92,7 +92,7 @@ class TestTest < Minitest::Test
     Dir.mktmpdir do |d|
       home = File.join(d, 'judges')
       FileUtils.mkdir_p(File.join(home, 'first'))
-      File.write(File.join(d, 'judges/first/the-first.rb'), '$fb.insert.foo = 42')
+      File.write(File.join(d, 'judges/first/the-first.rb'), '$fb.insert.foo = 44')
       FileUtils.mkdir_p(File.join(home, 'second'))
       File.write(File.join(d, 'judges/second/the-second.rb'), '$fb.insert.foo = 55')
       File.write(
@@ -106,14 +106,16 @@ class TestTest < Minitest::Test
       File.write(
         File.join(d, 'judges/second/something.yml'),
         <<-YAML
-        input: []
+        input:
+          -
+            hi: 42
         before:
           - first
         expected:
-          - /fb[count(f)=2]
+          - /fb[count(f)=3]
         YAML
       )
-      Judges::Test.new(Loog::NULL).run({}, [home])
+      Judges::Test.new(Loog::VERBOSE).run({}, [home])
     end
   end
 

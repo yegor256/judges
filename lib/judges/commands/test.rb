@@ -76,6 +76,7 @@ class Judges::Test
               @loog.info("Running #{j.script} judge as a pre-condition...")
               test_one(fb, opts, j, n, yaml, assert: false)
             end
+            prepare(fb, yaml)
             test_one(fb, opts, judge, tname, yaml)
             tests += 1
           rescue StandardError => e
@@ -113,7 +114,7 @@ class Judges::Test
     judges.any? { |n| n.match?(%r{^#{name}(/#{tre})?$}) }
   end
 
-  def test_one(fb, opts, judge, tname, yaml, assert: true)
+  def prepare(fb, yaml)
     inputs = yaml['input']
     inputs&.each do |i|
       f = fb.insert
@@ -127,6 +128,9 @@ class Judges::Test
         end
       end
     end
+  end
+
+  def test_one(fb, opts, judge, tname, yaml, assert: true)
     options = Judges::Options.new(opts['option']) + Judges::Options.new(yaml['options'])
     runs = opts['runs'] || yaml['runs'] || 1
     (1..runs).each do |r|
