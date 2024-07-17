@@ -28,7 +28,12 @@ require 'base64'
 require_relative '../judges'
 require_relative '../judges/elapsed'
 
-# Baza.
+# Interface to the API of zerocracy.com.
+#
+# You make an instance of this class and then call one of its methods.
+# The object will make HTTP request to www.zerocracy.com and interpret the
+# results returned.
+#
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
