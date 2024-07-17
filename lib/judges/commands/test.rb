@@ -50,14 +50,14 @@ class Judges::Test
     tests = 0
     visible = []
     elapsed(@loog) do
-      Judges::Judges.new(dir, opts['lib'], @loog).each_with_index do |p, i|
-        visible << p.name
-        next unless include?(opts, p.name)
-        @loog.info("\n👉 Testing #{p.script} (##{i}) in #{p.dir.to_rel}...")
-        p.tests.each do |f|
+      Judges::Judges.new(dir, opts['lib'], @loog).each_with_index do |judge, i|
+        visible << judge.name
+        next unless include?(opts, judge.name)
+        @loog.info("\n👉 Testing #{judge.script} (##{i}) in #{judge.dir.to_rel}...")
+        judge.tests.each do |f|
           tname = File.basename(f).gsub(/\.yml$/, '')
-          visible << "  #{p.name}/#{tname}"
-          next unless include?(opts, p.name, tname)
+          visible << "  #{judge.name}/#{tname}"
+          next unless include?(opts, judge.name, tname)
           yaml = YAML.load_file(f, permitted_classes: [Time])
           if yaml['skip']
             @loog.info("Skippped #{f.to_rel}")
@@ -69,7 +69,7 @@ class Judges::Test
           end
           @loog.info("🛠️ Testing #{f.to_rel}:")
           begin
-            test_one(opts, p, tname, yaml)
+            test_one(opts, judge, tname, yaml)
             tests += 1
           rescue StandardError => e
             @loog.warn(Backtrace.new(e))
