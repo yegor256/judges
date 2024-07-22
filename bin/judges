@@ -24,6 +24,7 @@ $stdout.sync = true
 
 require 'gli'
 require 'loog'
+require 'time'
 require 'factbase'
 
 Encoding.default_external = Encoding::UTF_8
@@ -51,7 +52,9 @@ class JudgesGLI extend GLI::App
     end
     loog.debug("Judges #{Judges::VERSION}")
     loog.debug("Factbase #{Factbase::VERSION}")
+    loog.debug("Ruby: #{RUBY_VERSION}-p#{RUBY_PATCHLEVEL}")
     loog.debug("Current directory: #{Dir.getwd}")
+    loog.debug("Time: #{Time.now.utc.iso8601}")
     true
   end
 
