@@ -29,8 +29,7 @@ require 'factbase'
 Encoding.default_external = Encoding::UTF_8
 Encoding.default_internal = Encoding::UTF_8
 
-class App
-  extend GLI::App
+class JudgesGLI extend GLI::App
 
   loog = Loog::REGULAR
 
@@ -52,6 +51,7 @@ class App
     end
     loog.debug("Judges #{Judges::VERSION}")
     loog.debug("Factbase #{Factbase::VERSION}")
+    loog.debug("Current directory: #{Dir.getwd}")
     true
   end
 
@@ -212,4 +212,4 @@ class App
   end
 end
 
-exit App.run(ARGV)
+exit JudgesGLI.run(ARGV) if ENV['GLI_TESTING'].nil?

@@ -31,7 +31,7 @@ require_relative '../lib/judges/judge'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
-class TestPack < Minitest::Test
+class TestJudge < Minitest::Test
   def test_basic_run
     Dir.mktmpdir do |d|
       File.write(File.join(d, 'foo.rb'), '$fb.insert')
