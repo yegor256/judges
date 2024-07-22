@@ -52,3 +52,17 @@ Feature: Update
     Then I run bin/judges with "update mine simple.fb"
     Then Stdout contains "Failed to update correctly"
     And Exit code is not zero
+
+  Scenario: Avoid duplicate insert on error in the middle
+    Given I make a temp directory
+    Then I have a "mine/foo/foo.rb" file with content:
+    """
+    return unless $fb.query('(eq foo 42)').each.to_a.empty?
+    f = $fb.insert
+    f.foo = 42
+    raise 'intentional'
+    """
+    Then I run bin/judges with "update --quiet --max-cycles=3 mine simple.fb"
+    And Exit code is zero
+    Then I run bin/judges with "inspect simple.fb"
+    Then Stdout contains "Facts: 1"
