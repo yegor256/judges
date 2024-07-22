@@ -46,6 +46,7 @@ class Judges::Judge
     $global = global
     $local = local
     $valve = FakeValve.new unless defined?($valve)
+    options.to_h.each { |k, v| ENV.store(k.to_s, v.to_s) }
     unless @lib.nil?
       raise "Lib dir #{@lib.to_rel} is absent" unless File.exist?(@lib)
       raise "Lib #{@lib.to_rel} is not a directory" unless File.directory?(@lib)
