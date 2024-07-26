@@ -50,7 +50,7 @@ class Judges::Options
   def to_s
     to_h.map do |k, v|
       v = v.to_s
-      v = "#{v[0..3]}#{'*' * (v.length - 4)}" if v.length > 8
+      v = "#{v[0..3]}#{'*' * (v.length - 8)}#{v[-4..]}" if v.length > 8
       "#{k} → \"#{v}\""
     end.join("\n")
   end

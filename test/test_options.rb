@@ -81,7 +81,7 @@ class TestOptions < Minitest::Test
     opts = Judges::Options.new('foo' => 44, 'bar' => 'long-string-maybe-secret')
     s = opts.to_s
     assert(s.include?('FOO → "44"'), s)
-    assert(s.include?('"long********************"'))
+    assert(s.include?('"long****************cret"'), s)
   end
 
   def test_merge
