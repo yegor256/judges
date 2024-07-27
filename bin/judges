@@ -168,6 +168,8 @@ class JudgesGLI extend GLI::App
     c.flag([:meta], type: String, multiple: true)
     c.desc 'How many times to retry'
     c.flag([:retries], type: Integer, default_value: 3)
+    c.desc 'Turn on the package compression'
+    c.switch([:zip], default_value: true)
     run_it(c, 'push')
   end
 

@@ -48,7 +48,8 @@ class Judges::Push
       ssl: opts['ssl'],
       timeout: (opts['timeout'] || 30).to_i,
       loog: @loog,
-      retries: (opts['retries'] || 3).to_i
+      retries: (opts['retries'] || 3).to_i,
+      compression: opts.fetch('zip', true)
     )
     elapsed(@loog) do
       baza.lock(name, opts['owner'])

@@ -22,8 +22,10 @@
 
 require 'minitest/autorun'
 require 'webmock/minitest'
+require 'webrick'
 require 'loog'
 require 'socket'
+require 'stringio'
 require 'random-port'
 require_relative '../lib/judges'
 require_relative '../lib/judges/baza'
@@ -80,7 +82,7 @@ class TestBaza < Minitest::Test
       with_http_server(200, 'yes') do |baza|
         baza.name_exists?('simple')
       end
-    assert(req.include?("User-Agent: judges #{Judges::VERSION}\r\n"))
+    assert_equal("judges #{Judges::VERSION}", req['user-agent'])
   end
 
   def test_push_with_meta
@@ -88,7 +90,7 @@ class TestBaza < Minitest::Test
       with_http_server(200, 'yes') do |baza|
         baza.push('simple', 'hello, world!', ['boom!', 'хей!'])
       end
-    assert(req.include?("X-Zerocracy-Meta: Ym9vbSE= 0YXQtdC5IQ==\r\n"))
+    assert_equal('Ym9vbSE= 0YXQtdC5IQ==', req['x-zerocracy-meta'])
   end
 
   def test_push_with_big_meta
@@ -104,29 +106,47 @@ class TestBaza < Minitest::Test
           ]
         )
       end
-    assert(req.join.include?('X-Zerocracy-Meta: '))
+    assert(req['x-zerocracy-meta'])
+  end
+
+  def test_push_compressed_content
+    req =
+      with_http_server(200, 'yes') do |baza|
+        baza.push('simple', 'hello, world!', %w[meta1 meta2 meta3])
+      end
+    assert_equal('application/zip', req.content_type)
+    assert_equal('gzip', req['content-encoding'])
+    body = Zlib::GzipReader.zcat(StringIO.new(req.body))
+    assert_equal('hello, world!', body)
+  end
+
+  def test_push_compression_disabled
+    req =
+      with_http_server(200, 'yes', compression: false) do |baza|
+        baza.push('simple', 'hello, world!', %w[meta1 meta2 meta3])
+      end
+    assert_equal('application/octet-stream', req.content_type)
+    assert_equal('hello, world!', req.body)
   end
 
   private
 
-  def with_http_server(code, response)
+  def with_http_server(code, response, opts = {})
+    opts = { ssl: false, timeout: 1 }.merge(opts)
     WebMock.enable_net_connect!
-    req = []
+    req = WEBrick::HTTPRequest.new(WEBrick::Config::HTTP)
     host = '127.0.0.1'
     RandomPort::Pool::SINGLETON.acquire do |port|
       server = TCPServer.new(host, port)
       t =
         Thread.new do
           socket = server.accept
-          loop do
-            line = socket.gets
-            break if line == "\r\n"
-            req << line
-          end
+          req.parse(socket)
+          req.body
           socket.puts "HTTP/1.1 #{code} OK\r\nContent-Length: #{response.length}\r\n\r\n#{response}"
           socket.close
         end
-      yield Judges::Baza.new(host, port, '0000', ssl: false, timeout: 1)
+      yield Judges::Baza.new(host, port, '0000', **opts)
       t.join
     end
     req

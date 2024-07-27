@@ -38,7 +38,7 @@ require_relative '../judges/elapsed'
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
 class Judges::Baza
-  def initialize(host, port, token, ssl: true, timeout: 30, retries: 3, loog: Loog::NULL)
+  def initialize(host, port, token, ssl: true, timeout: 30, retries: 3, loog: Loog::NULL, compression: true)
     @host = host
     @port = port
     @ssl = ssl
@@ -46,6 +46,7 @@ class Judges::Baza
     @timeout = timeout
     @loog = loog
     @retries = retries
+    @compression = compression
   end
 
   # Push factbase to the server.
@@ -62,16 +63,19 @@ class Judges::Baza
     unless meta.empty?
       hdrs = hdrs.merge('X-Zerocracy-Meta' => meta.map { |v| Base64.encode64(v).gsub("\n", '') }.join(' '))
     end
+    params = {
+      connecttimeout: @timeout,
+      timeout: @timeout,
+      body: data,
+      headers: hdrs
+    }
     elapsed(@loog) do
       ret =
         with_retries(max_tries: @retries) do
           checked(
             Typhoeus::Request.put(
               home.append('push').append(name).to_s,
-              body: data,
-              headers: hdrs,
-              connecttimeout: @timeout,
-              timeout: @timeout
+              @compression ? zipped(params) : params
             )
           )
         end
@@ -259,6 +263,27 @@ class Judges::Baza
       'Connection' => 'close',
       'X-Zerocracy-Token' => @token
     }
+  end
+
+  def zipped(params)
+    body = gzip(params.fetch(:body))
+    headers = params
+      .fetch(:headers)
+      .merge({
+               'Content-Type' => 'application/zip',
+               'Content-Encoding' => 'gzip',
+               'Content-Length' => body.size
+             })
+    params.merge(body:, headers:)
+  end
+
+  def gzip(data)
+    ''.dup.tap do |result|
+      io = StringIO.new(result)
+      gz = Zlib::GzipWriter.new(io)
+      gz.write(data)
+      gz.close
+    end
   end
 
   def home
