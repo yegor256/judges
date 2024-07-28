@@ -70,9 +70,10 @@ class Judges::Judge
 
   # Get the name of the .rb script in the judge.
   def script
-    s = Dir.glob(File.join(@dir, '*.rb')).first
-    raise "No *.rb scripts in #{@dir.to_rel}" if s.nil?
-    File.basename(s)
+    b = "#{File.basename(@dir)}.rb"
+    files = Dir.glob(File.join(@dir, '*.rb')).map { |f| File.basename(f) }
+    raise "No #{b} script in #{@dir.to_rel} among #{files}" unless files.include?(b)
+    b
   end
 
   # Return all .yml tests files.

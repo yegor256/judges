@@ -28,14 +28,14 @@ Feature: Test
 
   Scenario: Simple test of a few judges, with a lib
     Given I make a temp directory
-    Then I have a "myjudges/myjudge/simple_judge.rb" file with content:
+    Then I have a "myjudges/good/good.rb" file with content:
     """
       $valve.enter('boom', 'some reason') do
         n = $fb.insert
         n.foo = $foo
       end
     """
-    Then I have a "myjudges/myjudge/good.yml" file with content:
+    Then I have a "myjudges/good/good.yml" file with content:
     """
     ---
     category: good
@@ -51,7 +51,7 @@ Feature: Test
 
   Scenario: Simple test with many runs
     Given I make a temp directory
-    Then I have a "foo/simple.rb" file with content:
+    Then I have a "foo/foo.rb" file with content:
     """
       n = $fb.insert
       n.foo = $fb.size
@@ -70,7 +70,7 @@ Feature: Test
 
   Scenario: Simple test with many runs and many asserts
     Given I make a temp directory
-    Then I have a "foo/simple.rb" file with content:
+    Then I have a "foo/foo.rb" file with content:
     """
       n = $fb.insert
       n.foo = $fb.size

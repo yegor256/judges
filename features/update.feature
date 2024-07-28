@@ -3,7 +3,7 @@ Feature: Update
 
   Scenario: Simple run of a few judges
     Given I make a temp directory
-    Then I have a "simple/simple_judge.rb" file with content:
+    Then I have a "simple/simple.rb" file with content:
     """
       n = $fb.insert
       n.kind = 'yes!'
@@ -17,7 +17,7 @@ Feature: Update
 
   Scenario: Simple run of a few judges, with a lib
     Given I make a temp directory
-    Then I have a "mine/judge1/simple_judge.rb" file with content:
+    Then I have a "mine/judge1/judge1.rb" file with content:
     """
       $valve.enter('boom', 'for no particular reason') do
         n = $fb.insert
@@ -35,7 +35,7 @@ Feature: Update
 
   Scenario: The update fails when a bug in a judge
     Given I make a temp directory
-    Then I have a "mine/judge1/broken.rb" file with content:
+    Then I have a "mine/broken/broken.rb" file with content:
     """
     a < 1
     """
@@ -45,7 +45,7 @@ Feature: Update
 
   Scenario: The update fails when a broken Ruby syntax in a judge
     Given I make a temp directory
-    Then I have a "mine/judge1/broken.rb" file with content:
+    Then I have a "mine/broken/broken.rb" file with content:
     """
     invalid$ruby$syntax$here
     """

@@ -32,3 +32,11 @@ require 'minitest/autorun'
 
 require 'minitest/reporters'
 Minitest::Reporters.use! [Minitest::Reporters::SpecReporter.new]
+
+class Minitest::Test
+  def save_it(file, content)
+    require 'fileutils'
+    FileUtils.mkdir_p(File.dirname(file))
+    File.binwrite(file, content)
+  end
+end

@@ -33,8 +33,9 @@ require_relative '../lib/judges/judges'
 class TestJudges < Minitest::Test
   def test_basic
     Dir.mktmpdir do |d|
-      File.write(File.join(d, 'foo.rb'), 'hey')
-      File.write(File.join(d, 'something.yml'), "---\nfoo: 42")
+      dir = File.join(d, 'foo')
+      save_it(File.join(dir, 'foo.rb'), 'hey')
+      save_it(File.join(dir, 'something.yml'), "---\nfoo: 42")
       found = 0
       Judges::Judges.new(d, nil, Loog::NULL).each do |p|
         assert_equal('foo.rb', p.script)
@@ -47,11 +48,9 @@ class TestJudges < Minitest::Test
 
   def test_get_one
     Dir.mktmpdir do |d|
-      f = File.join(d, 'boo/foo.rb')
-      FileUtils.mkdir_p(File.dirname(f))
-      File.write(f, 'hey')
+      save_it(File.join(d, 'boo/boo.rb'), 'hey')
       j = Judges::Judges.new(d, nil, Loog::NULL).get('boo')
-      assert_equal('foo.rb', j.script)
+      assert_equal('boo.rb', j.script)
     end
   end
 end

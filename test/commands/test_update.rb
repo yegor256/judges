@@ -34,7 +34,7 @@ require_relative '../../lib/judges/commands/update'
 class TestUpdate < Minitest::Test
   def test_build_factbase_from_scratch
     Dir.mktmpdir do |d|
-      File.write(File.join(d, 'foo.rb'), 'return if $fb.size > 2; $fb.insert.zzz = $options.foo_bar + 1')
+      save_it(File.join(d, 'foo/foo.rb'), 'return if $fb.size > 2; $fb.insert.zzz = $options.foo_bar + 1')
       file = File.join(d, 'base.fb')
       Judges::Update.new(Loog::NULL).run({ 'option' => ['foo_bar=42'] }, [d, file])
       fb = Factbase.new
@@ -50,7 +50,7 @@ class TestUpdate < Minitest::Test
       fb = Factbase.new
       fb.insert.foo_bar = 42
       File.binwrite(file, fb.export)
-      File.write(File.join(d, 'foo.rb'), '$fb.insert.tt = 4')
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.tt = 4')
       Judges::Update.new(Loog::NULL).run({ 'max-cycles' => 1 }, [d, file])
       fb = Factbase.new
       fb.import(File.binread(file))
@@ -62,7 +62,7 @@ class TestUpdate < Minitest::Test
 
   def test_update_with_error
     Dir.mktmpdir do |d|
-      File.write(File.join(d, 'foo.rb'), 'this$is$a$broken$Ruby$script')
+      save_it(File.join(d, 'foo/foo.rb'), 'this$is$a$broken$Ruby$script')
       file = File.join(d, 'base.fb')
       Judges::Update.new(Loog::NULL).run({ 'quiet' => true, 'max-cycles' => 2 }, [d, file])
     end
@@ -71,7 +71,7 @@ class TestUpdate < Minitest::Test
   def test_update_with_error_no_quiet
     assert_raises do
       Dir.mktmpdir do |d|
-        File.write(File.join(d, 'foo.rb'), 'a < 1')
+        save_it(File.join(d, 'foo/foo.rb'), 'a < 1')
         file = File.join(d, 'base.fb')
         Judges::Update.new(Loog::NULL).run({ 'quiet' => false }, [d, file])
       end
@@ -80,7 +80,7 @@ class TestUpdate < Minitest::Test
 
   def test_update_with_error_and_summary
     Dir.mktmpdir do |d|
-      File.write(File.join(d, 'foo.rb'), 'this$is$a$broken$Ruby$script')
+      save_it(File.join(d, 'foo/foo.rb'), 'this$is$a$broken$Ruby$script')
       file = File.join(d, 'base.fb')
       2.times do
         Judges::Update.new(Loog::NULL).run(

@@ -34,7 +34,7 @@ require_relative '../lib/judges/judge'
 class TestJudge < Minitest::Test
   def test_basic_run
     Dir.mktmpdir do |d|
-      File.write(File.join(d, 'foo.rb'), '$fb.insert')
+      save_it(File.join(d, "#{File.basename(d)}.rb"), '$fb.insert')
       judge = Judges::Judge.new(d, nil, Loog::NULL)
       fb = Factbase.new
       judge.run(fb, {}, {}, {})
@@ -44,7 +44,7 @@ class TestJudge < Minitest::Test
 
   def test_run_isolated
     Dir.mktmpdir do |d|
-      File.write(File.join(d, 'bar.rb'), '$fb.insert')
+      save_it(File.join(d, "#{File.basename(d)}.rb"), '$fb.insert')
       judge = Judges::Judge.new(d, nil, Loog::NULL)
       fb1 = Factbase.new
       judge.run(fb1, {}, {}, {})
@@ -57,8 +57,8 @@ class TestJudge < Minitest::Test
 
   def test_passes_local_vars_between_tests
     Dir.mktmpdir do |d|
-      File.write(
-        File.join(d, 'x.rb'),
+      save_it(
+        File.join(d, "#{File.basename(d)}.rb"),
         '
         $local[:foo] = 42 if $local[:foo].nil?
         $local[:foo] = $local[:foo] + 1
@@ -77,8 +77,7 @@ class TestJudge < Minitest::Test
     Dir.mktmpdir do |d|
       j = 'this_is_it'
       dir = File.join(d, j)
-      FileUtils.mkdir(dir)
-      File.write(File.join(dir, 'foo.rb'), '$loog.info("judge=" + $judge)')
+      save_it(File.join(dir, "#{j}.rb"), '$loog.info("judge=" + $judge)')
       log = Loog::Buffer.new
       Judges::Judge.new(dir, nil, log).run(Factbase.new, {}, {}, {})
       assert(log.to_s.include?("judge=#{j}"))
@@ -89,8 +88,7 @@ class TestJudge < Minitest::Test
     assert_raises do
       Dir.mktmpdir do |d|
         dir = File.join(d, 'judges')
-        FileUtils.mkdir_p(dir)
-        File.write(File.join(dir, 'x.rb'), 'this$is$broken$syntax')
+        save_it(File.join(dir, "#{File.basename(d)}.rb"), 'this$is$broken$syntax')
         judge = Judges::Judge.new(dir, lib, Loog::NULL)
         judge.run(Factbase.new, {}, {}, {})
       end
@@ -101,8 +99,7 @@ class TestJudge < Minitest::Test
     assert_raises do
       Dir.mktmpdir do |d|
         dir = File.join(d, 'judges')
-        FileUtils.mkdir_p(dir)
-        File.write(File.join(dir, 'x.rb'), 'a < 1')
+        save_it(File.join(dir, "#{File.basename(d)}.rb"), 'a < 1')
         judge = Judges::Judge.new(dir, lib, Loog::NULL)
         judge.run(Factbase.new, {}, {}, {})
       end

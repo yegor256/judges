@@ -32,8 +32,8 @@ require_relative '../../lib/judges/commands/test'
 class TestTest < Minitest::Test
   def test_positive
     Dir.mktmpdir do |d|
-      File.write(File.join(d, 'foo.rb'), '$fb.query("(eq foo 42)").each { |f| f.bar = 4 }')
-      File.write(
+      save_it(File.join(d, "#{File.basename(d)}.rb"), '$fb.query("(eq foo 42)").each { |f| f.bar = 4 }')
+      save_it(
         File.join(d, 'something.yml'),
         <<-YAML
         input:
@@ -51,8 +51,8 @@ class TestTest < Minitest::Test
 
   def test_negative
     Dir.mktmpdir do |d|
-      File.write(File.join(d, 'foo.rb'), '$fb.query("(eq foo 42)").each { |f| f.bar = 4 }')
-      File.write(
+      save_it(File.join(d, "#{File.basename(d)}.rb"), '$fb.query("(eq foo 42)").each { |f| f.bar = 4 }')
+      save_it(
         File.join(d, 'something.yml'),
         <<-YAML
         input:
@@ -72,8 +72,8 @@ class TestTest < Minitest::Test
 
   def test_with_options
     Dir.mktmpdir do |d|
-      File.write(File.join(d, 'foo.rb'), '$fb.insert.foo = $options.bar')
-      File.write(
+      save_it(File.join(d, "#{File.basename(d)}.rb"), '$fb.insert.foo = $options.bar')
+      save_it(
         File.join(d, 'something.yml'),
         <<-YAML
         input: []
@@ -92,10 +92,10 @@ class TestTest < Minitest::Test
     Dir.mktmpdir do |d|
       home = File.join(d, 'judges')
       FileUtils.mkdir_p(File.join(home, 'first'))
-      File.write(File.join(d, 'judges/first/the-first.rb'), 'x = $fb.size; $fb.insert.foo = x')
+      save_it(File.join(home, 'first/first.rb'), 'x = $fb.size; $fb.insert.foo = x')
       FileUtils.mkdir_p(File.join(home, 'second'))
-      File.write(File.join(d, 'judges/second/the-second.rb'), '$fb.insert.bar = 55')
-      File.write(
+      save_it(File.join(home, 'second/second.rb'), '$fb.insert.bar = 55')
+      save_it(
         File.join(d, 'judges/second/something.yml'),
         <<-YAML
         input:
@@ -116,8 +116,8 @@ class TestTest < Minitest::Test
 
   def test_one_judge_negative
     Dir.mktmpdir do |d|
-      File.write(File.join(d, 'foo.rb'), '')
-      File.write(
+      save_it(File.join(d, "#{File.basename(d)}.rb"), '')
+      save_it(
         File.join(d, 'x.yml'),
         <<-YAML
         input: []

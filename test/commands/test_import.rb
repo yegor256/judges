@@ -36,7 +36,7 @@ class TestImport < Minitest::Test
     Dir.mktmpdir do |d|
       file = File.join(d, 'base.fb')
       yaml = File.join(d, 'input.yml')
-      File.write(
+      save_it(
         yaml,
         <<-YAML
         -
