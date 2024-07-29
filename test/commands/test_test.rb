@@ -130,4 +130,20 @@ class TestTest < Minitest::Test
       end
     end
   end
+
+  def test_with_after_assertion
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, "#{File.basename(d)}.rb"), '$fb.insert.foo = 42;')
+      save_it(File.join(d, 'assert.rb'), 'raise unless $fb.size == 1')
+      save_it(
+        File.join(d, 'x.yml'),
+        <<-YAML
+        input: []
+        after:
+          - assert.rb
+        YAML
+      )
+      Judges::Test.new(Loog::NULL).run({}, [d])
+    end
+  end
 end

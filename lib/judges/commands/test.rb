@@ -82,6 +82,12 @@ class Judges::Test
               test_one(fb, opts, j, n, yaml, assert: false)
             end
             test_one(fb, opts, judge, tname, yaml)
+            yaml['after']&.each do |rb|
+              @loog.info("Running #{rb} script as an asertion...")
+              $fb = fb
+              $loog = @loog
+              load(File.join(judge.dir, rb), true)
+            end
             tests += 1
           rescue StandardError => e
             @loog.warn(Backtrace.new(e))
