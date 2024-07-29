@@ -48,6 +48,9 @@ options:
   max: 100
 expected:
   - /fb[count(f)=1]
+after:
+  - first.rb
+  - second.rb
 ```
 
 Here, the `input` is an array of facts to be placed into the Factbase before
@@ -64,6 +67,10 @@ be executed. After each execution, all expected XPath expressions are validated.
 
 The `before` (default: `[]`) is a list of judges that must be executed before
 the current one.
+
+The `after` (default: `[]`) is a list of relative file names
+of Ruby scripts that are executed after the judge
+(`$fb` and `$loog` are passed into them).
 
 ## How to contribute
 

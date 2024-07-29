@@ -23,6 +23,7 @@
 require 'tmpdir'
 require 'net/ping'
 require 'English'
+require 'securerandom'
 
 Before do
   @cwd = Dir.pwd
@@ -52,6 +53,7 @@ end
 
 When(%r{^I run bin/judges with "([^"]*)"$}) do |arg|
   home = File.join(File.dirname(__FILE__), '../..')
+  arg.gsub!('{FAKE-NAME}') { "fake#{SecureRandom.hex(8)}" }
   cmd = "ruby -I#{home}/lib #{home}/bin/judges #{arg}"
   cmd = "GLI_DEBUG=true #{cmd}" unless Gem.win_platform?
   @stdout = `#{cmd} 2>&1`

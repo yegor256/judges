@@ -24,6 +24,20 @@ require_relative '../judges'
 require_relative 'judge'
 
 # Collection of all judges to run.
+#
+# In the directory +dir+ the following structure must be maintained:
+#
+#  dir/
+#    judge-one/
+#      judge-one.rb
+#      other files...
+#    judge-two/
+#      judge-two.rb
+#      other files...
+#
+# The name of a directory of a judge must be exactly the same as the
+# name of the +.rb+ script inside the directory.
+#
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
@@ -45,9 +59,12 @@ class Judges::Judges
   # Iterate over them all.
   # @yield [Judge]
   def each
-    Dir.glob(File.join(@dir, '**/*.rb')).each do |f|
-      d = File.dirname(File.absolute_path(f))
-      yield Judges::Judge.new(d, @lib, @loog)
+    return to_enum(__method__) unless block_given?
+    Dir.glob(File.join(@dir, '*')).each do |d|
+      next unless File.directory?(d)
+      b = File.basename(d)
+      next unless File.exist?(File.join(d, "#{b}.rb"))
+      yield Judges::Judge.new(File.absolute_path(d), @lib, @loog)
     end
   end
 

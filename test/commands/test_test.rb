@@ -32,9 +32,9 @@ require_relative '../../lib/judges/commands/test'
 class TestTest < Minitest::Test
   def test_positive
     Dir.mktmpdir do |d|
-      save_it(File.join(d, "#{File.basename(d)}.rb"), '$fb.query("(eq foo 42)").each { |f| f.bar = 4 }')
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.query("(eq foo 42)").each { |f| f.bar = 4 }')
       save_it(
-        File.join(d, 'something.yml'),
+        File.join(d, 'foo/something.yml'),
         <<-YAML
         input:
           -
@@ -51,9 +51,9 @@ class TestTest < Minitest::Test
 
   def test_negative
     Dir.mktmpdir do |d|
-      save_it(File.join(d, "#{File.basename(d)}.rb"), '$fb.query("(eq foo 42)").each { |f| f.bar = 4 }')
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.query("(eq foo 42)").each { |f| f.bar = 4 }')
       save_it(
-        File.join(d, 'something.yml'),
+        File.join(d, 'foo/something.yml'),
         <<-YAML
         input:
           -
@@ -72,9 +72,9 @@ class TestTest < Minitest::Test
 
   def test_with_options
     Dir.mktmpdir do |d|
-      save_it(File.join(d, "#{File.basename(d)}.rb"), '$fb.insert.foo = $options.bar')
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = $options.bar')
       save_it(
-        File.join(d, 'something.yml'),
+        File.join(d, 'foo/something.yml'),
         <<-YAML
         input: []
         options:
@@ -90,13 +90,10 @@ class TestTest < Minitest::Test
 
   def test_with_before
     Dir.mktmpdir do |d|
-      home = File.join(d, 'judges')
-      FileUtils.mkdir_p(File.join(home, 'first'))
-      save_it(File.join(home, 'first/first.rb'), 'x = $fb.size; $fb.insert.foo = x')
-      FileUtils.mkdir_p(File.join(home, 'second'))
-      save_it(File.join(home, 'second/second.rb'), '$fb.insert.bar = 55')
+      save_it(File.join(d, 'first/first.rb'), 'x = $fb.size; $fb.insert.foo = x')
+      save_it(File.join(d, 'second/second.rb'), '$fb.insert.bar = 55')
       save_it(
-        File.join(d, 'judges/second/something.yml'),
+        File.join(d, 'second/something.yml'),
         <<-YAML
         input:
           -
@@ -110,15 +107,15 @@ class TestTest < Minitest::Test
           - /fb/f[bar=55]
         YAML
       )
-      Judges::Test.new(Loog::NULL).run({}, [home])
+      Judges::Test.new(Loog::NULL).run({}, [d])
     end
   end
 
   def test_one_judge_negative
     Dir.mktmpdir do |d|
-      save_it(File.join(d, "#{File.basename(d)}.rb"), '')
+      save_it(File.join(d, 'foo/foo.rb'), '')
       save_it(
-        File.join(d, 'x.yml'),
+        File.join(d, 'foo/x.yml'),
         <<-YAML
         input: []
         expected:
@@ -128,6 +125,22 @@ class TestTest < Minitest::Test
       assert_raises do
         Judges::Test.new(Loog::NULL).run({ 'judge' => [File.basename(dir)] }, [d])
       end
+    end
+  end
+
+  def test_with_after_assertion
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42;')
+      save_it(File.join(d, 'foo/assert.rb'), 'raise unless $fb.size == 1')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        after:
+          - assert.rb
+        YAML
+      )
+      Judges::Test.new(Loog::NULL).run({}, [d])
     end
   end
 end
