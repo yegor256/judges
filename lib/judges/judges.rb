@@ -24,6 +24,20 @@ require_relative '../judges'
 require_relative 'judge'
 
 # Collection of all judges to run.
+#
+# In the directory +dir+ the following structure must be maintained:
+#
+#  dir/
+#    judge-one/
+#      judge-one.rb
+#      other files...
+#    judge-two/
+#      judge-two.rb
+#      other files...
+#
+# The name of a directory of a judge must be exactly the same as the
+# name of the +.rb+ script inside the directory.
+#
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
