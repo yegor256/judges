@@ -45,9 +45,12 @@ class Judges::Judges
   # Iterate over them all.
   # @yield [Judge]
   def each
-    Dir.glob(File.join(@dir, '**/*.rb')).each do |f|
-      d = File.dirname(File.absolute_path(f))
-      yield Judges::Judge.new(d, @lib, @loog)
+    return to_enum(__method__) unless block_given?
+    Dir.glob(File.join(@dir, '*')).each do |d|
+      next unless File.directory?(d)
+      b = File.basename(d)
+      next unless File.exist?(File.join(d, "#{b}.rb"))
+      yield Judges::Judge.new(File.absolute_path(d), @lib, @loog)
     end
   end
 
