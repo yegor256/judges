@@ -141,3 +141,25 @@ Feature: Test
     """
     Then I run bin/judges with "test mine"
     And Exit code is zero
+
+  Scenario: Test with a post-assert
+    Given I make a temp directory
+    Then I have a "mine/foo/foo.rb" file with content:
+    """
+    n = $fb.insert
+    n.foo = 42
+    """
+    Then I have a "mine/foo/assert.rb" file with content:
+    """
+    raise unless $fb.size == 1
+    """
+    Then I have a "mine/foo/simple.yml" file with content:
+    """
+    ---
+    expected:
+      - /fb[count(f)=1]
+    after:
+      - assert.rb
+    """
+    Then I run bin/judges with "test mine"
+    And Exit code is zero
