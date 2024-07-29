@@ -113,7 +113,7 @@ class TestTest < Minitest::Test
 
   def test_one_judge_negative
     Dir.mktmpdir do |d|
-      save_it(File.join(d, "foo/foo.rb"), '')
+      save_it(File.join(d, 'foo/foo.rb'), '')
       save_it(
         File.join(d, 'foo/x.yml'),
         <<-YAML
@@ -130,7 +130,7 @@ class TestTest < Minitest::Test
 
   def test_with_after_assertion
     Dir.mktmpdir do |d|
-      save_it(File.join(d, "foo/foo.rb"), '$fb.insert.foo = 42;')
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42;')
       save_it(File.join(d, 'foo/assert.rb'), 'raise unless $fb.size == 1')
       save_it(
         File.join(d, 'foo/x.yml'),
