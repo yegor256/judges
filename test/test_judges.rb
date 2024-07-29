@@ -66,4 +66,14 @@ class TestJudges < Minitest::Test
       assert_equal(2, list.size)
     end
   end
+
+  def test_list_with_empty_dir
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'wrong.rb'), '')
+      save_it(File.join(d, 'another/wrong/wrong.rb'), '')
+      save_it(File.join(d, 'bad/hello.rb'), '')
+      list = Judges::Judges.new(d, nil, Loog::NULL).each.to_a
+      assert(list.empty?)
+    end
+  end
 end
