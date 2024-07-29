@@ -83,7 +83,7 @@ class Judges::Test
             end
             test_one(fb, opts, judge, tname, yaml)
             yaml['after']&.each do |rb|
-              @loog.info("Running #{rb} script as an asertion...")
+              @loog.info("Running #{rb} assertion script...")
               $fb = fb
               $loog = @loog
               load(File.join(judge.dir, rb), true)
