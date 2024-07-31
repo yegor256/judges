@@ -70,19 +70,20 @@ class TestPull < Minitest::Test
     stub_request(:get, 'http://example.org/stdout/42').to_return(body: 'oops, some trouble here')
     Dir.mktmpdir do |d|
       file = File.join(d, 'base.fb')
-      e = assert_raises do
-        Judges::Pull.new(Loog::NULL).run(
-          {
-            'token' => '000',
-            'host' => 'example.org',
-            'port' => 80,
-            'ssl' => false,
-            'wait' => 10,
-            'owner' => 'none'
-          },
-          ['foo', file]
-        )
-      end
+      e =
+        assert_raises do
+          Judges::Pull.new(Loog::NULL).run(
+            {
+              'token' => '000',
+              'host' => 'example.org',
+              'port' => 80,
+              'ssl' => false,
+              'wait' => 10,
+              'owner' => 'none'
+            },
+            ['foo', file]
+          )
+        end
       assert(e.message.include?('expire it'), e)
     end
   end
