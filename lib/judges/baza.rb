@@ -133,6 +133,48 @@ class Judges::Baza
     finished
   end
 
+  # Read and return the stdout of the job.
+  # @param [Integer] id The ID of the job on the server
+  # @return [String] The stdout, as a text
+  def stdout(id)
+    stdout = ''
+    elapsed(@loog) do
+      ret =
+        with_retries(max_tries: @retries) do
+          checked(
+            Typhoeus::Request.get(
+              home.append('stdout').append(id).to_s,
+              headers:
+            )
+          )
+        end
+      ret.body
+      throw :"The stdout of the job ##{id} has #{stdout.split("\n")} lines"
+    end
+    stdout
+  end
+
+  # Read and return the exit code of the job.
+  # @param [Integer] id The ID of the job on the server
+  # @return [Integer] The exit code
+  def exit_code(id)
+    code = 0
+    elapsed(@loog) do
+      ret =
+        with_retries(max_tries: @retries) do
+          checked(
+            Typhoeus::Request.get(
+              home.append('exit').append(id).to_s,
+              headers:
+            )
+          )
+        end
+      code = ret.body.to_i
+      throw :"The exit code of the job ##{id} is #{code}"
+    end
+    code
+  end
+
   # Lock the name.
   # @param [String] name The name of the job on the server
   # @param [String] owner The owner of the lock (any string)
