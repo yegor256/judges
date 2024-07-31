@@ -169,7 +169,7 @@ class Judges::Baza
             )
           )
         end
-      ret.body
+      code = ret.body.to_i
       throw :"The exit code of the job ##{id} is #{code}"
     end
     code

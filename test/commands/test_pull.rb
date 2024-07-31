@@ -59,4 +59,31 @@ class TestPull < Minitest::Test
       fb.import(File.binread(file))
     end
   end
+
+  def test_fail_pull_when_job_is_broken
+    WebMock.disable_net_connect!
+    stub_request(:get, 'http://example.org/lock/foo?owner=none').to_return(status: 302)
+    stub_request(:get, 'http://example.org/exists/foo').to_return(body: 'yes')
+    stub_request(:get, 'http://example.org/recent/foo.txt').to_return(body: '42')
+    stub_request(:get, 'http://example.org/finished/42').to_return(body: 'yes')
+    stub_request(:get, 'http://example.org/exit/42').to_return(body: '1')
+    stub_request(:get, 'http://example.org/stdout/42').to_return(body: 'oops, some trouble here')
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      e = assert_raises do
+        Judges::Pull.new(Loog::NULL).run(
+          {
+            'token' => '000',
+            'host' => 'example.org',
+            'port' => 80,
+            'ssl' => false,
+            'wait' => 10,
+            'owner' => 'none'
+          },
+          ['foo', file]
+        )
+      end
+      assert(e.message.include?('expire it'), e)
+    end
+  end
 end
