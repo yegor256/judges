@@ -51,8 +51,8 @@ class Judges::Pull
     )
     name = args[0]
     elapsed(@loog) do
+      baza.lock(name, opts['owner'])
       if baza.name_exists?(name)
-        baza.lock(name, opts['owner'])
         fb.import(baza.pull(wait(name, baza, baza.recent(name), opts['wait'])))
         Judges::Impex.new(@loog, args[1]).export(fb)
         throw :"Pulled #{fb.size} facts by the name '#{name}'"
