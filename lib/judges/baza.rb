@@ -63,17 +63,18 @@ class Judges::Baza
       hdrs = hdrs.merge('X-Zerocracy-Meta' => meta.map { |v| Base64.encode64(v).gsub("\n", '') }.join(' '))
     end
     elapsed(@loog) do
-      ret = with_retries(max_tries: @retries) do
-        checked(
-          Typhoeus::Request.put(
-            home.append('push').append(name).to_s,
-            body: data,
-            headers: hdrs,
-            connecttimeout: @timeout,
-            timeout: @timeout
+      ret =
+        with_retries(max_tries: @retries) do
+          checked(
+            Typhoeus::Request.put(
+              home.append('push').append(name).to_s,
+              body: data,
+              headers: hdrs,
+              connecttimeout: @timeout,
+              timeout: @timeout
+            )
           )
-        )
-      end
+        end
       id = ret.body.to_i
       throw :"Pushed #{data.size} bytes to #{@host}, job ID is ##{id}"
     end
@@ -117,14 +118,15 @@ class Judges::Baza
   def finished?(id)
     finished = false
     elapsed(@loog) do
-      ret = with_retries(max_tries: @retries) do
-        checked(
-          Typhoeus::Request.get(
-            home.append('finished').append(id).to_s,
-            headers:
+      ret =
+        with_retries(max_tries: @retries) do
+          checked(
+            Typhoeus::Request.get(
+              home.append('finished').append(id).to_s,
+              headers:
+            )
           )
-        )
-      end
+        end
       finished = ret.body == 'yes'
       throw :"The job ##{id} is #{finished ? '' : 'not yet '}finished at #{@host}"
     end
@@ -171,14 +173,15 @@ class Judges::Baza
   def recent(name)
     job = 0
     elapsed(@loog) do
-      ret = with_retries(max_tries: @retries) do
-        checked(
-          Typhoeus::Request.get(
-            home.append('recent').append("#{name}.txt").to_s,
-            headers:
+      ret =
+        with_retries(max_tries: @retries) do
+          checked(
+            Typhoeus::Request.get(
+              home.append('recent').append("#{name}.txt").to_s,
+              headers:
+            )
           )
-        )
-      end
+        end
       job = ret.body.to_i
       throw :"The recent \"#{name}\" job's ID is ##{job} at #{@host}"
     end
@@ -191,14 +194,15 @@ class Judges::Baza
   def name_exists?(name)
     exists = 0
     elapsed(@loog) do
-      ret = with_retries(max_tries: @retries) do
-        checked(
-          Typhoeus::Request.get(
-            home.append('exists').append(name).to_s,
-            headers:
+      ret =
+        with_retries(max_tries: @retries) do
+          checked(
+            Typhoeus::Request.get(
+              home.append('exists').append(name).to_s,
+              headers:
+            )
           )
-        )
-      end
+        end
       exists = ret.body == 'yes'
       throw :"The name \"#{name}\" #{exists ? 'exists' : "doesn't exist"} at #{@host}"
     end

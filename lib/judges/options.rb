@@ -56,28 +56,29 @@ class Judges::Options
   end
 
   def to_h
-    @to_h ||= begin
-      pp = @pairs || []
-      pp = pp.split(',') if pp.is_a?(String)
-      if pp.is_a?(Array)
-        pp = pp
-          .compact
-          .map(&:strip)
-          .reject(&:empty?)
-          .map { |s| s.split('=', 2) }
-          .map { |a| a.size == 1 ? [a[0], nil] : a }
-          .reject { |a| a[0].empty? }
+    @to_h ||=
+      begin
+        pp = @pairs || []
+        pp = pp.split(',') if pp.is_a?(String)
+        if pp.is_a?(Array)
+          pp = pp
+            .compact
+            .map(&:strip)
+            .reject(&:empty?)
+            .map { |s| s.split('=', 2) }
+            .map { |a| a.size == 1 ? [a[0], nil] : a }
+            .reject { |a| a[0].empty? }
+            .to_h
+        end
+        pp
+          .reject { |k, _| k.nil? }
+          .reject { |k, _| k.is_a?(String) && k.empty? }
           .to_h
+          .transform_values { |v| v.nil? ? 'true' : v }
+          .transform_values { |v| v.is_a?(String) ? v.strip : v }
+          .transform_values { |v| v.is_a?(String) && v.match?(/^[0-9]+$/) ? v.to_i : v }
+          .transform_keys { |k| k.to_s.strip.upcase.to_sym }
       end
-      pp
-        .reject { |k, _| k.nil? }
-        .reject { |k, _| k.is_a?(String) && k.empty? }
-        .to_h
-        .transform_values { |v| v.nil? ? 'true' : v }
-        .transform_values { |v| v.is_a?(String) ? v.strip : v }
-        .transform_values { |v| v.is_a?(String) && v.match?(/^[0-9]+$/) ? v.to_i : v }
-        .transform_keys { |k| k.to_s.strip.upcase.to_sym }
-    end
   end
 
   # Get option by name.

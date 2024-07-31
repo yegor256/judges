@@ -76,31 +76,34 @@ class TestBaza < Minitest::Test
   end
 
   def test_real_http
-    req = with_http_server(200, 'yes') do |baza|
-      baza.name_exists?('simple')
-    end
+    req =
+      with_http_server(200, 'yes') do |baza|
+        baza.name_exists?('simple')
+      end
     assert(req.include?("User-Agent: judges #{Judges::VERSION}\r\n"))
   end
 
   def test_push_with_meta
-    req = with_http_server(200, 'yes') do |baza|
-      baza.push('simple', 'hello, world!', ['boom!', 'хей!'])
-    end
+    req =
+      with_http_server(200, 'yes') do |baza|
+        baza.push('simple', 'hello, world!', ['boom!', 'хей!'])
+      end
     assert(req.include?("X-Zerocracy-Meta: Ym9vbSE= 0YXQtdC5IQ==\r\n"))
   end
 
   def test_push_with_big_meta
-    req = with_http_server(200, 'yes') do |baza|
-      baza.push(
-        'simple',
-        'hello, world!',
-        [
-          'pages_url:https://zerocracy.github.io/zerocracy.html',
-          'others:https://zerocracy.github.io/zerocracy.html',
-          'duration:59595'
-        ]
-      )
-    end
+    req =
+      with_http_server(200, 'yes') do |baza|
+        baza.push(
+          'simple',
+          'hello, world!',
+          [
+            'pages_url:https://zerocracy.github.io/zerocracy.html',
+            'others:https://zerocracy.github.io/zerocracy.html',
+            'duration:59595'
+          ]
+        )
+      end
     assert(req.join.include?('X-Zerocracy-Meta: '))
   end
 
@@ -112,16 +115,17 @@ class TestBaza < Minitest::Test
     host = '127.0.0.1'
     RandomPort::Pool::SINGLETON.acquire do |port|
       server = TCPServer.new(host, port)
-      t = Thread.new do
-        socket = server.accept
-        loop do
-          line = socket.gets
-          break if line == "\r\n"
-          req << line
+      t =
+        Thread.new do
+          socket = server.accept
+          loop do
+            line = socket.gets
+            break if line == "\r\n"
+            req << line
+          end
+          socket.puts "HTTP/1.1 #{code} OK\r\nContent-Length: #{response.length}\r\n\r\n#{response}"
+          socket.close
         end
-        socket.puts "HTTP/1.1 #{code} OK\r\nContent-Length: #{response.length}\r\n\r\n#{response}"
-        socket.close
-      end
       yield Judges::Baza.new(host, port, '0000', ssl: false, timeout: 1)
       t.join
     end

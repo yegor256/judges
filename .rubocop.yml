@@ -58,3 +58,5 @@ Naming/MethodParameterName:
   MinNameLength: 2
 Layout/EndOfLine:
   EnforcedStyle: lf
+Layout/MultilineAssignmentLayout:
+  Enabled: true

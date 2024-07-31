@@ -103,17 +103,18 @@ class Judges::Update
     churn = Judges::Churn.new(0, 0)
     global = {}
     elapsed(@loog) do
-      done = judges.each_with_index do |p, i|
-        @loog.info("\n👉 Running #{p.name} (##{i}) at #{p.dir.to_rel}...")
-        elapsed(@loog) do
-          c = one_judge(fb, p, global, options)
-          churn += c
-          throw :"👍 The judge #{p.name} modified #{c} facts out of #{fb.size}"
+      done =
+        judges.each_with_index do |p, i|
+          @loog.info("\n👉 Running #{p.name} (##{i}) at #{p.dir.to_rel}...")
+          elapsed(@loog) do
+            c = one_judge(fb, p, global, options)
+            churn += c
+            throw :"👍 The judge #{p.name} modified #{c} facts out of #{fb.size}"
+          end
+        rescue StandardError, SyntaxError => e
+          @loog.warn(Backtrace.new(e))
+          churn << e.message
         end
-      rescue StandardError, SyntaxError => e
-        @loog.warn(Backtrace.new(e))
-        churn << e.message
-      end
       throw :"👍 #{done} judge(s) processed" if churn.errors.empty?
       throw :"❌ #{done} judge(s) processed with #{churn.errors.size} errors"
     end
