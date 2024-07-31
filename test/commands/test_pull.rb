@@ -38,6 +38,7 @@ class TestPull < Minitest::Test
     stub_request(:get, 'http://example.org/exists/foo').to_return(body: 'yes')
     stub_request(:get, 'http://example.org/recent/foo.txt').to_return(body: '42')
     stub_request(:get, 'http://example.org/finished/42').to_return(body: 'yes')
+    stub_request(:get, 'http://example.org/exit/42').to_return(body: '0')
     fb = Factbase.new
     fb.insert.foo = 42
     stub_request(:get, 'http://example.org/pull/42.fb').to_return(body: fb.export)

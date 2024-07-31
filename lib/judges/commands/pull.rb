@@ -53,7 +53,12 @@ class Judges::Pull
     elapsed(@loog) do
       baza.lock(name, opts['owner'])
       if baza.name_exists?(name)
-        fb.import(baza.pull(wait(name, baza, baza.recent(name), opts['wait'])))
+        jid = baza.recent(name)
+        unless baza.exit_code(jid).zero?
+          @loog.warn("STDOUT of the job ##{jid} (from the server):\n#{baza.stdout(jid)}")
+          raise "The job ##{jid} ('#{name}') is broken, maybe you should expire it"
+        end
+        fb.import(baza.pull(wait(name, baza, jid, opts['wait'])))
         Judges::Impex.new(@loog, args[1]).export(fb)
         throw :"Pulled #{fb.size} facts by the name '#{name}'"
       else
