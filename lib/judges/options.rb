@@ -52,7 +52,7 @@ class Judges::Options
       v = v.to_s
       v = "#{v[0..3]}#{'*' * (v.length - 8)}#{v[-4..]}" if v.length > 8
       "#{k} → \"#{v}\""
-    end.join("\n")
+    end.sort.join("\n")
   end
 
   def to_h
