@@ -32,7 +32,15 @@ Encoding.default_internal = Encoding::UTF_8
 
 class JudgesGLI extend GLI::App
 
-  loog = Loog::REGULAR
+  def self.run_it(cmd, ruby)
+    cmd.action do |global, options, args|
+      require_relative "../lib/judges/commands/#{ruby}"
+      @@loog.debug("Running '#{ruby}' command...")
+      Object.const_get("Judges::#{ruby.capitalize}").new(@@loog).run(options, args)
+    end
+  end
+
+  @@loog = Loog::REGULAR
 
   program_desc('Automated executor of judges for a factbase')
 
@@ -48,13 +56,13 @@ class JudgesGLI extend GLI::App
 
   pre do |global, command, options, args|
     if global[:verbose]
-      loog = Loog::VERBOSE
+      @@loog = Loog::VERBOSE
     end
-    loog.debug("Judges #{Judges::VERSION}")
-    loog.debug("Factbase #{Factbase::VERSION}")
-    loog.debug("Ruby: #{RUBY_VERSION}-p#{RUBY_PATCHLEVEL}")
-    loog.debug("Current directory: #{Dir.getwd}")
-    loog.debug("Time: #{Time.now.utc.iso8601}")
+    @@loog.debug("Judges #{Judges::VERSION}")
+    @@loog.debug("Factbase #{Factbase::VERSION}")
+    @@loog.debug("Ruby: #{RUBY_VERSION}-p#{RUBY_PATCHLEVEL}")
+    @@loog.debug("Current directory: #{Dir.getwd}")
+    @@loog.debug("Time: #{Time.now.utc.iso8601}")
     true
   end
 
@@ -72,44 +80,29 @@ class JudgesGLI extend GLI::App
     c.switch([:summary], default_value: false)
     c.desc 'Use default logging facility'
     c.switch([:log], default_value: true)
-    c.action do |global, options, args|
-      require_relative '../lib/judges/commands/update'
-      Judges::Update.new(loog).run(options, args)
-    end
+    run_it(c, 'update')
   end
 
   desc 'Evaluate a single Ruby expression on the factbase'
   command :eval do |c|
-    c.action do |global, options, args|
-      require_relative '../lib/judges/commands/eval'
-      Judges::Eval.new(loog).run(options, args)
-    end
+    run_it(c, 'eval')
   end
 
   desc 'Join two factbases'
   command :join do |c|
-    c.action do |global, options, args|
-      require_relative '../lib/judges/commands/join'
-      Judges::Join.new(loog).run(options, args)
-    end
+    run_it(c, 'join')
   end
 
   desc 'Import YAML into a factbase'
   command :import do |c|
-    c.action do |global, options, args|
-      require_relative '../lib/judges/commands/import'
-      Judges::Import.new(loog).run(options, args)
-    end
+    run_it(c, 'import')
   end
 
   desc 'Remove the facts that are too old'
   command :trim do |c|
     c.desc 'Only the facts that match the expression are deleted'
     c.flag([:query], default_value: '(never)')
-    c.action do |global, options, args|
-      require_relative '../lib/judges/commands/trim'
-      Judges::Trim.new(loog).run(options, args)
-    end
+    run_it(c, 'trim')
   end
 
   desc 'Print the factbase into a human-readable format (YAML, JSON, etc.)'
@@ -128,18 +121,12 @@ class JudgesGLI extend GLI::App
     c.flag([:hidden], default_value: '_id,_time,_version')
     c.desc 'Print even if target file already exists and is older than the factbase'
     c.switch([:force], default_value: false)
-    c.action do |global, options, args|
-      require_relative '../lib/judges/commands/print'
-      Judges::Print.new(loog).run(options, args)
-    end
+    run_it(c, 'print')
   end
 
   desc 'Inspect the factbase and print all its possible meta-data'
   command :inspect do |c|
-    c.action do |global, options, args|
-      require_relative '../lib/judges/commands/inspect'
-      Judges::Inspect.new(loog).run(options, args)
-    end
+    run_it(c, 'inspect')
   end
 
   desc 'Run automated tests for all judges'
@@ -160,10 +147,7 @@ class JudgesGLI extend GLI::App
     c.switch([:quiet], default_value: false)
     c.desc 'Use default logging facility'
     c.switch([:log], default_value: true)
-    c.action do |global, options, args|
-      require_relative '../lib/judges/commands/test'
-      Judges::Test.new(loog).run(options, args)
-    end
+    run_it(c, 'test')
   end
 
   desc 'Push the factbase to the server'
@@ -184,10 +168,7 @@ class JudgesGLI extend GLI::App
     c.flag([:meta], type: String, multiple: true)
     c.desc 'How many times to retry'
     c.flag([:retries], type: Integer, default_value: 3)
-    c.action do |global, options, args|
-      require_relative '../lib/judges/commands/push'
-      Judges::Push.new(loog).run(options, args)
-    end
+    run_it(c, 'push')
   end
 
   desc 'Pull the factbase from the server'
@@ -208,10 +189,7 @@ class JudgesGLI extend GLI::App
     c.flag([:owner], default_value: 'default', type: String)
     c.desc 'How many times to retry'
     c.flag([:retries], type: Integer, default_value: 3)
-    c.action do |global, options, args|
-      require_relative '../lib/judges/commands/pull'
-      Judges::Pull.new(loog).run(options, args)
-    end
+    run_it(c, 'pull')
   end
 end
 

@@ -64,7 +64,7 @@ class Judges::Update
       loop do
         c += 1
         if c > 1
-          @loog.info("\n\nStarting cycle ##{c}#{opts['max-cycles'] ? " (out of #{opts['max-cycles']})" : ''}...")
+          @loog.info("\nStarting cycle ##{c}#{opts['max-cycles'] ? " (out of #{opts['max-cycles']})" : ''}...")
         end
         delta = cycle(opts, judges, fb, options)
         churn += delta
