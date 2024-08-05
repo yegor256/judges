@@ -97,6 +97,12 @@ SOFTWARE.
               <xsl:value-of select="$date"/>
               <xsl:text>.</xsl:text>
               <br/>
+              <xsl:text>Properties with columns: </xsl:text>
+              <xsl:value-of select="$columns"/>
+              <br/>
+              <xsl:text>Hidden properties: </xsl:text>
+              <xsl:value-of select="$hidden"/>
+              <br/>
               <a href="https://github.com/yegor256/factbase">
                 <xsl:text>Factbase</xsl:text>
               </a>
