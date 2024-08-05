@@ -56,6 +56,7 @@ class TestPrint < Minitest::Test
       f.details = 'hey, друг'
       f.ticket = 42
       f.ticket = 55
+      f.long_property = 'test_' * 100
     end
     Dir.mktmpdir do |d|
       f = File.join(d, 'base.fb')

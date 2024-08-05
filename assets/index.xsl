@@ -66,6 +66,12 @@ SOFTWARE.
           article { border: none; }
           header img { width: 3em; height: 3em; }
           .sorter { cursor: pointer; }
+          .S { color: #196F3D; }
+          .T { color: #2471A3; }
+          .I { color: #212F3C; }
+          .F { color: #E74C3C; }
+          .BR { color: gray; }
+          .hidden { color: gray; }
         </style>
         <script type="text/javascript">
           $(function() {
@@ -190,7 +196,7 @@ SOFTWARE.
                   <xsl:value-of select="name()"/>
                 </xsl:when>
                 <xsl:otherwise>
-                  <span style="color:gray;" title="{.}">
+                  <span class="hidden" title="{.}">
                     <xsl:value-of select="name()"/>
                   </span>
                 </xsl:otherwise>
@@ -224,25 +230,30 @@ SOFTWARE.
       </xsl:when>
       <xsl:otherwise>
         <span>
-          <xsl:attribute name="style">
-            <xsl:text>color:</xsl:text>
-            <xsl:choose>
-              <xsl:when test="$v/@t = 'S'">
-                <xsl:text>#196F3D</xsl:text>
-              </xsl:when>
-              <xsl:when test="$v/@t = 'T'">
-                <xsl:text>#2471A3</xsl:text>
-              </xsl:when>
-              <xsl:when test="$v/@t = 'I'">
-                <xsl:text>#212F3C</xsl:text>
-              </xsl:when>
-              <xsl:when test="$v/@t = 'F'">
-                <xsl:text>#E74C3C</xsl:text>
-              </xsl:when>
-            </xsl:choose>
+          <xsl:attribute name="class">
+            <xsl:value-of select="$v/@t"/>
           </xsl:attribute>
-          <xsl:value-of select="$v"/>
+          <xsl:call-template name="just-value">
+            <xsl:with-param name="v" select="$v"/>
+          </xsl:call-template>
         </span>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+  <xsl:template name="just-value">
+    <xsl:param name="v"/>
+    <xsl:choose>
+      <xsl:when test="string-length($v) &gt; 64">
+        <xsl:value-of select="substring($v, 0, 64)"/>
+        <span class="BR">
+          <xsl:text>-</xsl:text>
+        </span>
+        <xsl:call-template name="just-value">
+          <xsl:with-param name="v" select="substring($v, 64)"/>
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$v"/>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
