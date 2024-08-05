@@ -183,14 +183,14 @@ SOFTWARE.
         <td>
           <xsl:for-each select="$f/*">
             <xsl:text> </xsl:text>
-            <xsl:variable name="visible" select="string-length(substring-before(concat(',', $hidden, ','), concat(',', name(), ','))) = 0"/>
+            <xsl:variable name="visible" select="string-length(substring-before(concat(' ,', $hidden, ','), concat(',', name(), ','))) = 0"/>
             <xsl:if test="string-length(substring-before(concat(',', $columns, ','), concat(',', name(), ','))) = 0">
               <xsl:choose>
                 <xsl:when test="$visible">
                   <xsl:value-of select="name()"/>
                 </xsl:when>
                 <xsl:otherwise>
-                  <span style="color:gray;">
+                  <span style="color:gray;" title="{.}">
                     <xsl:value-of select="name()"/>
                   </span>
                 </xsl:otherwise>

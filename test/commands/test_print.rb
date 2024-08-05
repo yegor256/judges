@@ -50,6 +50,7 @@ class TestPrint < Minitest::Test
     fb = Factbase.new
     10.times do
       f = fb.insert
+      f._id = 44
       f.what = SecureRandom.hex(10)
       f.when = Time.now
       f.details = 'hey, друг'
