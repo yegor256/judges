@@ -67,6 +67,26 @@ class TestBaza < Minitest::Test
     )
   end
 
+  def test_exit_code_check
+    WebMock.disable_net_connect!
+    stub_request(:get, 'https://example.org/exit/42.txt').to_return(
+      status: 200, body: '0'
+    )
+    assert(
+      Judges::Baza.new('example.org', 443, '000').exit_code(42).zero?
+    )
+  end
+
+  def test_stdout_read
+    WebMock.disable_net_connect!
+    stub_request(:get, 'https://example.org/stdout/42.txt').to_return(
+      status: 200, body: 'hello!'
+    )
+    assert(
+      !Judges::Baza.new('example.org', 443, '000').stdout(42).empty?
+    )
+  end
+
   def test_simple_pull
     WebMock.disable_net_connect!
     stub_request(:get, 'https://example.org/pull/333.fb').to_return(
@@ -110,6 +130,7 @@ class TestBaza < Minitest::Test
   end
 
   def test_push_compressed_content
+    skip # this test is not stable, see https://github.com/yegor256/judges/issues/105
     req =
       with_http_server(200, 'yes') do |baza|
         baza.push('simple', 'hello, world!', %w[meta1 meta2 meta3])

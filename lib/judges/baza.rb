@@ -147,12 +147,12 @@ class Judges::Baza
         with_retries(max_tries: @retries) do
           checked(
             Typhoeus::Request.get(
-              home.append('stdout').append(id).to_s,
+              home.append('stdout').append("#{id}.txt").to_s,
               headers:
             )
           )
         end
-      ret.body
+      stdout = ret.body
       throw :"The stdout of the job ##{id} has #{stdout.split("\n")} lines"
     end
     stdout
@@ -168,7 +168,7 @@ class Judges::Baza
         with_retries(max_tries: @retries) do
           checked(
             Typhoeus::Request.get(
-              home.append('exit').append(id).to_s,
+              home.append('exit').append("#{id}.txt").to_s,
               headers:
             )
           )

@@ -38,7 +38,7 @@ class TestPull < Minitest::Test
     stub_request(:get, 'http://example.org/exists/foo').to_return(body: 'yes')
     stub_request(:get, 'http://example.org/recent/foo.txt').to_return(body: '42')
     stub_request(:get, 'http://example.org/finished/42').to_return(body: 'yes')
-    stub_request(:get, 'http://example.org/exit/42').to_return(body: '0')
+    stub_request(:get, 'http://example.org/exit/42.txt').to_return(body: '0')
     fb = Factbase.new
     fb.insert.foo = 42
     stub_request(:get, 'http://example.org/pull/42.fb').to_return(body: fb.export)
@@ -66,8 +66,8 @@ class TestPull < Minitest::Test
     stub_request(:get, 'http://example.org/exists/foo').to_return(body: 'yes')
     stub_request(:get, 'http://example.org/recent/foo.txt').to_return(body: '42')
     stub_request(:get, 'http://example.org/finished/42').to_return(body: 'yes')
-    stub_request(:get, 'http://example.org/exit/42').to_return(body: '1')
-    stub_request(:get, 'http://example.org/stdout/42').to_return(body: 'oops, some trouble here')
+    stub_request(:get, 'http://example.org/exit/42.txt').to_return(body: '1')
+    stub_request(:get, 'http://example.org/stdout/42.txt').to_return(body: 'oops, some trouble here')
     Dir.mktmpdir do |d|
       file = File.join(d, 'base.fb')
       e =
