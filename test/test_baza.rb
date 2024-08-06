@@ -28,6 +28,7 @@ require 'socket'
 require 'stringio'
 require 'random-port'
 require 'factbase'
+require 'securerandom'
 require_relative '../lib/judges'
 require_relative '../lib/judges/baza'
 
@@ -36,7 +37,7 @@ require_relative '../lib/judges/baza'
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
 class TestBaza < Minitest::Test
-  LIVE = Judges::Baza.new('www.zerocracy.com', 443, '00000000-0000-0000-0000-000000000000')
+  LIVE = Judges::Baza.new('api.zerocracy.com', 443, '00000000-0000-0000-0000-000000000000')
 
   def test_live_recent_check
     WebMock.enable_net_connect!
@@ -56,7 +57,7 @@ class TestBaza < Minitest::Test
     fb = Factbase.new
     fb.insert
     fb.insert
-    assert(LIVE.push('fake-judges', fb.export, []).positive?)
+    assert(LIVE.push(fake_name, fb.export, []).positive?)
   end
 
   def test_live_pull
@@ -90,7 +91,7 @@ class TestBaza < Minitest::Test
   def test_live_lock_unlock
     WebMock.enable_net_connect!
     skip unless we_are_online
-    n = 'fake-lock'
+    n = fake_name
     owner = 'judges teesting'
     assert(!LIVE.lock(n, owner).nil?)
     assert(!LIVE.unlock(n, owner).nil?)
@@ -232,6 +233,10 @@ class TestBaza < Minitest::Test
       t.join
     end
     req
+  end
+
+  def fake_name
+    "fake-#{SecureRandom.hex(8)}"
   end
 
   def we_are_online

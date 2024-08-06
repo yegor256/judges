@@ -155,7 +155,7 @@ class JudgesGLI extend GLI::App
     c.desc 'Authentication token'
     c.flag([:token])
     c.desc 'The IP/hostname of the server'
-    c.flag([:host], default_value: 'www.zerocracy.com')
+    c.flag([:host], default_value: 'api.zerocracy.com')
     c.desc 'The TCP port number of the server'
     c.flag([:port], default_value: 443, type: Integer)
     c.desc 'Connection and read time in seconds'
@@ -180,7 +180,7 @@ class JudgesGLI extend GLI::App
     c.desc 'How many seconds to wait'
     c.flag([:wait], default_value: 10 * 60, arg_name: '<seconds>', type: Integer)
     c.desc 'The IP/hostname of the server'
-    c.flag([:host], default_value: 'www.zerocracy.com')
+    c.flag([:host], default_value: 'api.zerocracy.com')
     c.desc 'The TCP port number of the server'
     c.flag([:port], default_value: 443, type: Integer)
     c.desc 'Connection and read time in seconds'

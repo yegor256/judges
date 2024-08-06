@@ -31,7 +31,7 @@ require_relative '../judges/elapsed'
 # Interface to the API of zerocracy.com.
 #
 # You make an instance of this class and then call one of its methods.
-# The object will make HTTP request to www.zerocracy.com and interpret the
+# The object will make HTTP request to api.zerocracy.com and interpret the
 # results returned.
 #
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -303,9 +303,11 @@ class Judges::Baza
       return ret
     end
     @loog.debug("#{log}\n  #{(ret.headers || {}).map { |k, v| "#{k}: #{v}" }.join("\n  ")}")
-    msg =
-      "Invalid response code ##{ret.code} " \
-      "at #{mtd} #{url} (#{ret.headers['X-Zerocracy-Flash'].inspect})"
+    msg = [
+      "Invalid response code ##{ret.code} ",
+      "at #{mtd} #{url}",
+      ret.headers['X-Zerocracy-Flash'] ? " (#{ret.headers['X-Zerocracy-Flash'].inspect})" : ''
+    ].join
     case ret.code
     when 500
       msg +=
