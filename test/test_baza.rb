@@ -27,6 +27,7 @@ require 'loog'
 require 'socket'
 require 'stringio'
 require 'random-port'
+require 'factbase'
 require_relative '../lib/judges'
 require_relative '../lib/judges/baza'
 
@@ -35,6 +36,66 @@ require_relative '../lib/judges/baza'
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
 class TestBaza < Minitest::Test
+  LIVE = Judges::Baza.new('www.zerocracy.com', 443, '00000000-0000-0000-0000-000000000000')
+
+  def test_live_recent_check
+    WebMock.enable_net_connect!
+    skip unless we_are_online
+    assert(LIVE.recent('zerocracy').positive?)
+  end
+
+  def test_live_name_exists_check
+    WebMock.enable_net_connect!
+    skip unless we_are_online
+    assert(LIVE.name_exists?('zerocracy'))
+  end
+
+  def test_live_push
+    WebMock.enable_net_connect!
+    skip unless we_are_online
+    fb = Factbase.new
+    fb.insert
+    fb.insert
+    assert(LIVE.push('fake-judges', fb.export, []).positive?)
+  end
+
+  def test_live_pull
+    WebMock.enable_net_connect!
+    skip unless we_are_online
+    id = LIVE.recent('zerocracy')
+    assert(!LIVE.pull(id).nil?)
+  end
+
+  def test_live_check_finished
+    WebMock.enable_net_connect!
+    skip unless we_are_online
+    id = LIVE.recent('zerocracy')
+    assert(!LIVE.finished?(id).nil?)
+  end
+
+  def test_live_read_stdout
+    WebMock.enable_net_connect!
+    skip unless we_are_online
+    id = LIVE.recent('zerocracy')
+    assert(!LIVE.stdout(id).nil?)
+  end
+
+  def test_live_read_exit_code
+    WebMock.enable_net_connect!
+    skip unless we_are_online
+    id = LIVE.recent('zerocracy')
+    assert(!LIVE.exit_code(id).nil?)
+  end
+
+  def test_live_lock_unlock
+    WebMock.enable_net_connect!
+    skip unless we_are_online
+    n = 'fake-lock'
+    owner = 'judges teesting'
+    assert(!LIVE.lock(n, owner).nil?)
+    assert(!LIVE.unlock(n, owner).nil?)
+  end
+
   def test_simple_push
     WebMock.disable_net_connect!
     stub_request(:put, 'https://example.org/push/simple').to_return(
@@ -171,5 +232,12 @@ class TestBaza < Minitest::Test
       t.join
     end
     req
+  end
+
+  def we_are_online
+    TCPSocket.new('google.com', 80)
+    true
+  rescue Errno::EHOSTUNREACH
+    false
   end
 end
