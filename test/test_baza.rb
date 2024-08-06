@@ -29,6 +29,7 @@ require 'stringio'
 require 'random-port'
 require 'factbase'
 require 'securerandom'
+require 'net/ping'
 require_relative '../lib/judges'
 require_relative '../lib/judges/baza'
 
@@ -37,7 +38,10 @@ require_relative '../lib/judges/baza'
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
 class TestBaza < Minitest::Test
-  LIVE = Judges::Baza.new('api.zerocracy.com', 443, '00000000-0000-0000-0000-000000000000')
+  TOKEN = '00000000-0000-0000-0000-000000000000'
+  HOST = 'api.zerocracy.com'
+  PORT = 443
+  LIVE = Judges::Baza.new(HOST, PORT, TOKEN)
 
   def test_live_recent_check
     WebMock.enable_net_connect!
@@ -55,9 +59,19 @@ class TestBaza < Minitest::Test
     WebMock.enable_net_connect!
     skip unless we_are_online
     fb = Factbase.new
-    fb.insert
+    fb.insert.foo = 'test-' * 10_000
     fb.insert
     assert(LIVE.push(fake_name, fb.export, []).positive?)
+  end
+
+  def test_live_push_no_compression
+    WebMock.enable_net_connect!
+    skip unless we_are_online
+    fb = Factbase.new
+    fb.insert.foo = 'test-' * 10_000
+    fb.insert
+    baza = Judges::Baza.new(HOST, PORT, TOKEN, compression: false)
+    assert(baza.push(fake_name, fb.export, []).positive?)
   end
 
   def test_live_pull
@@ -240,9 +254,6 @@ class TestBaza < Minitest::Test
   end
 
   def we_are_online
-    TCPSocket.new('google.com', 80)
-    true
-  rescue Errno::EHOSTUNREACH
-    false
+    Net::Ping::External.new('8.8.8.8').ping?
   end
 end
