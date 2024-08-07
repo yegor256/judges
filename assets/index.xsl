@@ -66,12 +66,12 @@ SOFTWARE.
           article { border: none; }
           header img { width: 3em; height: 3em; }
           .sorter { cursor: pointer; }
-          .S { color: #196F3D; }
+          .S { color: #4A5240; }
           .T { color: #2471A3; }
-          .I { color: #212F3C; }
-          .F { color: #E74C3C; }
-          .BR { color: gray; }
-          .hidden { color: gray; }
+          .I { color: #61304B; }
+          .F { color: #5C0029; }
+          .BR { color: #B6C649; }
+          .hidden { color: #C1C1C1; }
         </style>
         <script type="text/javascript">
           $(function() {
@@ -190,7 +190,7 @@ SOFTWARE.
           <xsl:for-each select="$f/*">
             <xsl:text> </xsl:text>
             <xsl:variable name="visible" select="string-length(substring-before(concat(' ,', $hidden, ','), concat(',', name(), ','))) = 0"/>
-            <xsl:if test="string-length(substring-before(concat(',', $columns, ','), concat(',', name(), ','))) = 0">
+            <xsl:if test="string-length(substring-before(concat(' ,', $columns, ','), concat(',', name(), ','))) = 0">
               <xsl:choose>
                 <xsl:when test="$visible">
                   <xsl:value-of select="name()"/>
