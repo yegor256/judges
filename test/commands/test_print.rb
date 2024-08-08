@@ -24,6 +24,7 @@ require 'minitest/autorun'
 require 'loog'
 require 'factbase'
 require 'yaml'
+require 'fileutils'
 require 'securerandom'
 require_relative '../../lib/judges'
 require_relative '../../lib/judges/commands/print'
@@ -59,12 +60,14 @@ class TestPrint < Minitest::Test
       f.pi = 3.1416
       f.long_property = 'test_' * 100
     end
+    html = File.join(__dir__, '../../temp/base.html')
+    FileUtils.rm_f(html)
     Dir.mktmpdir do |d|
       f = File.join(d, 'base.fb')
       File.binwrite(f, fb.export)
       Judges::Print.new(Loog::NULL).run(
         { 'format' => 'html', 'columns' => 'what,when,ticket' },
-        [f, File.join(__dir__, '../../temp/base.html')]
+        [f, html]
       )
     end
   end

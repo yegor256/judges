@@ -65,6 +65,8 @@ SOFTWARE.
           section { width: 100%; }
           article { border: none; }
           header img { width: 3em; height: 3em; }
+          table { table-layout: fixed; }
+          td { word-wrap: break-word; }
           .sorter { cursor: pointer; }
           .S { color: #4A5240; }
           .T { color: #2471A3; }
@@ -131,6 +133,11 @@ SOFTWARE.
   </xsl:template>
   <xsl:template match="fb">
     <table id="facts">
+      <colgroup>
+        <xsl:call-template name="col">
+          <xsl:with-param name="cols" select="$columns"/>
+        </xsl:call-template>
+      </colgroup>
       <thead>
         <tr>
           <xsl:call-template name="th">
@@ -150,6 +157,20 @@ SOFTWARE.
         <xsl:with-param name="f" select="."/>
       </xsl:call-template>
     </tr>
+  </xsl:template>
+  <xsl:template name="col">
+    <xsl:param name="cols"/>
+    <xsl:choose>
+      <xsl:when test="string-length($cols) &gt; 0">
+        <col style="width: 10em;"/>
+        <xsl:call-template name="col">
+          <xsl:with-param name="cols" select="substring-after($cols, ',')"/>
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+        <col style=""/>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
   <xsl:template name="th">
     <xsl:param name="cols"/>
@@ -233,27 +254,8 @@ SOFTWARE.
           <xsl:attribute name="class">
             <xsl:value-of select="$v/@t"/>
           </xsl:attribute>
-          <xsl:call-template name="just-value">
-            <xsl:with-param name="v" select="$v"/>
-          </xsl:call-template>
+          <xsl:value-of select="$v"/>
         </span>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-  <xsl:template name="just-value">
-    <xsl:param name="v"/>
-    <xsl:choose>
-      <xsl:when test="string-length($v) &gt; 64">
-        <xsl:value-of select="substring($v, 0, 64)"/>
-        <span class="BR">
-          <xsl:text>-</xsl:text>
-        </span>
-        <xsl:call-template name="just-value">
-          <xsl:with-param name="v" select="substring($v, 64)"/>
-        </xsl:call-template>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:value-of select="$v"/>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
