@@ -22,9 +22,9 @@
 
 require 'typhoeus'
 require 'iri'
+require 'baza'
 require_relative '../../judges'
 require_relative '../../judges/impex'
-require_relative '../../judges/baza'
 
 # The +pull+ command.
 #
@@ -42,7 +42,7 @@ class Judges::Pull
   def run(opts, args)
     raise 'Exactly two arguments required' unless args.size == 2
     fb = Factbase.new
-    baza = Judges::Baza.new(
+    baza = Baza.new(
       opts['host'], opts['port'].to_i, opts['token'],
       ssl: opts['ssl'],
       timeout: (opts['timeout'] || 30).to_i,

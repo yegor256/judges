@@ -43,6 +43,7 @@ Gem::Specification.new do |s|
   s.rdoc_options = ['--charset=UTF-8']
   s.extra_rdoc_files = ['README.md', 'LICENSE.txt']
   s.add_dependency 'backtrace', '~>0'
+  s.add_dependency 'baza.rb', '~>0'
   s.add_dependency 'concurrent-ruby', '~>1.2'
   s.add_dependency 'factbase', '~>0'
   s.add_dependency 'gli', '~>2.21'

@@ -22,9 +22,9 @@
 
 require 'typhoeus'
 require 'iri'
+require 'baza'
 require_relative '../../judges'
 require_relative '../../judges/impex'
-require_relative '../../judges/baza'
 
 # The +push+ command.
 #
@@ -43,7 +43,7 @@ class Judges::Push
     raise 'Exactly two arguments required' unless args.size == 2
     name = args[0]
     fb = Judges::Impex.new(@loog, args[1]).import
-    baza = Judges::Baza.new(
+    baza = Baza.new(
       opts['host'], opts['port'].to_i, opts['token'],
       ssl: opts['ssl'],
       timeout: (opts['timeout'] || 30).to_i,
