@@ -162,13 +162,13 @@ SOFTWARE.
     <xsl:param name="cols"/>
     <xsl:choose>
       <xsl:when test="string-length($cols) &gt; 0">
-        <col style="width: 10em;"/>
+        <col style=""/>
         <xsl:call-template name="col">
           <xsl:with-param name="cols" select="substring-after($cols, ',')"/>
         </xsl:call-template>
       </xsl:when>
       <xsl:otherwise>
-        <col style=""/>
+        <col style="width: 50%;"/>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
