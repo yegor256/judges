@@ -118,7 +118,7 @@ class JudgesGLI extend GLI::App
     c.desc 'Comma separated list of columns to show in HTML output (no spaces!)'
     c.flag([:columns], default_value: 'when,what')
     c.desc 'Comma separated list of hidden columns, not to be rendered (no spaces!)'
-    c.flag([:hidden], default_value: '_id,_time,_version')
+    c.flag([:hidden], default_value: '_id,_time,_version,_job')
     c.desc 'Print even if target file already exists and is older than the factbase'
     c.switch([:force], default_value: false)
     run_it(c, 'print')

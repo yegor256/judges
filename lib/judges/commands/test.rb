@@ -146,7 +146,18 @@ class Judges::Test
     (1..runs).each do |r|
       fbx = fb
       fbx = Factbase::Looged.new(fb, @loog) if opts['log']
-      judge.run(fbx, {}, {}, options)
+      expected_failure = yaml['expected_failure']
+      begin
+        judge.run(fbx, {}, {}, options)
+        raise 'Exception expected but not raised' if expected_failure
+      # rubocop:disable Lint/RescueException
+      rescue Exception => e
+        # rubocop:enable Lint/RescueException
+        raise e unless expected_failure
+        if expected_failure.is_a?(Array) && expected_failure.none? { |s| e.message.include?(s) }
+          raise "Exception #{e.class} raised with #{e.message.inspect}, but this is not what was expected"
+        end
+      end
       next unless assert
       assert(judge, tname, fb, yaml) if r == runs || opts['assert_once'].is_a?(FalseClass)
     end

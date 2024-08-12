@@ -22,6 +22,7 @@
 
 require 'minitest/autorun'
 require 'loog'
+require_relative '../test__helper'
 require_relative '../../lib/judges'
 require_relative '../../lib/judges/commands/test'
 
@@ -141,6 +142,35 @@ class TestTest < Minitest::Test
         YAML
       )
       Judges::Test.new(Loog::NULL).run({}, [d])
+    end
+  end
+
+  def test_with_expected_failure
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'raise "this is intentional";')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        expected_failure:
+          - intentional
+        YAML
+      )
+      Judges::Test.new(Loog::NULL).run({}, [d])
+    end
+  end
+
+  def test_with_expected_failure_no_string
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'raise "this is intentional";')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        expected_failure: true
+        YAML
+      )
+      Judges::Test.new(Loog::VERBOSE).run({}, [d])
     end
   end
 end

@@ -95,7 +95,7 @@ class Judges::Print
         'title' => opts['title'],
         'date' => Time.now.utc.iso8601,
         'columns' => opts['columns'] || 'when,what,who',
-        'hidden' => opts['hidden'] || '_id,_version,_time',
+        'hidden' => opts['hidden'] || '_id,_version,_time,_job',
         'version' => Judges::VERSION
       )
     )

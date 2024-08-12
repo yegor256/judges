@@ -24,6 +24,7 @@ require 'minitest/autorun'
 require 'loog'
 require 'nokogiri'
 require 'factbase/to_xml'
+require_relative '../test__helper'
 require_relative '../../lib/judges'
 require_relative '../../lib/judges/commands/eval'
 

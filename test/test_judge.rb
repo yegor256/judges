@@ -24,6 +24,7 @@ require 'minitest/autorun'
 require 'tmpdir'
 require 'loog'
 require 'factbase'
+require_relative 'test__helper'
 require_relative '../lib/judges'
 require_relative '../lib/judges/judge'
 
@@ -100,6 +101,17 @@ class TestJudge < Minitest::Test
       Dir.mktmpdir do |d|
         dir = File.join(d, 'judges')
         save_it(File.join(dir, "#{File.basename(d)}.rb"), 'a < 1')
+        judge = Judges::Judge.new(dir, lib, Loog::NULL)
+        judge.run(Factbase.new, {}, {}, {})
+      end
+    end
+  end
+
+  def test_with_standard_error
+    assert_raises do
+      Dir.mktmpdir do |d|
+        dir = File.join(d, 'judges')
+        save_it(File.join(dir, "#{File.basename(d)}.rb"), 'raise "intentional"')
         judge = Judges::Judge.new(dir, lib, Loog::NULL)
         judge.run(Factbase.new, {}, {}, {})
       end

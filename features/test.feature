@@ -163,3 +163,18 @@ Feature: Test
     """
     Then I run bin/judges with "test mine"
     And Exit code is zero
+
+  Scenario: Test with exception
+    Given I make a temp directory
+    Then I have a "mine/foo/foo.rb" file with content:
+    """
+    raise 'this is a joke'
+    """
+    Then I have a "mine/foo/simple.yml" file with content:
+    """
+    ---
+    expected_failure:
+      - a joke
+    """
+    Then I run bin/judges with "test mine"
+    And Exit code is zero
