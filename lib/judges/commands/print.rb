@@ -24,9 +24,9 @@ require 'time'
 require 'fileutils'
 require 'factbase'
 require 'nokogiri'
+require 'elapsed'
 require_relative '../../judges'
 require_relative '../../judges/impex'
-require_relative '../../judges/elapsed'
 
 # The +print+ command.
 #
@@ -64,7 +64,7 @@ class Judges::Print
       end
       @loog.debug("The factbase #{f.to_rel} is younger than the target #{o.to_rel}, need to print")
     end
-    elapsed(@loog) do
+    elapsed(@loog, level: Logger::INFO) do
       output =
         case fmt
           when 'yaml'

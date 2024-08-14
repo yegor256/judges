@@ -25,12 +25,12 @@ require 'factbase'
 require 'backtrace'
 require 'factbase/looged'
 require 'factbase/to_xml'
+require 'elapsed'
 require_relative '../../judges'
 require_relative '../../judges/to_rel'
 require_relative '../../judges/judges'
 require_relative '../../judges/options'
 require_relative '../../judges/categories'
-require_relative '../../judges/elapsed'
 
 # The +test+ command.
 #
@@ -57,7 +57,7 @@ class Judges::Test
     tests = 0
     visible = []
     judges = Judges::Judges.new(dir, opts['lib'], @loog)
-    elapsed(@loog) do
+    elapsed(@loog, level: Logger::INFO) do
       judges.each_with_index do |judge, i|
         visible << judge.name
         next unless include?(opts, judge.name)

@@ -8,5 +8,5 @@ Feature: Join
     Then I run bin/judges with "update . first.fb"
     Then I run bin/judges with "update . second.fb"
     Then I run bin/judges with "join first.fb second.fb"
-    Then Stdout contains "joined"
-    And Exit code is zero
+    Then Exit code is zero
+    And Stdout contains "joined"

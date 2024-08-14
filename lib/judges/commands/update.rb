@@ -22,13 +22,13 @@
 
 require 'backtrace'
 require 'factbase/looged'
+require 'elapsed'
 require_relative '../../judges'
 require_relative '../../judges/to_rel'
 require_relative '../../judges/judges'
 require_relative '../../judges/churn'
 require_relative '../../judges/options'
 require_relative '../../judges/impex'
-require_relative '../../judges/elapsed'
 
 # The +update+ command.
 #
@@ -63,7 +63,7 @@ class Judges::Update
     judges = Judges::Judges.new(dir, opts['lib'], @loog)
     c = 0
     churn = Judges::Churn.new(0, 0)
-    elapsed(@loog) do
+    elapsed(@loog, level: Logger::INFO) do
       loop do
         c += 1
         if c > 1
@@ -105,11 +105,11 @@ class Judges::Update
   def cycle(opts, judges, fb, options)
     churn = Judges::Churn.new(0, 0)
     global = {}
-    elapsed(@loog) do
+    elapsed(@loog, level: Logger::INFO) do
       done =
         judges.each_with_index do |p, i|
           @loog.info("\n👉 Running #{p.name} (##{i}) at #{p.dir.to_rel}...")
-          elapsed(@loog) do
+          elapsed(@loog, level: Logger::INFO) do
             c = one_judge(fb, p, global, options)
             churn += c
             throw :"👍 The judge #{p.name} modified #{c} facts out of #{fb.size}"

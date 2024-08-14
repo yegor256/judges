@@ -23,6 +23,7 @@
 require 'typhoeus'
 require 'iri'
 require 'baza-rb'
+require 'elapsed'
 require_relative '../../judges'
 require_relative '../../judges/impex'
 
@@ -53,7 +54,7 @@ class Judges::Pull
       retries: (opts['retries'] || 3).to_i
     )
     name = args[0]
-    elapsed(@loog) do
+    elapsed(@loog, level: Logger::INFO) do
       if baza.name_exists?(name)
         baza.lock(name, opts['owner'])
         begin

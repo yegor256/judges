@@ -42,12 +42,14 @@ class TestJoin < Minitest::Test
       fb2 = Factbase.new
       fb2.insert.foo_bar = 42
       File.binwrite(slave, fb2.export)
-      Judges::Join.new(Loog::NULL).run({}, [master, slave])
+      loog = Loog::Buffer.new
+      Judges::Join.new(loog).run({}, [master, slave])
       fb = Factbase.new
       fb.import(File.binread(master))
       xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
       assert(!xml.xpath('/fb/f[zz="5"]').empty?, xml)
       assert(!xml.xpath('/fb/f[foo_bar="42"]').empty?, xml)
+      assert(loog.to_s.include?('Two factbases joined'), loog.to_s)
     end
   end
 end

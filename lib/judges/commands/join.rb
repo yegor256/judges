@@ -20,9 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'elapsed'
 require_relative '../../judges'
 require_relative '../../judges/impex'
-require_relative '../../judges/elapsed'
 
 # The +join+ command.
 #
@@ -41,7 +41,7 @@ class Judges::Join
     raise 'Exactly two arguments required' unless args.size == 2
     master = Judges::Impex.new(@loog, args[0])
     slave = Judges::Impex.new(@loog, args[1])
-    elapsed(@loog) do
+    elapsed(@loog, level: Logger::INFO) do
       fb = master.import
       slave.import_to(fb)
       master.export(fb)

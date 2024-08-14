@@ -23,6 +23,7 @@
 require 'typhoeus'
 require 'iri'
 require 'baza-rb'
+require 'elapsed'
 require_relative '../../judges'
 require_relative '../../judges/impex'
 
@@ -54,7 +55,7 @@ class Judges::Push
       retries: (opts['retries'] || 3).to_i,
       compression: opts.fetch('zip', true)
     )
-    elapsed(@loog) do
+    elapsed(@loog, level: Logger::INFO) do
       baza.lock(name, opts['owner'])
       begin
         id = baza.push(name, fb.export, opts['meta'] || [])

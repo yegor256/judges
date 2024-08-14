@@ -20,12 +20,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'elapsed'
 require 'time'
 require 'factbase/looged'
 require_relative '../../judges'
 require_relative '../../judges/impex'
 require_relative '../../judges/to_rel'
-require_relative '../../judges/elapsed'
 
 # The +import+ command.
 #
@@ -43,7 +43,7 @@ class Judges::Import
   def run(_opts, args)
     raise 'Exactly two arguments required' unless args.size == 2
     raise "File not found #{args[0].to_rel}" unless File.exist?(args[0])
-    elapsed(@loog) do
+    elapsed(@loog, level: Logger::INFO) do
       yaml = YAML.load_file(args[0], permitted_classes: [Time])
       @loog.info("YAML loaded from #{args[0].to_rel} (#{yaml.size} facts)")
       impex = Judges::Impex.new(@loog, args[1])

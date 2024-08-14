@@ -20,10 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'elapsed'
 require 'factbase/looged'
 require_relative '../../judges'
 require_relative '../../judges/impex'
-require_relative '../../judges/elapsed'
 
 # The +eval+ command.
 #
@@ -41,7 +41,7 @@ class Judges::Eval
   def run(_opts, args)
     raise 'Exactly two arguments required' unless args.size == 2
     impex = Judges::Impex.new(@loog, args[0])
-    elapsed(@loog) do
+    elapsed(@loog, level: Logger::INFO) do
       $fb = impex.import(strict: false)
       $fb = Factbase::Looged.new($fb, @loog)
       expr = args[1]

@@ -20,9 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'elapsed'
 require_relative '../judges'
 require_relative '../judges/to_rel'
-require_relative '../judges/elapsed'
 
 # A single judge.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -56,7 +56,7 @@ class Judges::Judge
     end
     s = File.join(@dir, script)
     raise "Can't load '#{s}'" unless File.exist?(s)
-    elapsed(@loog) do
+    elapsed(@loog, level: Logger::INFO) do
       load(s, true)
     ensure
       $fb = $judge = $options = $loog = nil

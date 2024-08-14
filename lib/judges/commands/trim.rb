@@ -21,9 +21,9 @@
 # SOFTWARE.
 
 require 'time'
+require 'elapsed'
 require_relative '../../judges'
 require_relative '../../judges/impex'
-require_relative '../../judges/elapsed'
 
 # The +trim+ command.
 #
@@ -45,7 +45,7 @@ class Judges::Trim
     raise 'Exactly one argument required' unless args.size == 1
     impex = Judges::Impex.new(@loog, args[0])
     fb = impex.import
-    elapsed(@loog) do
+    elapsed(@loog, level: Logger::INFO) do
       deleted = fb.query(opts['query']).delete!
       throw :'No facts deleted' if deleted.zero?
       impex.export(fb)
