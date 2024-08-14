@@ -39,6 +39,9 @@ class Judges::Push
     @loog = loog
   end
 
+  # Run it (it is supposed to be called by the +bin/judges+ script.
+  # @param [Hash] opts Command line options (start with '--')
+  # @param [Array] args List of command line arguments
   def run(opts, args)
     raise 'Exactly two arguments required' unless args.size == 2
     name = args[0]

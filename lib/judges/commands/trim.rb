@@ -38,6 +38,9 @@ class Judges::Trim
     @loog = loog
   end
 
+  # Run it (it is supposed to be called by the +bin/judges+ script.
+  # @param [Hash] opts Command line options (start with '--')
+  # @param [Array] args List of command line arguments
   def run(opts, args)
     raise 'Exactly one argument required' unless args.size == 1
     impex = Judges::Impex.new(@loog, args[0])
