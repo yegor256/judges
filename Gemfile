@@ -24,7 +24,7 @@ source 'https://rubygems.org'
 gemspec
 
 gem 'cucumber', '9.2.0', require: false
-gem 'minitest', '5.24.1', require: false
+gem 'minitest', '5.25.0', require: false
 gem 'minitest-reporters', '1.7.1', require: false
 gem 'net-ping', '2.0.8', require: false
 gem 'rake', '13.2.1', require: false
