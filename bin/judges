@@ -150,7 +150,7 @@ class JudgesGLI extend GLI::App
     run_it(c, 'test')
   end
 
-  desc 'Push the factbase to the server'
+  desc 'Push the factbase to the server and unlock it over there'
   command :push do |c|
     c.desc 'Authentication token'
     c.flag([:token])
@@ -173,7 +173,7 @@ class JudgesGLI extend GLI::App
     run_it(c, 'push')
   end
 
-  desc 'Pull the factbase from the server'
+  desc 'Pull the factbase from the server and lock it over there'
   command :pull do |c|
     c.desc 'Authentication token'
     c.flag([:token])

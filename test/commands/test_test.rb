@@ -170,7 +170,7 @@ class TestTest < Minitest::Test
         expected_failure: true
         YAML
       )
-      Judges::Test.new(Loog::VERBOSE).run({}, [d])
+      Judges::Test.new(Loog::NULL).run({}, [d])
     end
   end
 end
