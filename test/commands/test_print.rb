@@ -23,6 +23,7 @@
 require 'minitest/autorun'
 require 'loog'
 require 'factbase'
+require 'nokogiri'
 require 'yaml'
 require 'fileutils'
 require 'securerandom'
@@ -70,6 +71,12 @@ class TestPrint < Minitest::Test
         [f, html]
       )
     end
+    xml =
+      Nokogiri::XML.parse(File.read(html)) do |c|
+        c.norecover
+        c.strict
+      end
+    assert(!xml.xpath('/html').empty?)
   end
 
   def test_print_all_formats
