@@ -78,6 +78,13 @@ SOFTWARE.
         <script type="text/javascript">
           $(function() {
             $("#facts").tablesorter();
+            function updateTime() {
+              var now = new Date();
+              var timeString = now.toLocaleTimeString();
+              $("#currentTime").text(timeString);
+            }
+            setInterval(updateTime, 1000);
+            updateTime();
           });
         </script>
       </head>
@@ -125,6 +132,9 @@ SOFTWARE.
               <xsl:text> bytes, version </xsl:text>
               <xsl:value-of select="fb/@version"/>
               <xsl:text>.</xsl:text>
+              <br/>
+              <xsl:text>Current Time: </xsl:text>
+              <span id="currentTime"></span>
             </p>
           </footer>
         </section>
@@ -143,7 +153,7 @@ SOFTWARE.
           <xsl:call-template name="th">
             <xsl:with-param name="cols" select="$columns"/>
           </xsl:call-template>
-        </th>
+        </tr>
       </thead>
       <tbody>
         <xsl:apply-templates select="f"/>
