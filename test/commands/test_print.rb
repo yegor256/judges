@@ -76,6 +76,7 @@ class TestPrint < Minitest::Test
         c.norecover
         c.strict
       end
+    assert(xml.errors.empty?)
     assert(!xml.xpath('/html').empty?)
   end
 
