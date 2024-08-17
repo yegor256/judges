@@ -143,7 +143,7 @@ SOFTWARE.
           <xsl:call-template name="th">
             <xsl:with-param name="cols" select="$columns"/>
           </xsl:call-template>
-        </th>
+        </tr>
       </thead>
       <tbody>
         <xsl:apply-templates select="f"/>
