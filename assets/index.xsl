@@ -133,7 +133,7 @@ SOFTWARE.
               <xsl:value-of select="fb/@version"/>
               <xsl:text>.</xsl:text>
               <br/>
-              <xsl:text>Current Time: </xsl:text>
+              <xsl:text>Current Time:</xsl:text>
               <span id="currentTime"></span>
             </p>
           </footer>
