@@ -132,9 +132,10 @@ SOFTWARE.
         </section>
         <script type="text/javascript">
           function updateTime() {
-          const now = new Date();
-          const timeElement = document.getElementById('current-time');
-          timeElement.textContent = `Current time: ${now.toLocaleString()}`;
+            const now = new Date();
+            const isoTime = now.toISOString();
+            const timeElement = document.getElementById('current-time');
+            timeElement.textContent = `Current time: ${isoTime}`;
           }
           updateTime();
           setInterval(updateTime, 1000);
