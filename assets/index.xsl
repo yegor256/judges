@@ -77,14 +77,7 @@ SOFTWARE.
         </style>
         <script type="text/javascript">
           $(function() {
-            $("#facts").tablesorter();
-            function updateTime() {
-              var now = new Date();
-              var timeString = now.toLocaleTimeString();
-              $("#currentTime").text(timeString);
-            }
-            setInterval(updateTime, 1000);
-            updateTime();
+          $("#facts").tablesorter();
           });
         </script>
       </head>
@@ -133,11 +126,19 @@ SOFTWARE.
               <xsl:value-of select="fb/@version"/>
               <xsl:text>.</xsl:text>
               <br/>
-              <xsl:text>Current Time:</xsl:text>
-              <span id="currentTime"></span>
+              <span id="current-time">Loading current time...</span>
             </p>
           </footer>
         </section>
+        <script type="text/javascript">
+          function updateTime() {
+          const now = new Date();
+          const timeElement = document.getElementById('current-time');
+          timeElement.textContent = `Current time: ${now.toLocaleString()}`;
+          }
+          updateTime();
+          setInterval(updateTime, 1000);
+        </script>
       </body>
     </html>
   </xsl:template>
