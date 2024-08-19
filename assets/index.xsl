@@ -125,9 +125,21 @@ SOFTWARE.
               <xsl:text> bytes, version </xsl:text>
               <xsl:value-of select="fb/@version"/>
               <xsl:text>.</xsl:text>
+              <br/>
+              <span id="current-time">Loading current time...</span>
             </p>
           </footer>
         </section>
+        <script type="text/javascript">
+          function updateTime() {
+            const now = new Date();
+            const isoTime = now.toISOString();
+            const timeElement = document.getElementById('current-time');
+            timeElement.textContent = `Current time: ${isoTime}`;
+          }
+          updateTime();
+          setInterval(updateTime, 1000);
+        </script>
       </body>
     </html>
   </xsl:template>
