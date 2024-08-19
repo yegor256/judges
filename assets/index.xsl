@@ -23,7 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 -->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
-  <xsl:output method="xml" doctype-system="about:legacy-compat" encoding="UTF-8" indent="yes"/>
+  <xsl:output method="xml" omit-xml-declaration="yes" encoding="UTF-8" indent="yes"/>
   <xsl:param name="title"/>
   <xsl:param name="date"/>
   <xsl:param name="version"/>
@@ -36,9 +36,11 @@ SOFTWARE.
     </script>
   </xsl:template>
   <xsl:template match="/">
+    <xsl:text disable-output-escaping='yes'>&lt;!DOCTYPE html&gt;</xsl:text>
     <html>
       <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <meta charset="UTF-8"/>
+        <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
         <title>
           <xsl:choose>
             <xsl:when test="$title = ''">
@@ -49,8 +51,6 @@ SOFTWARE.
             </xsl:otherwise>
           </xsl:choose>
         </title>
-        <meta charset="UTF-8"/>
-        <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
         <link rel="icon" href="https://www.zerocracy.com/svg/logo.svg" type="image/svg"/>
         <link href="https://cdn.jsdelivr.net/gh/yegor256/tacit@gh-pages/tacit-css.min.css" rel="stylesheet"/>
         <link href="https://cdn.jsdelivr.net/gh/yegor256/drops@gh-pages/drops.min.css" rel="stylesheet"/>
@@ -195,7 +195,7 @@ SOFTWARE.
       </xsl:when>
       <xsl:otherwise>
         <th>
-          <xsl:text>&nbsp;</xsl:text>
+          <xsl:text> </xsl:text>
         </th>
       </xsl:otherwise>
     </xsl:choose>

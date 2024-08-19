@@ -92,7 +92,7 @@ class Judges::Print
     xslt = Nokogiri::XSLT(File.read(File.join(__dir__, '../../../assets/index.xsl')))
     require 'factbase/to_xml'
     xml = Factbase::ToXML.new(fb).xml
-    xslt.transform(
+    xslt.apply_to(
       Nokogiri::XML(xml),
       Nokogiri::XSLT.quote_params(
         'title' => opts['title'],

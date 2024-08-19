@@ -23,9 +23,12 @@
 require 'minitest/autorun'
 require 'loog'
 require 'factbase'
+require 'nokogiri'
 require 'yaml'
 require 'fileutils'
 require 'securerandom'
+require 'w3c_validators'
+require 'webmock/minitest'
 require_relative '../../lib/judges'
 require_relative '../../lib/judges/commands/print'
 
@@ -70,6 +73,21 @@ class TestPrint < Minitest::Test
         [f, html]
       )
     end
+    doc = File.read(html)
+    xml =
+      begin
+        Nokogiri::XML.parse(doc) do |c|
+          c.norecover
+          c.strict
+        end
+      rescue StandardError => e
+        raise "#{doc}\n\n#{e}"
+      end
+    assert(xml.errors.empty?, xml)
+    assert(!xml.xpath('/html').empty?, xml)
+    WebMock.enable_net_connect!
+    v = W3CValidators::NuValidator.new.validate_file(html)
+    assert(v.errors.empty?, "#{doc}\n\n#{v.errors.join('; ')}")
   end
 
   def test_print_all_formats
