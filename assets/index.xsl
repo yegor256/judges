@@ -77,7 +77,7 @@ SOFTWARE.
         </style>
         <script type="text/javascript">
           $(function() {
-          $("#facts").tablesorter();
+            $("#facts").tablesorter();
           });
         </script>
       </head>
