@@ -53,6 +53,17 @@ class TestPush < Minitest::Test
         },
         ['foo', file]
       )
+      Judges::Push.new(Loog::NULL).run(
+        {
+          'token' => '000',
+          'host' => 'example.org',
+          'port' => 443,
+          'ssl' => true,
+          'owner' => 'none',
+          'zip' => false
+        },
+        ['foo', file]
+      )
     end
   end
 
