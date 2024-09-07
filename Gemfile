@@ -32,7 +32,7 @@ gem 'random-port', '~>0.0', require: false
 gem 'rspec-rails', '7.0.1', require: false
 gem 'rubocop', '1.66.1', require: false
 gem 'rubocop-performance', '1.21.1', require: false
-gem 'rubocop-rspec', '3.0.4', require: false
+gem 'rubocop-rspec', '3.0.5', require: false
 gem 'simplecov', '0.22.0', require: false
 gem 'simplecov-cobertura', '2.1.0', require: false
 gem 'w3c_validators', '1.3.7', require: false
