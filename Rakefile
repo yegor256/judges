@@ -48,8 +48,9 @@ Rake::TestTask.new(:test) do |test|
 end
 
 require 'cucumber/rake/task'
-Cucumber::Rake::Task.new(:features) do
+Cucumber::Rake::Task.new(:features) do |t|
   Rake::Cleaner.cleanup_files(['coverage'])
+  t.cucumber_opts = %w[--no-color --format=summary]
 end
 Cucumber::Rake::Task.new(:'features:html') do |t|
   t.profile = 'html_report'
