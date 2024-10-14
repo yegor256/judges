@@ -36,11 +36,9 @@ After do
 end
 
 Given(/^We are online$/) do
-  begin
-    TCPSocket.new('google.com', 80)
-  rescue SocketError
-    pending
-  end
+  TCPSocket.new('google.com', 80)
+rescue SocketError
+  pending
 end
 
 Given(/^I make a temp directory$/) do
