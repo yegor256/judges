@@ -35,23 +35,25 @@ class Judges::Judge
   # @param [String] dir The directory with the judge
   # @param [String] lib The directory with the lib/
   # @param [Loog] loog The logging facility
-  # @param [Object] valve The valve
-  def initialize(dir, lib, loog, valve: FakeValve.new)
+  def initialize(dir, lib, loog)
     @dir = dir
     @lib = lib
     @loog = loog
-    @valve = valve
   end
 
   # Run it with the given Factbase and environment variables.
-  def run(fbase, global, local, options)
-    $fb = fbase
+  #
+  # @param [Factbase] fb The factbase
+  # @param [Hash] global Global options
+  # @param [Hash] local Local options
+  # @param [Judges::Options] options The options from command line
+  def run(fb, global, local, options)
+    $fb = fb
     $judge = File.basename(@dir)
     $options = options
     $loog = @loog
     $global = global
     $local = local
-    $valve = @valve
     options.to_h.each { |k, v| ENV.store(k.to_s, v.to_s) }
     unless @lib.nil?
       raise "Lib dir #{@lib.to_rel} is absent" unless File.exist?(@lib)
@@ -85,12 +87,5 @@ class Judges::Judge
   # Return all .yml tests files.
   def tests
     Dir.glob(File.join(@dir, '*.yml'))
-  end
-
-  # Fake valve.
-  class FakeValve
-    def enter(_badge, _why)
-      yield
-    end
   end
 end
