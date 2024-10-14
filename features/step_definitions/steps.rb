@@ -21,7 +21,6 @@
 # SOFTWARE.
 
 require 'tmpdir'
-require 'net/ping'
 require 'English'
 require 'securerandom'
 
@@ -37,7 +36,11 @@ After do
 end
 
 Given(/^We are online$/) do
-  pending unless Net::Ping::External.new('8.8.8.8').ping?
+  begin
+    TCPSocket.new('google.com', 80)
+  rescue SocketError
+    pending
+  end
 end
 
 Given(/^I make a temp directory$/) do

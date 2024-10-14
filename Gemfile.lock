@@ -165,7 +165,6 @@ GEM
     multipart-post (2.4.1)
     net-http (0.4.1)
       uri
-    net-ping (2.0.8)
     nokogiri (1.16.7-aarch64-linux)
       racc (~> 1.4)
     nokogiri (1.16.7-arm-linux)
@@ -306,7 +305,6 @@ DEPENDENCIES
   judges!
   minitest (= 5.25.1)
   minitest-reporters (= 1.7.1)
-  net-ping (= 2.0.8)
   rake (= 13.2.1)
   random-port (~> 0.0)
   rspec-rails (= 7.0.1)
