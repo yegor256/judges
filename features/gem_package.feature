@@ -2,7 +2,7 @@ Feature: Gem Package
   As a source code writer I want to be able to
   judgeage the Gem into .gem file
 
-  Scenario: Gem can be judgeaged
+  Scenario: Gem can be packaged
     Given I make a temp directory
     Then I have a "execs.rb" file with content:
     """
