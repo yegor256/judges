@@ -31,10 +31,16 @@ require_relative '../judges/to_rel'
 class Judges::Judge
   attr_reader :dir
 
-  def initialize(dir, lib, loog)
+  # Ctor.
+  # @param [String] dir The directory with the judge
+  # @param [String] lib The directory with the lib/
+  # @param [Loog] loog The logging facility
+  # @param [Object] valve The valve
+  def initialize(dir, lib, loog, valve: FakeValve.new)
     @dir = dir
     @lib = lib
     @loog = loog
+    @valve = valve
   end
 
   # Run it with the given Factbase and environment variables.
@@ -45,7 +51,7 @@ class Judges::Judge
     $loog = @loog
     $global = global
     $local = local
-    $valve = FakeValve.new unless defined?($valve)
+    $valve = @valve
     options.to_h.each { |k, v| ENV.store(k.to_s, v.to_s) }
     unless @lib.nil?
       raise "Lib dir #{@lib.to_rel} is absent" unless File.exist?(@lib)
