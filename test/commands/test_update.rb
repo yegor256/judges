@@ -61,6 +61,19 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_update_exceeding_lifetime
+    assert_output("Lifetime exceeded\n") do
+      Dir.mktmpdir do |d|
+        file = File.join(d, 'base.fb')
+        fb = Factbase.new
+        fb.insert.foo_bar = 42
+        File.binwrite(file, fb.export)
+        save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.tt = 4')
+        Judges::Update.new(Loog::NULL).run({ 'max-cycles' => 1, 'lifetime' => 0.00001 }, [d, file])
+      end
+    end
+  end
+
   def test_update_with_error
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), 'this$is$a$broken$Ruby$script')
