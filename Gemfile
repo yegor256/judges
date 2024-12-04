@@ -37,3 +37,4 @@ gem 'simplecov-cobertura', '2.1.0', require: false
 gem 'w3c_validators', '1.3.7', require: false
 gem 'webmock', '3.24.0', require: false
 gem 'yard', '0.9.37', require: false
+gem 'timeout', '~> 0.4.1', require: false
