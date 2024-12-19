@@ -109,7 +109,7 @@ GEM
     elapsed (0.0.1)
       loog (> 0)
       tago (> 0)
-    erubi (1.13.0)
+    erubi (1.13.1)
     ethon (0.16.0)
       ffi (>= 1.15.0)
     factbase (0.4.0)

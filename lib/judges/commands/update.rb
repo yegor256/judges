@@ -21,8 +21,9 @@
 # SOFTWARE.
 
 require 'backtrace'
-require 'factbase/looged'
 require 'elapsed'
+require 'factbase/looged'
+require 'tago'
 require_relative '../../judges'
 require_relative '../../judges/to_rel'
 require_relative '../../judges/judges'
@@ -60,7 +61,7 @@ class Judges::Update
     else
       @loog.debug("The following options provided:\n\t#{options.to_s.gsub("\n", "\n\t")}")
     end
-    judges = Judges::Judges.new(dir, opts['lib'], @loog)
+    judges = Judges::Judges.new(dir, opts['lib'], @loog, start:)
     c = 0
     churn = Judges::Churn.new(0, 0)
     elapsed(@loog, level: Logger::INFO) do
@@ -69,7 +70,7 @@ class Judges::Update
         if c > 1
           @loog.info("\nStarting cycle ##{c}#{opts['max-cycles'] ? " (out of #{opts['max-cycles']})" : ''}...")
         end
-        delta = cycle(opts, judges, fb, options)
+        delta = cycle(opts, judges, fb, options, start)
         churn += delta
         impex.export(fb)
         if delta.zero?
@@ -101,14 +102,20 @@ class Judges::Update
   private
 
   # Run all judges in a full cycle, one by one.
+  #
+  # @param [Hash] opts The command line options
+  # @param [Judges::Judges] judges The judges
+  # @param [Factbase] fb The factbase
+  # @param [Judges::Options] options The options
+  # @param [Float] start When we started
   # @return [Churn] How many modifications have been made
-  def cycle(opts, judges, fb, options)
+  def cycle(opts, judges, fb, options, start)
     churn = Judges::Churn.new(0, 0)
     global = {}
     elapsed(@loog, level: Logger::INFO) do
       done =
         judges.each_with_index do |p, i|
-          @loog.info("\n👉 Running #{p.name} (##{i}) at #{p.dir.to_rel}...")
+          @loog.info("\n👉 Running #{p.name} (##{i}) at #{p.dir.to_rel} (#{start.ago} already)...")
           elapsed(@loog, level: Logger::INFO) do
             c = one_judge(fb, p, global, options)
             churn += c
