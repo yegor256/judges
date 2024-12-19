@@ -85,6 +85,18 @@ class TestJudge < Minitest::Test
     end
   end
 
+  def test_sets_start_value_correctly
+    Dir.mktmpdir do |d|
+      j = 'this_is_it'
+      dir = File.join(d, j)
+      save_it(File.join(dir, "#{j}.rb"), '$loog.info("start=#{$start}")')
+      log = Loog::Buffer.new
+      time = Time.now
+      Judges::Judge.new(dir, nil, log, start: time).run(Factbase.new, {}, {}, {})
+      assert(log.to_s.include?("start=#{time}"))
+    end
+  end
+
   def test_with_broken_ruby_syntax
     assert_raises do
       Dir.mktmpdir do |d|

@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+require 'time'
 require_relative '../judges'
 require_relative 'judge'
 
@@ -42,10 +43,11 @@ require_relative 'judge'
 # Copyright:: Copyright (c) 2024 Yegor Bugayenko
 # License:: MIT
 class Judges::Judges
-  def initialize(dir, lib, loog)
+  def initialize(dir, lib, loog, start: Time.now)
     @dir = dir
     @lib = lib
     @loog = loog
+    @start = start
   end
 
   # Get one judge by name.
@@ -53,7 +55,7 @@ class Judges::Judges
   def get(name)
     d = File.absolute_path(File.join(@dir, name))
     raise "Judge #{name} doesn't exist in #{@dir}" unless File.exist?(d)
-    Judges::Judge.new(d, @lib, @loog)
+    Judges::Judge.new(d, @lib, @loog, start: @start)
   end
 
   # Iterate over them all.

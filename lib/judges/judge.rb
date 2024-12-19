@@ -35,10 +35,11 @@ class Judges::Judge
   # @param [String] dir The directory with the judge
   # @param [String] lib The directory with the lib/
   # @param [Loog] loog The logging facility
-  def initialize(dir, lib, loog)
+  def initialize(dir, lib, loog, start: Time.now)
     @dir = dir
     @lib = lib
     @loog = loog
+    @start = start
   end
 
   # Run it with the given Factbase and environment variables.
@@ -54,6 +55,7 @@ class Judges::Judge
     $loog = @loog
     $global = global
     $local = local
+    $start = @start
     options.to_h.each { |k, v| ENV.store(k.to_s, v.to_s) }
     unless @lib.nil?
       raise "Lib dir #{@lib.to_rel} is absent" unless File.exist?(@lib)
