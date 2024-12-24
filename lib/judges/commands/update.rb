@@ -24,6 +24,7 @@ require 'backtrace'
 require 'elapsed'
 require 'factbase/looged'
 require 'tago'
+require 'timeout'
 require_relative '../../judges'
 require_relative '../../judges/to_rel'
 require_relative '../../judges/judges'
@@ -45,6 +46,7 @@ class Judges::Update
   end
 
   # Run it (it is supposed to be called by the +bin/judges+ script.
+  #
   # @param [Hash] opts Command line options (start with '--')
   # @param [Array] args List of command line arguments
   def run(opts, args)
@@ -117,9 +119,9 @@ class Judges::Update
         judges.each_with_index do |p, i|
           @loog.info("\n👉 Running #{p.name} (##{i}) at #{p.dir.to_rel} (#{start.ago} already)...")
           elapsed(@loog, level: Logger::INFO) do
-            c = one_judge(fb, p, global, options)
+            c = one_judge(opts, fb, p, global, options)
             churn += c
-            throw :"👍 The judge #{p.name} modified #{c} facts out of #{fb.size}"
+            throw :"👍 The '#{p.name}' judge modified #{c} facts out of #{fb.size}"
           end
         rescue StandardError, SyntaxError => e
           @loog.warn(Backtrace.new(e))
@@ -136,11 +138,23 @@ class Judges::Update
   end
 
   # Run a single judge.
+  #
+  # @param [Hash] opts The command line options
+  # @param [Factbase] fb The factbase
+  # @param [Judges::Judge] judge The judge
+  # @param [Hash] global Global options
+  # @param [Judges::Options] options The options
   # @return [Churn] How many modifications have been made
-  def one_judge(fb, judge, global, options)
+  def one_judge(opts, fb, judge, global, options)
     local = {}
     before = fb.size
-    judge.run(fb, global, local, options)
+    begin
+      Timeout.timeout(opts['timeout']) do
+        judge.run(fb, global, local, options)
+      end
+    rescue Timeout::Error => e
+      throw :"👎 The '#{judge.name}' judge timed out: #{e.message}"
+    end
     after = fb.size
     diff = after - before
     if diff.positive?
