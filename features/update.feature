@@ -15,6 +15,19 @@ Feature: Update
     Then Stdout contains "Update finished in 3 cycle(s), modified 3/0 fact(s)"
     And Exit code is zero
 
+  Scenario: Simple run with a timeout for a judge
+    Given I make a temp directory
+    Then I have a "slow/slow.rb" file with content:
+    """
+      sleep(10)
+      $fb.insert.foo = 1
+    """
+    Then I run bin/judges with "--verbose update --timeout 1 --quiet . foo.fb"
+    Then Stdout contains "timed out"
+    Then Stdout contains "1 judge(s) processed"
+    Then Stdout contains "Update finished in 1 cycle(s), modified 0/0 fact(s)"
+    And Exit code is zero
+
   Scenario: Simple run of a few judges, with a lib
     Given I make a temp directory
     Then I have a "mine/judge1/judge1.rb" file with content:
