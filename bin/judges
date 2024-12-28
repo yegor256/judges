@@ -26,6 +26,7 @@ require 'gli'
 require 'loog'
 require 'time'
 require 'factbase'
+require_relative '../lib/judges'
 
 Encoding.default_external = Encoding::UTF_8
 Encoding.default_internal = Encoding::UTF_8
@@ -42,9 +43,8 @@ class JudgesGLI extend GLI::App
 
   @@loog = Loog::REGULAR
 
-  program_desc('Automated executor of judges for a factbase')
+  program_desc("Automated executor of judges for a factbase (#{Judges::VERSION})")
 
-  require_relative '../lib/judges'
   version(Judges::VERSION)
 
   synopsis_format(:full)
