@@ -81,6 +81,20 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_update_with_options_in_file
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = $options.bar')
+      file = File.join(d, 'base.fb')
+      opts = File.join(d, 'opts.txt')
+      save_it(opts, "   bar = helloo  \n  bar =   444\n\n")
+      Judges::Update.new(Loog::NULL).run({ 'quiet' => true, 'max-cycles' => 1, 'options-file' => opts }, [d, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
+      assert(!xml.xpath('/fb/f[foo="444"]').empty?, xml)
+    end
+  end
+
   def test_update_with_error_no_quiet
     assert_raises do
       Dir.mktmpdir do |d|

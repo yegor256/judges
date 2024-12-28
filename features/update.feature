@@ -15,6 +15,24 @@ Feature: Update
     Then Stdout contains "Update finished in 3 cycle(s), modified 3/0 fact(s)"
     And Exit code is zero
 
+  Scenario: Use options from a file
+    Given I make a temp directory
+    Then I have a "simple/simple.rb" file with content:
+    """
+      n.kind.foo = $options.a1
+    """
+    Then I have a "opts.txt" file with content:
+    """
+      a1 = test
+      a2 = another test
+    """
+    Then I run bin/judges with "--verbose update --quiet --options-file opts.txt . simple.fb"
+    Then Stdout contains "A1 → "
+    Then Stdout contains "A2 → "
+    Then Stdout contains "1 judge(s) processed"
+    Then Stdout contains "Update finished"
+    And Exit code is zero
+
   Scenario: Simple run with a timeout for a judge
     Given I make a temp directory
     Then I have a "slow/slow.rb" file with content:

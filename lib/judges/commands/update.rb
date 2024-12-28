@@ -58,6 +58,15 @@ class Judges::Update
     fb = impex.import(strict: false)
     fb = Factbase::Looged.new(fb, @loog) if opts['log']
     options = Judges::Options.new(opts['option'])
+    if opts['options-file']
+      options += Judges::Options.new(
+        File.readlines(opts['options-file'])
+          .compact
+          .reject(&:empty?)
+          .map { |ln| ln.strip.split('=', 1).map(&:strip).join('=') }
+      )
+      @loog.debug("Options loaded from #{opts['options-file']}")
+    end
     if options.empty?
       @loog.debug('No options provided by the --option flag')
     else

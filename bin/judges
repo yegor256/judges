@@ -70,6 +70,8 @@ class JudgesGLI extend GLI::App
   command :update do |c|
     c.desc 'Options to pass to every judge'
     c.flag([:o, :option], multiple: true, arg_name: '<key=value>')
+    c.desc 'File with options, one k=v pair per line'
+    c.flag([:'options-file'])
     c.desc 'The location of a Ruby library (directory with .rb files to include)'
     c.flag([:lib])
     c.desc 'Maximum time in seconds to spend on every judge (forcefully terminate if over time)'
