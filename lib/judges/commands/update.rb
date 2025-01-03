@@ -157,19 +157,23 @@ class Judges::Update
   def one_judge(opts, fb, judge, global, options)
     local = {}
     before = fb.size
+    churn = Judges::Churn.new(0, 0)
     begin
       Timeout.timeout(opts['timeout']) do
         judge.run(fb, global, local, options)
       end
     rescue Timeout::Error => e
+      churn << "Judge #{judge.name} stopped by timeout: #{e.message}"
       throw :"👎 The '#{judge.name}' judge timed out: #{e.message}"
     end
     after = fb.size
     diff = after - before
-    if diff.positive?
-      Judges::Churn.new(diff, 0)
-    else
-      Judges::Churn.new(0, -diff)
-    end
+    churn +=
+      if diff.positive?
+        Judges::Churn.new(diff, 0)
+      else
+        Judges::Churn.new(0, -diff)
+      end
+    churn
   end
 end
