@@ -217,7 +217,7 @@ GEM
       zeitwerk (~> 2.6)
     rainbow (3.1.1)
     rake (13.2.1)
-    random-port (0.7.4)
+    random-port (0.7.5)
       tago (> 0)
     rdoc (6.10.0)
       psych (>= 4.0.0)
