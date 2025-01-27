@@ -73,7 +73,7 @@ class TestPull < Minitest::Test
     Dir.mktmpdir do |d|
       file = File.join(d, 'base.fb')
       e =
-        assert_raises do
+        assert_raises(StandardError) do
           Judges::Pull.new(Loog::NULL).run(
             {
               'token' => '000',
@@ -86,7 +86,7 @@ class TestPull < Minitest::Test
             ['foo', file]
           )
         end
-      assert(e.message.include?('expire it'), e)
+      assert_includes(e.message, 'expire it', e)
     end
   end
 end

@@ -48,20 +48,20 @@ class TestOptions < Minitest::Test
 
   def test_with_nil
     opts = Judges::Options.new(nil)
-    assert(opts.foo.nil?)
-    assert(opts.empty?)
+    assert_nil(opts.foo)
+    assert_empty(opts)
   end
 
   def test_with_empty_string
     opts = Judges::Options.new('   ')
-    assert(opts.foo.nil?)
-    assert(opts.empty?, opts)
+    assert_nil(opts.foo)
+    assert_empty(opts, opts)
   end
 
   def test_with_empty_strings
     opts = Judges::Options.new(['', nil])
-    assert(opts.foo.nil?)
-    assert(opts.empty?)
+    assert_nil(opts.foo)
+    assert_empty(opts)
   end
 
   def test_with_string
@@ -74,14 +74,14 @@ class TestOptions < Minitest::Test
     opts = Judges::Options.new('foo' => 42, 'bar' => 'hello')
     assert_equal(42, opts.foo)
     assert_equal('hello', opts.Bar)
-    assert(opts.xxx.nil?)
+    assert_nil(opts.xxx)
   end
 
   def test_converts_to_string
     opts = Judges::Options.new('foo' => 44, 'bar' => 'long-string-maybe-secret')
     s = opts.to_s
-    assert(s.include?('FOO → "44"'), s)
-    assert(s.include?('"long****************cret"'), s)
+    assert_includes(s, 'FOO → "44"', s)
+    assert_includes(s, '"long****************cret"', s)
   end
 
   def test_merge

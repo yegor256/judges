@@ -65,7 +65,7 @@ class TestTest < Minitest::Test
           - /fb/f[bar/v='5']
         YAML
       )
-      assert_raises do
+      assert_raises(StandardError) do
         Judges::Test.new(Loog::NULL).run({}, [d])
       end
     end
@@ -123,7 +123,7 @@ class TestTest < Minitest::Test
           - /fb[count(f)=1]
         YAML
       )
-      assert_raises do
+      assert_raises(StandardError) do
         Judges::Test.new(Loog::NULL).run({ 'judge' => [File.basename(dir)] }, [d])
       end
     end

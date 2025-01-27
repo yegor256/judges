@@ -41,7 +41,7 @@ class TestUpdate < Minitest::Test
       fb = Factbase.new
       fb.import(File.binread(file))
       xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
-      assert(!xml.xpath('/fb/f[zzz="43"]').empty?, xml)
+      refute_empty(xml.xpath('/fb/f[zzz="43"]'), xml)
     end
   end
 
@@ -53,7 +53,7 @@ class TestUpdate < Minitest::Test
       fb = Factbase.new
       fb.import(File.binread(file))
       xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
-      assert(xml.xpath('/fb/f').empty?, xml)
+      assert_empty(xml.xpath('/fb/f'), xml)
     end
   end
 
@@ -68,8 +68,8 @@ class TestUpdate < Minitest::Test
       fb = Factbase.new
       fb.import(File.binread(file))
       xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
-      assert(!xml.xpath('/fb/f[tt="4"]').empty?, xml)
-      assert(!xml.xpath('/fb/f[foo_bar="42"]').empty?, xml)
+      refute_empty(xml.xpath('/fb/f[tt="4"]'), xml)
+      refute_empty(xml.xpath('/fb/f[foo_bar="42"]'), xml)
     end
   end
 
@@ -91,12 +91,12 @@ class TestUpdate < Minitest::Test
       fb = Factbase.new
       fb.import(File.binread(file))
       xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
-      assert(!xml.xpath('/fb/f[foo="444"]').empty?, xml)
+      refute_empty(xml.xpath('/fb/f[foo="444"]'), xml)
     end
   end
 
   def test_update_with_error_no_quiet
-    assert_raises do
+    assert_raises(StandardError) do
       Dir.mktmpdir do |d|
         save_it(File.join(d, 'foo/foo.rb'), 'a < 1')
         file = File.join(d, 'base.fb')
@@ -120,8 +120,8 @@ class TestUpdate < Minitest::Test
       sums = fb.query('(eq what "judges-summary")').each.to_a
       assert_equal(1, sums.size)
       sum = sums.first
-      assert(sum.error.include?('unexpected global variable'), sum.error)
-      assert(!sum.seconds.nil?)
+      assert_includes(sum.error, 'unexpected global variable', sum.error)
+      refute_nil(sum.seconds)
     end
   end
 end

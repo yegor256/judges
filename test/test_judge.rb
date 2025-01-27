@@ -81,7 +81,7 @@ class TestJudge < Minitest::Test
       save_it(File.join(dir, "#{j}.rb"), '$loog.info("judge=" + $judge)')
       log = Loog::Buffer.new
       Judges::Judge.new(dir, nil, log).run(Factbase.new, {}, {}, {})
-      assert(log.to_s.include?("judge=#{j}"))
+      assert_includes(log.to_s, "judge=#{j}")
     end
   end
 
@@ -93,12 +93,12 @@ class TestJudge < Minitest::Test
       log = Loog::Buffer.new
       time = Time.now
       Judges::Judge.new(dir, nil, log, start: time).run(Factbase.new, {}, {}, {})
-      assert(log.to_s.include?("start=#{time}"))
+      assert_includes(log.to_s, "start=#{time}")
     end
   end
 
   def test_with_broken_ruby_syntax
-    assert_raises do
+    assert_raises(StandardError) do
       Dir.mktmpdir do |d|
         dir = File.join(d, 'judges')
         save_it(File.join(dir, "#{File.basename(d)}.rb"), 'this$is$broken$syntax')
@@ -109,7 +109,7 @@ class TestJudge < Minitest::Test
   end
 
   def test_with_runtime_ruby_error
-    assert_raises do
+    assert_raises(StandardError) do
       Dir.mktmpdir do |d|
         dir = File.join(d, 'judges')
         save_it(File.join(dir, "#{File.basename(d)}.rb"), 'a < 1')
@@ -120,7 +120,7 @@ class TestJudge < Minitest::Test
   end
 
   def test_with_standard_error
-    assert_raises do
+    assert_raises(StandardError) do
       Dir.mktmpdir do |d|
         dir = File.join(d, 'judges')
         save_it(File.join(dir, "#{File.basename(d)}.rb"), 'raise "intentional"')

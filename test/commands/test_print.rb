@@ -45,7 +45,7 @@ class TestPrint < Minitest::Test
       File.binwrite(f, fb.export)
       Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml', 'auto' => true }, [f])
       y = File.join(d, 'base.yaml')
-      assert(File.exist?(y))
+      assert_path_exists(y)
       assert_equal(1, YAML.load_file(y).size)
     end
   end
@@ -83,11 +83,11 @@ class TestPrint < Minitest::Test
       rescue StandardError => e
         raise "#{doc}\n\n#{e}"
       end
-    assert(xml.errors.empty?, xml)
-    assert(!xml.xpath('/html').empty?, xml)
+    assert_empty(xml.errors, xml)
+    refute_empty(xml.xpath('/html'), xml)
     WebMock.enable_net_connect!
     v = W3CValidators::NuValidator.new.validate_file(html)
-    assert(v.errors.empty?, "#{doc}\n\n#{v.errors.join('; ')}")
+    assert_empty(v.errors, "#{doc}\n\n#{v.errors.join('; ')}")
   end
 
   def test_print_all_formats
@@ -99,7 +99,7 @@ class TestPrint < Minitest::Test
         File.binwrite(f, fb.export)
         Judges::Print.new(Loog::NULL).run({ 'format' => fmt, 'auto' => true }, [f])
         y = File.join(d, "base.#{fmt}")
-        assert(File.exist?(y))
+        assert_path_exists(y)
       end
     end
   end
@@ -112,7 +112,7 @@ class TestPrint < Minitest::Test
       File.binwrite(f, fb.export)
       Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml', 'auto' => true }, [f])
       y = File.join(d, 'base.yaml')
-      assert(File.exist?(y))
+      assert_path_exists(y)
       mtime = File.mtime(y)
       Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml', 'auto' => true }, [f])
       assert_equal(mtime, File.mtime(y))

@@ -134,10 +134,10 @@ class Judges::Test
       i.each do |k, vv|
         if vv.is_a?(Array)
           vv.each do |v|
-            f.send("#{k}=", v)
+            f.send(:"#{k}=", v)
           end
         else
-          f.send("#{k}=", vv)
+          f.send(:"#{k}=", vv)
         end
       end
     end

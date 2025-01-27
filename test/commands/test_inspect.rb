@@ -40,7 +40,7 @@ class TestInspect < Minitest::Test
       File.binwrite(f, fb.export)
       loog = Loog::Buffer.new
       Judges::Inspect.new(loog).run({}, [f])
-      assert(loog.to_s.include?('Facts: 2'))
+      assert_includes(loog.to_s, 'Facts: 2')
     end
   end
 end

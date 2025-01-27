@@ -33,10 +33,10 @@ class TestCategories < Minitest::Test
     cats = Judges::Categories.new(%w[foo bar], ['bad'])
     assert(cats.ok?(%w[foo other]))
     assert(cats.ok?(%w[other more bar]))
-    assert(!cats.ok?(%w[bad other]))
-    assert(!cats.ok?(['other']))
-    assert(!cats.ok?('hey'))
-    assert(!cats.ok?(nil))
+    refute(cats.ok?(%w[bad other]))
+    refute(cats.ok?(['other']))
+    refute(cats.ok?('hey'))
+    refute(cats.ok?(nil))
   end
 
   def test_all_enabled
@@ -45,6 +45,6 @@ class TestCategories < Minitest::Test
     assert(cats.ok?('hey'))
     assert(cats.ok?(%w[foo other]))
     assert(cats.ok?(%w[other more bar]))
-    assert(!cats.ok?(%w[bad other]))
+    refute(cats.ok?(%w[bad other]))
   end
 end

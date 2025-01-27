@@ -73,7 +73,7 @@ class TestJudges < Minitest::Test
       save_it(File.join(d, 'another/wrong/wrong.rb'), '')
       save_it(File.join(d, 'bad/hello.rb'), '')
       list = Judges::Judges.new(d, nil, Loog::NULL).each.to_a
-      assert(list.empty?)
+      assert_empty(list)
     end
   end
 end

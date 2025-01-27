@@ -38,6 +38,6 @@ class TestBin < Minitest::Test
     ensure
       $stdout = before
     end
-    assert(s.include?(Judges::VERSION), s)
+    assert_includes(s, Judges::VERSION, s)
   end
 end

@@ -42,8 +42,8 @@ class Judges::Categories
     cats = [] if cats.nil?
     cats = [cats] unless cats.is_a?(Array)
     cats.each do |c|
-      return false if @disable.any? { |d| d == c }
-      return true if @enable.any? { |d| d == c }
+      return false if @disable.any?(c)
+      return true if @enable.any?(c)
     end
     return true if @enable.empty?
     false

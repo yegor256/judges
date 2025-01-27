@@ -52,7 +52,7 @@ class Judges::Import
       yaml.each do |i|
         f = fb.insert
         i.each do |p, v|
-          f.send("#{p}=", v)
+          f.send(:"#{p}=", v)
         end
       end
       impex.export(fb)

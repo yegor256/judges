@@ -40,7 +40,7 @@ class TestEval < Minitest::Test
       fb = Factbase.new
       fb.import(File.binread(file))
       xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
-      assert(!xml.xpath('/fb/f[foo="42"]').empty?, xml)
+      refute_empty(xml.xpath('/fb/f[foo="42"]'), xml)
     end
   end
 end

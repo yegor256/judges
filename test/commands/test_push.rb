@@ -77,7 +77,7 @@ class TestPush < Minitest::Test
       fb = Factbase.new
       fb.insert.foo_bar = 42
       File.binwrite(file, fb.export)
-      assert_raises do
+      assert_raises(StandardError) do
         Judges::Push.new(Loog::NULL).run(
           {
             'token' => '000',

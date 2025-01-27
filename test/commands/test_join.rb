@@ -47,9 +47,9 @@ class TestJoin < Minitest::Test
       fb = Factbase.new
       fb.import(File.binread(master))
       xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
-      assert(!xml.xpath('/fb/f[zz="5"]').empty?, xml)
-      assert(!xml.xpath('/fb/f[foo_bar="42"]').empty?, xml)
-      assert(loog.to_s.include?('Two factbases joined'), loog.to_s)
+      refute_empty(xml.xpath('/fb/f[zz="5"]'), xml)
+      refute_empty(xml.xpath('/fb/f[foo_bar="42"]'), xml)
+      assert_includes(loog.to_s, 'Two factbases joined', loog.to_s)
     end
   end
 end
