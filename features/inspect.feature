@@ -8,4 +8,3 @@ Feature: Inspect
     Then I run bin/judges with "inspect simple.fb"
     Then Stdout contains "Facts: 1"
     And Exit code is zero
-
