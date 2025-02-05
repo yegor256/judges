@@ -30,6 +30,7 @@ AllCops:
 require:
   - rubocop-minitest
   - rubocop-performance
+  - rubocop-rake
 Minitest/EmptyLineBeforeAssertionMethods:
   Enabled: false
 Metrics/ParameterLists:
@@ -66,5 +67,3 @@ Layout/MultilineAssignmentLayout:
   Enabled: true
 Layout/FirstHashElementIndentation:
   EnforcedStyle: consistent
-required:
-  - rubocop-rake
