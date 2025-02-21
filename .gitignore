@@ -7,3 +7,4 @@ rdoc/
 doc/
 .yardoc/
 temp/
+vendor/
