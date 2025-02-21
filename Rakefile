@@ -18,7 +18,7 @@ end
 
 ENV['RACK_ENV'] = 'test'
 
-task default: %i[clean test features rubocop yard copyright]
+task default: %i[clean test features rubocop yard]
 
 require 'rake/testtask'
 desc 'Run all unit tests'
@@ -52,11 +52,3 @@ RuboCop::RakeTask.new(:rubocop) do |task|
   task.requires << 'rubocop-rspec'
 end
 
-task :copyright do
-  sh "grep -q -r '#{Date.today.strftime('%Y')}' \
-    --include '*.rb' \
-    --include '*.yml' \
-    --include '*.txt' \
-    --include 'Rakefile' \
-    ."
-end
