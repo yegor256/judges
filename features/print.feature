@@ -1,3 +1,7 @@
+# (The MIT License)
+# 
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 Yegor Bugayenko
+# SPDX-License-Identifier: MIT
 Feature: Print
   I want to print a factbase
 

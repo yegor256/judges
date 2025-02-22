@@ -1,3 +1,7 @@
+# (The MIT License)
+# 
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 Yegor Bugayenko
+# SPDX-License-Identifier: MIT
 Feature: Join
   I want to join two factbases
 
