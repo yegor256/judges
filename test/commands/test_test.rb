@@ -30,6 +30,7 @@ class TestTest < Minitest::Test
         YAML
       )
       Judges::Test.new(Loog::NULL).run({}, [d])
+      assert_path_exists(d)
     end
   end
 
@@ -69,6 +70,7 @@ class TestTest < Minitest::Test
         YAML
       )
       Judges::Test.new(Loog::NULL).run({}, [d])
+      assert_path_exists(d)
     end
   end
 
@@ -92,6 +94,7 @@ class TestTest < Minitest::Test
         YAML
       )
       Judges::Test.new(Loog::NULL).run({}, [d])
+      assert_path_exists(d)
     end
   end
 
@@ -125,6 +128,7 @@ class TestTest < Minitest::Test
         YAML
       )
       Judges::Test.new(Loog::NULL).run({}, [d])
+      assert_path_exists(d)
     end
   end
 
@@ -140,6 +144,7 @@ class TestTest < Minitest::Test
         YAML
       )
       Judges::Test.new(Loog::NULL).run({}, [d])
+      assert_path_exists(d)
     end
   end
 
@@ -154,6 +159,7 @@ class TestTest < Minitest::Test
         YAML
       )
       Judges::Test.new(Loog::NULL).run({}, [d])
+      assert_path_exists(d)
     end
   end
 end
