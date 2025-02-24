@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2025 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
+
 Feature: Update
   I want to run a few judges over a factbase
 
@@ -14,7 +15,7 @@ Feature: Update
     Then Stdout contains "FOO → "
     Then Stdout contains "BAR → "
     Then Stdout contains "1 judge(s) processed"
-    Then Stdout contains "Update finished in 3 cycle(s), modified 3/0 fact(s)"
+    Then Stdout contains "Update finished in 3 cycle(s), did 3i/0d/3a"
     And Exit code is zero
 
   Scenario: Use options from a file
@@ -45,7 +46,7 @@ Feature: Update
     Then I run bin/judges with "--verbose update --timeout 1 --quiet . foo.fb"
     Then Stdout contains "timed out"
     Then Stdout contains "1 judge(s) processed"
-    Then Stdout contains "Update finished in 1 cycle(s), modified 0/0 fact(s)"
+    Then Stdout contains "Update finished in 1 cycle(s), did 0i/0d/0a"
     And Exit code is zero
 
   Scenario: Simple run of a few judges, with a lib

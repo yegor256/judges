@@ -10,7 +10,8 @@ AllCops:
   TargetRubyVersion: 3.2
   SuggestExtensions: false
   NewCops: enable
-require:
+plugins:
+  - rubocop-rspec
   - rubocop-minitest
   - rubocop-performance
   - rubocop-rake

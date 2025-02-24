@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2025 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
+
 Feature: Pull
   I want to pull a factbase
 

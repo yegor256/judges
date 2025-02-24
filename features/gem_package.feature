@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2025 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
+
 Feature: Gem Package
   As a source code writer I want to be able to
   judgeage the Gem into .gem file

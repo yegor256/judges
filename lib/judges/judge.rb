@@ -5,6 +5,7 @@
 
 require 'elapsed'
 require 'tago'
+require 'factbase/tallied'
 require_relative '../judges'
 require_relative '../judges/to_rel'
 
@@ -32,8 +33,9 @@ class Judges::Judge
   # @param [Hash] global Global options
   # @param [Hash] local Local options
   # @param [Judges::Options] options The options from command line
+  # @return [Factbase::Churn] The changes just made
   def run(fb, global, local, options)
-    $fb = fb
+    $fb = Factbase::Tallied.new(fb)
     $judge = File.basename(@dir)
     $options = options
     $loog = @loog
@@ -52,6 +54,7 @@ class Judges::Judge
     raise "Can't load '#{s}'" unless File.exist?(s)
     elapsed(@loog, intro: "#{$judge} finished", level: Logger::INFO) do
       load(s, true)
+      $fb.churn
     ensure
       $fb = $judge = $options = $loog = nil
     end

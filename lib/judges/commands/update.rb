@@ -6,12 +6,12 @@
 require 'backtrace'
 require 'elapsed'
 require 'factbase/looged'
+require 'factbase/churn'
 require 'tago'
 require 'timeout'
 require_relative '../../judges'
 require_relative '../../judges/to_rel'
 require_relative '../../judges/judges'
-require_relative '../../judges/churn'
 require_relative '../../judges/options'
 require_relative '../../judges/impex'
 
@@ -57,14 +57,15 @@ class Judges::Update
     end
     judges = Judges::Judges.new(dir, opts['lib'], @loog, start:)
     c = 0
-    churn = Judges::Churn.new(0, 0)
+    churn = Factbase::Churn.new
+    errors = []
     elapsed(@loog, level: Logger::INFO) do
       loop do
         c += 1
         if c > 1
           @loog.info("\nStarting cycle ##{c}#{opts['max-cycles'] ? " (out of #{opts['max-cycles']})" : ''}...")
         end
-        delta = cycle(opts, judges, fb, options, start)
+        delta = cycle(opts, judges, fb, options, start, errors)
         churn += delta
         impex.export(fb)
         if delta.zero?
@@ -75,9 +76,9 @@ class Judges::Update
           @loog.info("Too many cycles already, as set by --max-cycles=#{opts['max-cycles']}, breaking")
           break
         end
-        @loog.info("The cycle #{c} modified #{delta} fact(s)")
+        @loog.info("The cycle #{c} did #{delta}")
       end
-      throw :"Update finished in #{c} cycle(s), modified #{churn} fact(s)"
+      throw :"Update finished in #{c} cycle(s), did #{churn}"
     end
     return unless opts['summary']
     fb.query('(eq what "judges-summary")').delete!
@@ -87,9 +88,10 @@ class Judges::Update
     f.version = Judges::VERSION
     f.seconds = Time.now - start
     f.cycles = c
+    f.inserted = churn.inserted.size
+    f.deleted = churn.deleted.size
     f.added = churn.added.size
-    f.removed = churn.removed.size
-    churn.errors.each { |e| f.error = e }
+    errors.each { |e| f.error = e }
     impex.export(fb)
   end
 
@@ -102,28 +104,29 @@ class Judges::Update
   # @param [Factbase] fb The factbase
   # @param [Judges::Options] options The options
   # @param [Float] start When we started
-  # @return [Churn] How many modifications have been made
-  def cycle(opts, judges, fb, options, start)
-    churn = Judges::Churn.new(0, 0)
+  # @param [Array<String>] errors List of errors
+  # @return [Factbase::Churn] How many modifications have been made
+  def cycle(opts, judges, fb, options, start, errors)
+    churn = Factbase::Churn.new
     global = {}
     elapsed(@loog, level: Logger::INFO) do
       done =
         judges.each_with_index do |p, i|
           @loog.info("\n👉 Running #{p.name} (##{i}) at #{p.dir.to_rel} (#{start.ago} already)...")
           elapsed(@loog, level: Logger::INFO) do
-            c = one_judge(opts, fb, p, global, options)
+            c = one_judge(opts, fb, p, global, options, errors)
             churn += c
-            throw :"👍 The '#{p.name}' judge modified #{c} facts out of #{fb.size}"
+            throw :"👍 The '#{p.name}' judge #{c} out of #{fb.size}"
           end
         rescue StandardError, SyntaxError => e
           @loog.warn(Backtrace.new(e))
-          churn << e.message
+          errors << e.message
         end
-      throw :"👍 #{done} judge(s) processed" if churn.errors.empty?
-      throw :"❌ #{done} judge(s) processed with #{churn.errors.size} errors"
+      throw :"👍 #{done} judge(s) processed" if errors.empty?
+      throw :"❌ #{done} judge(s) processed with #{errors.size} errors"
     end
-    unless churn.errors.empty?
-      raise "Failed to update correctly (#{churn.errors.size} errors)" unless opts['quiet']
+    unless errors.empty?
+      raise "Failed to update correctly (#{errors.size} errors)" unless opts['quiet']
       @loog.info('Not failing because of the --quiet flag provided')
     end
     churn
@@ -136,27 +139,17 @@ class Judges::Update
   # @param [Judges::Judge] judge The judge
   # @param [Hash] global Global options
   # @param [Judges::Options] options The options
+  # @param [Array<String>] errors List of errors
   # @return [Churn] How many modifications have been made
-  def one_judge(opts, fb, judge, global, options)
+  def one_judge(opts, fb, judge, global, options, errors)
     local = {}
-    before = fb.size
-    churn = Judges::Churn.new(0, 0)
     begin
       Timeout.timeout(opts['timeout']) do
         judge.run(fb, global, local, options)
       end
     rescue Timeout::Error => e
-      churn << "Judge #{judge.name} stopped by timeout: #{e.message}"
+      errors << "Judge #{judge.name} stopped by timeout: #{e.message}"
       throw :"👎 The '#{judge.name}' judge timed out: #{e.message}"
     end
-    after = fb.size
-    diff = after - before
-    churn +=
-      if diff.positive?
-        Judges::Churn.new(diff, 0)
-      else
-        Judges::Churn.new(0, -diff)
-      end
-    churn
   end
 end
