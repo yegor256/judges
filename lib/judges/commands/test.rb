@@ -39,6 +39,7 @@ class Judges::Test
     tested = 0
     tests = 0
     visible = []
+    times = {}
     judges = Judges::Judges.new(dir, opts['lib'], @loog)
     elapsed(@loog, level: Logger::INFO) do
       judges.each_with_index do |judge, i|
@@ -67,7 +68,9 @@ class Judges::Test
               @loog.info("Running #{j.script} judge as a pre-condition...")
               test_one(fb, opts, j, n, yaml, assert: false)
             end
+            start = Time.now
             test_one(fb, opts, judge, tname, yaml)
+            times["#{judge.name}/#{tname}"] = Time.now - start
             yaml['after']&.each do |rb|
               @loog.info("Running #{rb} assertion script...")
               $fb = fb
@@ -81,6 +84,17 @@ class Judges::Test
           end
         end
         tested += 1
+      end
+      unless times.empty?
+        fmt = "%60s\t%9s"
+        @loog.info(
+          [
+            'Time summaries:',
+            format(fmt, 'Script', 'Seconds'),
+            format(fmt, '---', '---'),
+            times.map { |script, sec| format(fmt, script, format('%.3f', sec)) }.join("\n  ")
+          ].join("\n  ")
+        )
       end
       throw :'👍 No judges tested' if tested.zero?
       throw :"👍 All #{tested} judge(s) but no tests passed" if tests.zero?
