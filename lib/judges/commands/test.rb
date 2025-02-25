@@ -92,7 +92,9 @@ class Judges::Test
             'Time summaries:',
             format(fmt, 'Script', 'Seconds'),
             format(fmt, '---', '---'),
-            times.map { |script, sec| format(fmt, script, format('%.3f', sec)) }.join("\n  ")
+            times.sort_by { |_, v| v }.map do |script, sec|
+              format(fmt, script, format('%.3f', sec))
+            end.join("\n  ")
           ].join("\n  ")
         )
       end
