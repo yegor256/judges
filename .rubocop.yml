@@ -51,3 +51,4 @@ Layout/MultilineAssignmentLayout:
   Enabled: true
 Layout/FirstHashElementIndentation:
   EnforcedStyle: consistent
+require: []
