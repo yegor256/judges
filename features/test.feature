@@ -7,7 +7,7 @@ Feature: Test
   Scenario: Simple test of a few judges
     Given I run bin/judges with "test ./fixtures"
     Then Stdout contains "👉 Testing"
-    Then Stdout contains "All 2 judge(s) and 2 tests passed"
+    Then Stdout contains "All 3 judge(s) and 3 tests passed"
     And Exit code is zero
 
   Scenario: Simple test of just one judge

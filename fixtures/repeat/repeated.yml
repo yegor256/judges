@@ -1,0 +1,9 @@
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 Yegor Bugayenko
+# SPDX-License-Identifier: MIT
+---
+repeat: 10
+input:
+  -
+    foo: 1
+expected:
+  - /fb[count(f)=10]

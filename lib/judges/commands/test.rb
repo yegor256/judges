@@ -126,15 +126,17 @@ class Judges::Test
 
   def prepare(fb, yaml)
     inputs = yaml['input']
-    inputs&.each do |i|
-      f = fb.insert
-      i.each do |k, vv|
-        if vv.is_a?(Array)
-          vv.each do |v|
-            f.send(:"#{k}=", v)
+    (yaml['repeat']&.to_i || 1).times do
+      inputs&.each do |i|
+        f = fb.insert
+        i.each do |k, vv|
+          if vv.is_a?(Array)
+            vv.each do |v|
+              f.send(:"#{k}=", v)
+            end
+          else
+            f.send(:"#{k}=", vv)
           end
-        else
-          f.send(:"#{k}=", vv)
         end
       end
     end
