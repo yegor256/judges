@@ -1,10 +1,10 @@
-coverage/
-.idea/
 *.gem
-.bundle/
 .DS_Store
-rdoc/
-doc/
+.bundle/
+.idea/
 .yardoc/
+coverage/
+doc/
+rdoc/
 temp/
 vendor/
