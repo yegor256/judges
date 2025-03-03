@@ -15,6 +15,11 @@ Feature: Test
     Then Stdout contains "All 1 judge(s) and 1 tests passed"
     And Exit code is zero
 
+  Scenario: Factbase version can be set
+    When I run bin/judges with "--factbase 0.7.4 --verbose test --judge guess ./fixtures"
+    Then Exit code is zero
+    And Stdout contains "Factbase version to be used: '0.7.4'"
+
   Scenario: Simple test of no judges
     Given I run bin/judges with "test --judge absent_for_sure ./fixtures"
     Then Exit code is zero

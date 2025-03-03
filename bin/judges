@@ -5,7 +5,6 @@
 
 $stdout.sync = true
 
-require 'factbase'
 require 'gli'
 require 'loog'
 require 'tago'
@@ -40,12 +39,20 @@ class JudgesGLI extend GLI::App
 
   desc 'Make it more verbose, logging as much as possible'
   switch([:v, :verbose])
+  desc 'Version of Factbase to use'
+  flag([:factbase], type: String)
 
   pre do |global, command, options, args|
     if global[:verbose]
       @@loog = Loog::VERBOSE
     end
     @@loog.debug("Judges #{Judges::VERSION}")
+    if global[:factbase]
+      ver = global[:factbase]
+      @@loog.debug("Factbase version to be used: '#{ver}'")
+      gem 'factbase', ver
+    end
+    require 'factbase'
     @@loog.debug("Factbase #{Factbase::VERSION}")
     @@loog.debug("Ruby: #{RUBY_VERSION}-p#{RUBY_PATCHLEVEL}")
     @@loog.debug("Current directory: #{Dir.getwd}")
