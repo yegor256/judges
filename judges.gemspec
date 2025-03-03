@@ -39,6 +39,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'retries', '~>0'
   s.add_dependency 'tago', '~>0'
   s.add_dependency 'timeout', '~>0'
+  s.add_dependency 'total', '~>0'
   s.add_dependency 'typhoeus', '~>1.3'
   s.metadata['rubygems_mfa_required'] = 'true'
 end

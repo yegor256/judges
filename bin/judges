@@ -10,6 +10,7 @@ require 'gli'
 require 'loog'
 require 'tago'
 require 'time'
+require 'total'
 require_relative '../lib/judges'
 
 Encoding.default_external = Encoding::UTF_8
@@ -49,6 +50,7 @@ class JudgesGLI extend GLI::App
     @@loog.debug("Ruby: #{RUBY_VERSION}-p#{RUBY_PATCHLEVEL}")
     @@loog.debug("Current directory: #{Dir.getwd}")
     @@loog.debug("Time: #{Time.now.utc.iso8601}")
+    @@loog.debug("Total memory: #{Total::Mem.new.bytes / (1024 * 1024)}Mb")
     true
   end
 
