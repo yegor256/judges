@@ -5,10 +5,11 @@
 
 $stdout.sync = true
 
+require 'factbase'
 require 'gli'
 require 'loog'
+require 'tago'
 require 'time'
-require 'factbase'
 require_relative '../lib/judges'
 
 Encoding.default_external = Encoding::UTF_8
@@ -19,8 +20,10 @@ class JudgesGLI extend GLI::App
   def self.run_it(cmd, ruby)
     cmd.action do |global, options, args|
       require_relative "../lib/judges/commands/#{ruby}"
+      start = Time.now
       @@loog.debug("Running '#{ruby}' command...")
       Object.const_get("Judges::#{ruby.capitalize}").new(@@loog).run(options, args)
+      @@loog.debug("Command '#{ruby}' finished in #{start.ago}")
     end
   end
 

@@ -44,7 +44,7 @@ Feature: Update
       $fb.insert.foo = 1
     """
     Then I run bin/judges with "--verbose update --timeout 1 --quiet . foo.fb"
-    Then Stdout contains "timed out"
+    Then Stdout contains "execution expired"
     Then Stdout contains "1 judge(s) processed"
     Then Stdout contains "Update finished in 1 cycle(s), did 0i/0d/0a"
     And Exit code is zero

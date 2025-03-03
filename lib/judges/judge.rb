@@ -55,6 +55,11 @@ class Judges::Judge
     elapsed(@loog, intro: "#{$judge} finished", level: Logger::INFO) do
       load(s, true)
       $fb.churn
+      # rubocop:disable Lint/RescueException
+    rescue Exception => e
+      # rubocop:enable Lint/RescueException
+      @loog.error(Backtrace.new(e))
+      raise e.message
     ensure
       $fb = $judge = $options = $loog = nil
     end
