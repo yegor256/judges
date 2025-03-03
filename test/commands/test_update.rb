@@ -28,6 +28,17 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_with_only_one_judge
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'return if $fb.size > 2; $fb.insert')
+      save_it(File.join(d, 'bar/bar.rb'), '-&- bug here -&-')
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::NULL).run({ 'judge' => ['foo'] }, [d, file])
+      assert_path_exists(file)
+      assert_raises(StandardError) { Judges::Update.new(Loog::NULL).run({}, [d, file]) }
+    end
+  end
+
   def test_cancels_slow_judge
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), 'sleep 10; $fb.insert.foo = 1')

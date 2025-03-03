@@ -111,12 +111,13 @@ class Judges::Update
     global = {}
     elapsed(@loog, level: Logger::INFO) do
       done =
-        judges.each_with_index do |p, i|
-          @loog.info("\n👉 Running #{p.name} (##{i}) at #{p.dir.to_rel} (#{start.ago} already)...")
+        judges.each_with_index do |judge, i|
+          next unless include?(opts, judge.name)
+          @loog.info("\n👉 Running #{judge.name} (##{i}) at #{judge.dir.to_rel} (#{start.ago} already)...")
           elapsed(@loog, level: Logger::INFO) do
-            c = one_judge(opts, fb, p, global, options, errors)
+            c = one_judge(opts, fb, judge, global, options, errors)
             churn += c
-            throw :"👍 The '#{p.name}' judge #{c} out of #{fb.size}"
+            throw :"👍 The '#{judge.name}' judge #{c} out of #{fb.size}"
           end
         rescue StandardError, SyntaxError => e
           @loog.warn(Backtrace.new(e))
@@ -151,5 +152,11 @@ class Judges::Update
       errors << "Judge #{judge.name} stopped by timeout: #{e.message}"
       throw :"👎 The '#{judge.name}' judge timed out: #{e.message}"
     end
+  end
+
+  def include?(opts, name)
+    judges = opts['judge'] || []
+    return true if judges.empty?
+    judges.any?(name)
   end
 end
