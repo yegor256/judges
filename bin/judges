@@ -49,7 +49,7 @@ class JudgesGLI extend GLI::App
     @@loog.debug("Judges #{Judges::VERSION}")
     if global[:factbase]
       ver = global[:factbase]
-      @@loog.debug("Factbase version to be used: '#{ver}'")
+      @@loog.debug("Factbase version to be used: '#{ver}' (set via --factbase)")
       gem 'factbase', ver
     end
     require 'factbase'
