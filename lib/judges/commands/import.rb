@@ -5,7 +5,6 @@
 
 require 'elapsed'
 require 'time'
-require 'factbase/looged'
 require_relative '../../judges'
 require_relative '../../judges/impex'
 require_relative '../../judges/to_rel'
@@ -23,7 +22,7 @@ class Judges::Import
     @loog = loog
   end
 
-  def run(_opts, args)
+  def run(opts, args)
     raise 'Exactly two arguments required' unless args.size == 2
     raise "File not found #{args[0].to_rel}" unless File.exist?(args[0])
     elapsed(@loog, level: Logger::INFO) do
@@ -31,7 +30,10 @@ class Judges::Import
       @loog.info("YAML loaded from #{args[0].to_rel} (#{yaml.size} facts)")
       impex = Judges::Impex.new(@loog, args[1])
       fb = impex.import(strict: false)
-      fb = Factbase::Looged.new(fb, @loog)
+      if opts['log']
+        require 'factbase/logged'
+        fb = Factbase::Logged.new(fb, @loog)
+      end
       yaml.each do |i|
         f = fb.insert
         i.each do |p, v|

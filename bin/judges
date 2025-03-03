@@ -86,6 +86,8 @@ class JudgesGLI extend GLI::App
 
   desc 'Evaluate a single Ruby expression on the factbase'
   command :eval do |c|
+    c.desc 'Use default logging facility'
+    c.switch([:log], default_value: true)
     run_it(c, 'eval')
   end
 
@@ -96,6 +98,8 @@ class JudgesGLI extend GLI::App
 
   desc 'Import YAML into a factbase'
   command :import do |c|
+    c.desc 'Use default logging facility'
+    c.switch([:log], default_value: true)
     run_it(c, 'import')
   end
 

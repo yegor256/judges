@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: MIT
 
 require 'elapsed'
-require 'factbase/looged'
 require_relative '../../judges'
 require_relative '../../judges/impex'
 
@@ -21,12 +20,15 @@ class Judges::Eval
     @loog = loog
   end
 
-  def run(_opts, args)
+  def run(opts, args)
     raise 'Exactly two arguments required' unless args.size == 2
     impex = Judges::Impex.new(@loog, args[0])
     elapsed(@loog, level: Logger::INFO) do
       $fb = impex.import(strict: false)
-      $fb = Factbase::Looged.new($fb, @loog)
+      if opts['log']
+        require 'factbase/logged'
+        $fb = Factbase::Logged.new($fb, @loog)
+      end
       expr = args[1]
       # rubocop:disable Security/Eval
       eval(expr)

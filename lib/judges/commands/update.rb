@@ -5,15 +5,14 @@
 
 require 'backtrace'
 require 'elapsed'
-require 'factbase/looged'
 require 'factbase/churn'
 require 'tago'
 require 'timeout'
 require_relative '../../judges'
-require_relative '../../judges/to_rel'
+require_relative '../../judges/impex'
 require_relative '../../judges/judges'
 require_relative '../../judges/options'
-require_relative '../../judges/impex'
+require_relative '../../judges/to_rel'
 
 # The +update+ command.
 #
@@ -39,7 +38,10 @@ class Judges::Update
     start = Time.now
     impex = Judges::Impex.new(@loog, args[1])
     fb = impex.import(strict: false)
-    fb = Factbase::Looged.new(fb, @loog) if opts['log']
+    if opts['log']
+      require 'factbase/logged'
+      fb = Factbase::Logged.new(fb, @loog)
+    end
     options = Judges::Options.new(opts['option'])
     if opts['options-file']
       options += Judges::Options.new(

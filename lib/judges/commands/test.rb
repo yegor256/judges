@@ -6,7 +6,6 @@
 require 'nokogiri'
 require 'factbase'
 require 'backtrace'
-require 'factbase/looged'
 require 'factbase/to_xml'
 require 'elapsed'
 require_relative '../../judges'
@@ -149,7 +148,10 @@ class Judges::Test
     runs = opts['runs'] || yaml['runs'] || 1
     (1..runs).each do |r|
       fbx = fb
-      fbx = Factbase::Looged.new(fb, @loog) if opts['log']
+      if opts['log']
+        require 'factbase/logged'
+        fbx = Factbase::Logged.new(fb, @loog)
+      end
       expected_failure = yaml['expected_failure']
       begin
         judge.run(fbx, {}, {}, options)
