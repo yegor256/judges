@@ -59,7 +59,9 @@ class Judges::Judge
     rescue Exception => e
       # rubocop:enable Lint/RescueException
       @loog.error(Backtrace.new(e))
-      raise e.message
+      raise e if e.is_a?(StandardError)
+      raise e if e.is_a?(Timeout::ExitException)
+      raise "#{e.message} (#{e.class.name})"
     ensure
       $fb = $judge = $options = $loog = nil
     end
