@@ -5,6 +5,7 @@
 
 require 'elapsed'
 require 'tago'
+require 'timeout'
 require 'factbase/tallied'
 require_relative '../judges'
 require_relative '../judges/to_rel'
