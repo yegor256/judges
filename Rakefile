@@ -3,10 +3,12 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2025 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require 'qbash'
 require 'rubygems'
 require 'rake'
 require 'rdoc'
 require 'rake/clean'
+require 'shellwords'
 
 def name
   @name ||= File.basename(Dir['*.gemspec'].first, '.*')
@@ -18,7 +20,7 @@ end
 
 ENV['RACK_ENV'] = 'test'
 
-task default: %i[clean test features rubocop yard]
+task default: %i[clean test picks reqs features rubocop yard]
 
 require 'rake/testtask'
 desc 'Run all unit tests'
@@ -28,6 +30,20 @@ Rake::TestTask.new(:test) do |test|
   test.pattern = 'test/**/test_*.rb'
   test.warning = true
   test.verbose = false
+end
+
+desc 'Run them via Ruby, one by one'
+task :picks do
+  Dir['test/**/*.rb'].each do |f|
+    qbash("bundle exec ruby #{Shellwords.escape(f)}", log: $stdout)
+  end
+end
+
+desc 'Require them via Ruby, one by one'
+task :reqs do
+  Dir['lib/**/*.rb'].each do |f|
+    qbash("bundle exec ruby #{Shellwords.escape(f)}", log: $stdout)
+  end
 end
 
 require 'cucumber/rake/task'

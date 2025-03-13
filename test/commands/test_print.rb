@@ -3,17 +3,17 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2025 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
-require 'minitest/autorun'
-require 'loog'
 require 'factbase'
-require 'nokogiri'
-require 'yaml'
 require 'fileutils'
+require 'loog'
+require 'nokogiri'
 require 'securerandom'
 require 'w3c_validators'
 require 'webmock/minitest'
+require 'yaml'
 require_relative '../../lib/judges'
 require_relative '../../lib/judges/commands/print'
+require_relative '../test__helper'
 
 # Test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

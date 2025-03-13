@@ -3,12 +3,12 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2025 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
-require 'minitest/autorun'
 require 'loog'
 require 'nokogiri'
 require 'time'
 require_relative '../../lib/judges'
 require_relative '../../lib/judges/commands/trim'
+require_relative '../test__helper'
 
 # Test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

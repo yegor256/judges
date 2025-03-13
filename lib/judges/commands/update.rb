@@ -5,6 +5,7 @@
 
 require 'backtrace'
 require 'elapsed'
+require 'factbase'
 require 'factbase/churn'
 require 'tago'
 require 'timeout'

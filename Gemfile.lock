@@ -202,6 +202,11 @@ GEM
       date
       stringio
     public_suffix (6.0.1)
+    qbash (0.4.0)
+      backtrace (> 0)
+      elapsed (> 0)
+      loog (> 0)
+      tago (> 0)
     racc (1.8.1)
     rack (3.1.12)
     rack-session (2.1.0)
@@ -335,6 +340,7 @@ DEPENDENCIES
   judges!
   minitest (= 5.25.5)
   minitest-reporters (= 1.7.1)
+  qbash (> 0)
   rake (= 13.2.1)
   random-port (~> 0.0)
   rspec-rails (= 7.1.1)
