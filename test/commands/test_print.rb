@@ -6,6 +6,7 @@
 require 'factbase'
 require 'fileutils'
 require 'loog'
+require 'net/ping'
 require 'nokogiri'
 require 'securerandom'
 require 'w3c_validators'
@@ -34,6 +35,8 @@ class TestPrint < Minitest::Test
   end
 
   def test_print_to_html
+    WebMock.enable_net_connect!
+    skip('We are offline') unless we_are_online
     fb = Factbase.new
     10.times do
       f = fb.insert
@@ -100,5 +103,11 @@ class TestPrint < Minitest::Test
       Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml', 'auto' => true }, [f])
       assert_equal(mtime, File.mtime(y))
     end
+  end
+
+  private
+
+  def we_are_online
+    Net::Ping::External.new('8.8.8.8').ping?
   end
 end

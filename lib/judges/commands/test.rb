@@ -59,6 +59,8 @@ class Judges::Test
             next
           end
           @loog.info("🛠️ Testing #{f.to_rel}:")
+          start = Time.now
+          badge = "#{judge.name}/#{tname}"
           begin
             fb = Factbase.new
             prepare(fb, yaml)
@@ -67,9 +69,7 @@ class Judges::Test
               @loog.info("Running #{j.script} judge as a pre-condition...")
               test_one(fb, opts, j, n, yaml, assert: false)
             end
-            start = Time.now
             test_one(fb, opts, judge, tname, yaml)
-            times["#{judge.name}/#{tname}"] = Time.now - start
             yaml['after']&.each do |rb|
               @loog.info("Running #{rb} assertion script...")
               $fb = fb
@@ -79,20 +79,21 @@ class Judges::Test
             tests += 1
           rescue StandardError => e
             @loog.warn(Backtrace.new(e))
-            errors << f
+            errors << badge
           end
+          times[badge] = Time.now - start
         end
         tested += 1
       end
       unless times.empty?
-        fmt = "%60s\t%9s"
+        fmt = "%60s\t%9s\t%9s"
         @loog.info(
           [
-            'Time summaries:',
-            format(fmt, 'Script', 'Seconds'),
-            format(fmt, '---', '---'),
+            'Test summary:',
+            format(fmt, 'Script', 'Seconds', 'Result'),
+            format(fmt, '---', '---', '---'),
             times.sort_by { |_, v| v }.reverse.map do |script, sec|
-              format(fmt, script, format('%.3f', sec))
+              format(fmt, script, format('%.3f', sec), errors.include?(script) ? 'ERROR' : 'OK')
             end.join("\n  ")
           ].join("\n  ")
         )
@@ -143,6 +144,14 @@ class Judges::Test
     end
   end
 
+  # Test a single test in a single judge and raise exception if the test fails.
+  # @param [Factbase] fb The factbase to use
+  # @param [Hash] opts The command line options
+  # @param [Judges::Judge] judge The judge to run
+  # @param [String] tname The name of the test (without .rb suffix)
+  # @param [Hash] yaml The YAML to be tested
+  # @param [Boolean] assert Should we assert (TRUE) or simply skip (FALSE)?
+  # @return [nil] Always NIL
   def test_one(fb, opts, judge, tname, yaml, assert: true)
     options = Judges::Options.new(opts['option']) + Judges::Options.new(yaml['options'])
     runs = opts['runs'] || yaml['runs'] || 1
