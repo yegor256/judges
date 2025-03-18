@@ -86,7 +86,7 @@ class Judges::Test
         tested += 1
       end
       unless times.empty?
-        fmt = "%60s\t%9s\t%9s"
+        fmt = "%-60s\t%9s\t%-9s"
         @loog.info(
           [
             'Test summary:',
