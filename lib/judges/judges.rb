@@ -54,6 +54,7 @@ class Judges::Judges
         Judges::Judge.new(File.absolute_path(d), @lib, @loog)
       end
     list.compact!
+    list.sort_by! { |j| j.name }
     list.each(&)
   end
 

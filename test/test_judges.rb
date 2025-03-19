@@ -29,6 +29,18 @@ class TestJudges < Minitest::Test
     end
   end
 
+  def test_shuffles_then
+    Dir.mktmpdir do |d|
+      %w[apple banana blueberry orange pear].each do |n|
+        dir = File.join(d, n)
+        save_it(File.join(dir, "#{n}.rb"), 'puts 1')
+      end
+      list = Judges::Judges.new(d, nil, Loog::NULL, shuffle: 'b').each.to_a
+      assert_equal('banana', list[1].name)
+      assert_equal('blueberry', list[2].name)
+    end
+  end
+
   def test_get_one
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'boo/boo.rb'), 'hey')
