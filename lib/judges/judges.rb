@@ -26,11 +26,12 @@ require_relative 'judge'
 # Copyright:: Copyright (c) 2024-2025 Yegor Bugayenko
 # License:: MIT
 class Judges::Judges
-  def initialize(dir, lib, loog, start: Time.now)
+  def initialize(dir, lib, loog, start: Time.now, shuffle: '')
     @dir = dir
     @lib = lib
     @loog = loog
     @start = start
+    @shuffle = shuffle
   end
 
   # Get one judge by name.
@@ -43,14 +44,17 @@ class Judges::Judges
 
   # Iterate over them all.
   # @yield [Judge]
-  def each
+  def each(&)
     return to_enum(__method__) unless block_given?
-    Dir.glob(File.join(@dir, '*')).each do |d|
-      next unless File.directory?(d)
-      b = File.basename(d)
-      next unless File.exist?(File.join(d, "#{b}.rb"))
-      yield Judges::Judge.new(File.absolute_path(d), @lib, @loog)
-    end
+    list =
+      Dir.glob(File.join(@dir, '*')).each.to_a.map do |d|
+        next unless File.directory?(d)
+        b = File.basename(d)
+        next unless File.exist?(File.join(d, "#{b}.rb"))
+        Judges::Judge.new(File.absolute_path(d), @lib, @loog)
+      end
+    list.compact!
+    list.each(&)
   end
 
   # Iterate over them all.
