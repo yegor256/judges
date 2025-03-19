@@ -26,6 +26,7 @@ require_relative '../../judges/to_rel'
 class Judges::Update
   def initialize(loog)
     @loog = loog
+    @start = Time.now
   end
 
   # Run it (it is supposed to be called by the +bin/judges+ script.
@@ -148,6 +149,9 @@ class Judges::Update
   def one_judge(opts, fb, judge, global, options, errors)
     local = {}
     begin
+      if opts['lifetime'] && Time.now - @start > opts['lifetime']
+        throw :"👎 The '#{judge.name}' judge skipped, no time left"
+      end
       Timeout.timeout(opts['timeout']) do
         judge.run(fb, global, local, options)
       end

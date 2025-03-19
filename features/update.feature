@@ -18,6 +18,18 @@ Feature: Update
     Then Stdout contains "Update finished in 3 cycle(s), did 3i/0d/3a"
     And Exit code is zero
 
+  Scenario: Skips the judge on lifetime running out
+    Given I make a temp directory
+    Then I have a "simple/simple.rb" file with content:
+    """
+      n = $fb.insert
+      sleep 1
+    """
+    Then I run bin/judges with "--verbose update --quiet --lifetime 1 --max-cycles 5 . simple.fb"
+    Then Stdout contains "The 'simple' judge skipped, no time left"
+    Then Stdout contains "Update finished in 2 cycle(s), did 1i/0d/0a"
+    And Exit code is zero
+
   Scenario: Use options from a file
     Given I make a temp directory
     Then I have a "simple/simple.rb" file with content:

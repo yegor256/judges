@@ -20,7 +20,7 @@ end
 
 ENV['RACK_ENV'] = 'test'
 
-task default: %i[clean test picks reqs features rubocop yard]
+task default: %i[clean test features picks reqs rubocop yard]
 
 require 'rake/testtask'
 desc 'Run all unit tests'

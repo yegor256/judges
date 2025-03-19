@@ -71,8 +71,10 @@ class JudgesGLI extend GLI::App
     c.flag([:judge], multiple: true)
     c.desc 'The location of a Ruby library (directory with .rb files to include)'
     c.flag([:lib])
+    c.desc 'Maximum time in seconds to spend on the entire update cycle'
+    c.flag([:lifetime], default_value: 300, type: Integer)
     c.desc 'Maximum time in seconds to spend on every judge (forcefully terminate if over time)'
-    c.flag([:'timeout'], default_value: 30, type: Integer)
+    c.flag([:timeout], default_value: 30, type: Integer)
     c.desc 'Maximum number of update cycles to run'
     c.flag([:'max-cycles'], default_value: 8, type: Integer)
     c.desc 'Stay quiet even if some judges fail'
