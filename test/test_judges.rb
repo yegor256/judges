@@ -45,6 +45,22 @@ class TestJudges < Minitest::Test
     end
   end
 
+  def test_keeps_them_all
+    ['', 'b', 'ye'].each do |pfx|
+      Dir.mktmpdir do |d|
+        names = %w[blue orange yellow black white pink magenta].sort
+        names.each do |n|
+          dir = File.join(d, n)
+          save_it(File.join(dir, "#{n}.rb"), 'puts 1')
+        end
+        after = Judges::Judges.new(d, nil, Loog::NULL, shuffle: pfx).each.to_a.map(&:name)
+        assert_equal(names.size, after.size)
+        names.each { |n| assert(after.include?(n), "#{n.inspect} is missing, with #{pfx.inspect}") }
+        after.each { |n| assert(names.include?(n), "#{n.inspect} is extra, with #{pfx.inspect}") }
+      end
+    end
+  end
+
   def test_get_one
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'boo/boo.rb'), 'hey')

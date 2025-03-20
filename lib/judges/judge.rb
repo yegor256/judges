@@ -28,6 +28,12 @@ class Judges::Judge
     @start = start
   end
 
+  # Print it as a string.
+  # @return [String] Name of it
+  def to_s
+    name
+  end
+
   # Run it with the given Factbase and environment variables.
   #
   # @param [Factbase] fb The factbase
