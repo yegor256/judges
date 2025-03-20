@@ -60,8 +60,7 @@ class Judges::Judges
     mapping = all
       .map { |a| [a[0].name, a[1], a[1]] }
       .reject { |a| a[0].start_with?(@shuffle) }
-      .map { |a| [a[1], a[2]] }
-      .to_h
+      .to_h { |a| [a[1], a[2]] }
     positions = mapping.values.shuffle
     mapping.keys.zip(positions).to_h.each do |before, after|
       good[after] = all[before]
@@ -69,7 +68,7 @@ class Judges::Judges
     good.map { |a| a[0] }.each(&)
   end
 
-  # Iterate over them all.
+  # Iterate over them all, with an index.
   # @yield [(Judge, Integer)]
   def each_with_index
     idx = 0
