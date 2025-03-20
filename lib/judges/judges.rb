@@ -31,7 +31,7 @@ class Judges::Judges
     @lib = lib
     @loog = loog
     @start = start
-    @shuffle = shuffle
+    @shuffle = shuffle || ''
   end
 
   # Get one judge by name.
@@ -54,8 +54,13 @@ class Judges::Judges
         Judges::Judge.new(File.absolute_path(d), @lib, @loog)
       end
     list.compact!
-    list.sort_by! { |j| j.name }
-    list.each(&)
+    list.sort_by!(&:name)
+    all = list.each_with_index.to_a
+    good = all.dup
+    all.reject { |a| a[0].name.start_with?(@shuffle) }.map { |a| a[1] }.each_with_index do |i, idx|
+      good[i] = all[idx]
+    end
+    good.map { |a| a[0] }.each(&)
   end
 
   # Iterate over them all.

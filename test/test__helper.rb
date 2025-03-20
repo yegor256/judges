@@ -16,6 +16,12 @@ require 'minitest/autorun'
 require 'minitest/reporters'
 Minitest::Reporters.use! [Minitest::Reporters::SpecReporter.new]
 
+# To make tests retry on failure:
+if ENV['RACK_RUN']
+  require 'minitest/retry'
+  Minitest::Retry.use!
+end
+
 class Minitest::Test
   def save_it(file, content)
     require 'fileutils'
