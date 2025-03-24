@@ -148,6 +148,7 @@ class Judges::Update
   # @return [Churn] How many modifications have been made
   def one_judge(opts, fb, judge, global, options, errors)
     local = {}
+    start = Time.now
     begin
       if opts['lifetime'] && Time.now - @start > opts['lifetime']
         throw :"👎 The '#{judge.name}' judge skipped, no time left"
@@ -155,9 +156,9 @@ class Judges::Update
       Timeout.timeout(opts['timeout']) do
         judge.run(fb, global, local, options)
       end
-    rescue Timeout::Error => e
-      errors << "Judge #{judge.name} stopped by timeout: #{e.message}"
-      throw :"👎 The '#{judge.name}' judge timed out: #{e.message}"
+    rescue Timeout::Error, Timeout::ExitException => e
+      errors << "Judge #{judge.name} stopped by timeout after #{start.ago}: #{e.message}"
+      throw :"👎 The '#{judge.name}' judge timed out after #{start.ago}: #{e.message}"
     end
   end
 
