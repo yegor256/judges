@@ -14,7 +14,6 @@ gem 'net-ping', '~>2.0', require: false
 gem 'qbash', '>0', require: false
 gem 'rake', '~>13.2', require: false
 gem 'random-port', '~>0.0', require: false
-gem 'rspec-rails', '~>7.1', require: false
 gem 'rubocop', '1.74.0', require: false
 gem 'rubocop-minitest', '>0', require: false
 gem 'rubocop-performance', '>0', require: false
