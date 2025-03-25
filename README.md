@@ -10,6 +10,7 @@
 [![Yard Docs](http://img.shields.io/badge/yard-docs-blue.svg)](http://rubydoc.info/github/yegor256/judges/master/frames)
 [![Hits-of-Code](https://hitsofcode.com/github/yegor256/judges)](https://hitsofcode.com/view/github/yegor256/judges)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/yegor256/judges/blob/master/LICENSE.txt)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fyegor256%2Fjudges.svg?type=shield&issueType=license)](https://app.fossa.com/projects/git%2Bgithub.com%2Fyegor256%2Fjudges?ref=badge_shield&issueType=license)
 
 A command line tool and a Ruby gem for running so called judges against a
 [factbase](https://github.com/yegor256/factbase).
