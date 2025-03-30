@@ -3,6 +3,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2025 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require 'os'
 require 'qbash'
 require 'rubygems'
 require 'rake'
@@ -20,7 +21,7 @@ end
 
 ENV['RACK_ENV'] = 'test'
 
-task default: %i[clean test features picks reqs rubocop yard]
+task default: %i[clean test features picks rubocop yard]
 
 require 'rake/testtask'
 desc 'Run all unit tests'
@@ -34,15 +35,11 @@ end
 
 desc 'Run them via Ruby, one by one'
 task :picks do
-  Dir['test/**/*.rb'].each do |f|
-    qbash("bundle exec ruby #{Shellwords.escape(f)}", log: $stdout)
-  end
-end
-
-desc 'Require them via Ruby, one by one'
-task :reqs do
-  Dir['lib/**/*.rb'].each do |f|
-    qbash("bundle exec ruby #{Shellwords.escape(f)}", log: $stdout)
+  next if OS.windows?
+  %w[test lib].each do |d|
+    Dir["#{d}/**/*.rb"].each do |f|
+      qbash("bundle exec ruby #{Shellwords.escape(f)}", log: $stdout)
+    end
   end
 end
 
