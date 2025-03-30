@@ -6,9 +6,7 @@
 require 'backtrace'
 require 'elapsed'
 require 'factbase'
-require 'factbase/cached/cached_factbase'
 require 'factbase/churn'
-require 'factbase/indexed/indexed_factbase'
 require 'factbase/logged'
 require 'logger'
 require 'tago'
@@ -44,7 +42,6 @@ class Judges::Update
     start = Time.now
     impex = Judges::Impex.new(@loog, args[1])
     fb = impex.import(strict: false)
-    fb = Factbase::IndexedFactbase.new(fb)
     fb = Factbase::Logged.new(fb, @loog) if opts['log']
     options = Judges::Options.new(opts['option'])
     if opts['options-file']
