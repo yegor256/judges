@@ -9,6 +9,8 @@ require 'factbase'
 require 'factbase/cached/cached_factbase'
 require 'factbase/churn'
 require 'factbase/indexed/indexed_factbase'
+require 'factbase/logged'
+require 'logger'
 require 'tago'
 require 'timeout'
 require_relative '../../judges'
@@ -43,10 +45,7 @@ class Judges::Update
     impex = Judges::Impex.new(@loog, args[1])
     fb = impex.import(strict: false)
     fb = Factbase::IndexedFactbase.new(fb)
-    if opts['log']
-      require 'factbase/logged'
-      fb = Factbase::Logged.new(fb, @loog)
-    end
+    fb = Factbase::Logged.new(fb, @loog) if opts['log']
     options = Judges::Options.new(opts['option'])
     if opts['options-file']
       options += Judges::Options.new(
