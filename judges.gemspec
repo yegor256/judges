@@ -29,7 +29,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'baza.rb', '~>0'
   s.add_dependency 'concurrent-ruby', '~>1.2'
   s.add_dependency 'elapsed', '~>0'
-  s.add_dependency 'factbase', '>=0.9.1'
+  s.add_dependency 'factbase', '~>0.9'
   s.add_dependency 'gli', '~>2.21'
   s.add_dependency 'iri', '~>0'
   s.add_dependency 'loog', '~>0'

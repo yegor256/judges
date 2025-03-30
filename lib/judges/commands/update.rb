@@ -6,7 +6,9 @@
 require 'backtrace'
 require 'elapsed'
 require 'factbase'
+require 'factbase/cached/cached_factbase'
 require 'factbase/churn'
+require 'factbase/indexed/indexed_factbase'
 require 'tago'
 require 'timeout'
 require_relative '../../judges'
@@ -40,6 +42,7 @@ class Judges::Update
     start = Time.now
     impex = Judges::Impex.new(@loog, args[1])
     fb = impex.import(strict: false)
+    fb = Factbase::IndexedFactbase.new(fb)
     if opts['log']
       require 'factbase/logged'
       fb = Factbase::Logged.new(fb, @loog)
