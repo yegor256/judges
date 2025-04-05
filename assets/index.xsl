@@ -141,7 +141,17 @@
       </tbody>
     </table>
   </xsl:template>
-  <xsl:template match="f">
+  <xsl:template match="f[not(*)]">
+    <tr>
+      <td class="empty">
+        <xsl:attribute name="colspan">
+          <xsl:value-of select="string-length($columns) - string-length(translate($columns, ',', '')) + 2"/>
+        </xsl:attribute>
+        <xsl:text>nothing</xsl:text>
+      </td>
+    </tr>
+  </xsl:template>
+  <xsl:template match="f[*]">
     <tr>
       <xsl:call-template name="td">
         <xsl:with-param name="cols" select="$columns"/>

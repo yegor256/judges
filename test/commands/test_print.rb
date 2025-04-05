@@ -39,6 +39,7 @@ class TestPrint < Minitest::Test
     stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(body: 'nothing')
     stub_request(:get, 'https://yegor256.github.io/judges/assets/index.js').to_return(body: 'nothing')
     fb = Factbase.new
+    fb.insert
     10.times do
       f = fb.insert
       f._id = 44
