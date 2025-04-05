@@ -35,8 +35,6 @@ class TestPrint < Minitest::Test
   end
 
   def test_print_to_html
-    WebMock.enable_net_connect!
-    skip('We are offline') unless we_are_online
     fb = Factbase.new
     10.times do
       f = fb.insert
@@ -71,6 +69,7 @@ class TestPrint < Minitest::Test
       end
     assert_empty(xml.errors, xml)
     refute_empty(xml.xpath('/html'), xml)
+    skip('We are offline') unless we_are_online
     WebMock.enable_net_connect!
     v = W3CValidators::NuValidator.new.validate_file(html)
     assert_empty(v.errors, "#{doc}\n\n#{v.errors.join('; ')}")

@@ -10,11 +10,19 @@
   <xsl:param name="version"/>
   <xsl:param name="columns"/>
   <xsl:param name="hidden"/>
+  <xsl:param name="js_hash"/>
+  <xsl:param name="css_hash"/>
   <xsl:template name="javascript">
-    <xsl:param name="url"/>
-    <script type="text/javascript" src="{$url}">
+    <xsl:param name="url" as="string"/>
+    <xsl:param name="hash" as="string"/>
+    <script type="text/javascript" src="{$url}" integrity="{$hash}" crossorigin="anonymous">
       <xsl:text> </xsl:text>
     </script>
+  </xsl:template>
+  <xsl:template name="css">
+    <xsl:param name="url" as="string"/>
+    <xsl:param name="hash" as="string"/>
+    <link href="{$url}" rel="stylesheet" integrity="{$hash}" crossorigin="anonymous"/>
   </xsl:template>
   <xsl:template match="/">
     <xsl:text disable-output-escaping='yes'>&lt;!DOCTYPE html&gt;</xsl:text>
@@ -33,34 +41,34 @@
           </xsl:choose>
         </title>
         <link rel="icon" href="https://www.zerocracy.com/svg/logo.svg" type="image/svg"/>
-        <link href="https://cdn.jsdelivr.net/gh/yegor256/tacit@gh-pages/tacit-css.min.css" rel="stylesheet"/>
-        <link href="https://cdn.jsdelivr.net/gh/yegor256/drops@gh-pages/drops.min.css" rel="stylesheet"/>
+        <xsl:call-template name="css">
+          <xsl:with-param name="url">https://cdn.jsdelivr.net/npm/tacit-css@1.8.1/dist/tacit-css.min.css</xsl:with-param>
+          <xsl:with-param name="hash">sha384-JbsYayq5Otme+gjh/pl7NrA/qMIU0bxbdzKvYqQGHvvag0lHhM62TQnDzz+EyzXj</xsl:with-param>
+        </xsl:call-template>
+        <xsl:call-template name="css">
+          <xsl:with-param name="url">https://cdn.jsdelivr.net/npm/drops@0.2.0/dist/drops-0.2.0.min.css</xsl:with-param>
+          <xsl:with-param name="hash">sha384-5jl1QSYGvyjnoRf6lIhaq2MlbW/qjOvNay9i434tlxyKPqm+t1ed5vxKgT75C4xe</xsl:with-param>
+        </xsl:call-template>
+        <xsl:call-template name="css">
+          <xsl:with-param name="url">//yegor256.github.io/judges/index.css</xsl:with-param>
+          <xsl:with-param name="hash">
+            <xsl:value-of select="$css_hash"/>
+          </xsl:with-param>
+        </xsl:call-template>
         <xsl:call-template name="javascript">
-          <xsl:with-param name="url">https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js</xsl:with-param>
+          <xsl:with-param name="url">https://code.jquery.com/jquery-3.7.1.min.js</xsl:with-param>
+          <xsl:with-param name="hash">sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=</xsl:with-param>
         </xsl:call-template>
         <xsl:call-template name="javascript">
           <xsl:with-param name="url">https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.min.js</xsl:with-param>
+          <xsl:with-param name="hash">sha384-+PEWXCk8F17zxsQsEjkuHjUN4yFMHv03eKxKLrqwDql8FJQM0NeSvHRZFVLfXyn7</xsl:with-param>
         </xsl:call-template>
-        <style>
-          * { font-family: monospace; }
-          section { width: 100%; }
-          article { border: none; }
-          header img { width: 3em; height: 3em; }
-          table { table-layout: fixed; }
-          td { word-wrap: break-word; }
-          .sorter { cursor: pointer; }
-          .S { color: #4A5240; }
-          .T { color: #2471A3; }
-          .I { color: #61304B; }
-          .F { color: #5C0029; }
-          .BR { color: #B6C649; }
-          .hidden { color: #C1C1C1; }
-        </style>
-        <script type="text/javascript">
-          $(function() {
-            $("#facts").tablesorter();
-          });
-        </script>
+        <xsl:call-template name="javascript">
+          <xsl:with-param name="url">//yegor256.github.io/judges/index.js</xsl:with-param>
+          <xsl:with-param name="hash">
+            <xsl:value-of select="$js_hash"/>
+          </xsl:with-param>
+        </xsl:call-template>
       </head>
       <body>
         <section>
@@ -111,16 +119,6 @@
             </p>
           </footer>
         </section>
-        <script type="text/javascript">
-          function updateTime() {
-            const now = new Date();
-            const isoTime = now.toISOString();
-            const timeElement = document.getElementById('current-time');
-            timeElement.textContent = `Current time: ${isoTime}`;
-          }
-          updateTime();
-          setInterval(updateTime, 1000);
-        </script>
       </body>
     </html>
   </xsl:template>
@@ -155,13 +153,13 @@
     <xsl:param name="cols"/>
     <xsl:choose>
       <xsl:when test="string-length($cols) &gt; 0">
-        <col style=""/>
+        <col/>
         <xsl:call-template name="col">
           <xsl:with-param name="cols" select="substring-after($cols, ',')"/>
         </xsl:call-template>
       </xsl:when>
       <xsl:otherwise>
-        <col style="width: 50%;"/>
+        <col class="w50"/>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>

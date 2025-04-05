@@ -3,6 +3,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2025 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require 'base64'
 require 'time'
 require 'fileutils'
 require 'factbase'
@@ -82,8 +83,16 @@ class Judges::Print
         'date' => Time.now.utc.iso8601,
         'columns' => opts['columns'] || 'when,what,who',
         'hidden' => opts['hidden'] || '_id,_version,_time,_job',
-        'version' => Judges::VERSION
+        'version' => Judges::VERSION,
+        'css_hash' => sha384('index.css'),
+        'js_hash' => sha384('index.js')
       )
     )
+  end
+
+  def sha384(asset)
+    body = File.read(File.join(File.join(__dir__, '../../../assets/'), asset))
+    sha = Base64.strict_encode64(Digest::SHA256.digest(body))
+    "sha256-#{sha}"
   end
 end
