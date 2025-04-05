@@ -31,7 +31,7 @@ release:
     cp /tmp/index.css assets/index.css
     cp /tmp/index.js assets/index.js
     git add assets/
-    git commit -am --allow-empty 'New JS and CSS'
+    git commit -a --allow-empty -m 'New JS and CSS'
 merge:
   script: |-
     bundle exec rake
