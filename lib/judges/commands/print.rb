@@ -4,11 +4,12 @@
 # SPDX-License-Identifier: MIT
 
 require 'base64'
-require 'time'
-require 'fileutils'
-require 'factbase'
-require 'nokogiri'
 require 'elapsed'
+require 'factbase'
+require 'fileutils'
+require 'nokogiri'
+require 'time'
+require 'typhoeus'
 require_relative '../../judges'
 require_relative '../../judges/impex'
 
@@ -91,8 +92,11 @@ class Judges::Print
   end
 
   def sha384(asset)
-    body = File.read(File.join(File.join(__dir__, '../../../assets/'), asset))
-    sha = Base64.strict_encode64(Digest::SHA256.digest(body))
+    url = "https://yegor256.github.io/judges/assets/#{asset}"
+    http = Typhoeus::Request.get(url)
+    return "Timeout at #{url.inspect}" if http.timed_out?
+    raise "Failed to load #{url.inspect}" unless http.code == 200
+    sha = Base64.strict_encode64(Digest::SHA256.digest(http.body))
     "sha256-#{sha}"
   end
 end

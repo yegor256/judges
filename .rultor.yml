@@ -23,6 +23,15 @@ release:
     gem build judges.gemspec
     chmod 0600 ../rubygems.yml
     gem push *.gem --config-file ../rubygems.yml
+
+    cp assets/index.css /tmp/index.css
+    cp assets/index.js /tmp/index.js
+    git checkout gh-pages
+    mkdir -p assets
+    cp /tmp/index.css assets/index.css
+    cp /tmp/index.js assets/index.js
+    git add assets/
+    git commit -am --allow-empty 'New JS and CSS'
 merge:
   script: |-
     bundle exec rake

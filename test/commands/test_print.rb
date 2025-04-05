@@ -35,6 +35,9 @@ class TestPrint < Minitest::Test
   end
 
   def test_print_to_html
+    WebMock.disable_net_connect!
+    stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(body: 'nothing')
+    stub_request(:get, 'https://yegor256.github.io/judges/assets/index.js').to_return(body: 'nothing')
     fb = Factbase.new
     10.times do
       f = fb.insert
@@ -76,6 +79,9 @@ class TestPrint < Minitest::Test
   end
 
   def test_print_all_formats
+    WebMock.disable_net_connect!
+    stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(body: 'nothing')
+    stub_request(:get, 'https://yegor256.github.io/judges/assets/index.js').to_return(body: 'nothing')
     %w[yaml html xml json].each do |fmt|
       Dir.mktmpdir do |d|
         f = File.join(d, 'base.fb')

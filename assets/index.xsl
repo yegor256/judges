@@ -50,7 +50,7 @@
           <xsl:with-param name="hash">sha384-5jl1QSYGvyjnoRf6lIhaq2MlbW/qjOvNay9i434tlxyKPqm+t1ed5vxKgT75C4xe</xsl:with-param>
         </xsl:call-template>
         <xsl:call-template name="css">
-          <xsl:with-param name="url">//yegor256.github.io/judges/index.css</xsl:with-param>
+          <xsl:with-param name="url">https://yegor256.github.io/judges/assets/index.css</xsl:with-param>
           <xsl:with-param name="hash">
             <xsl:value-of select="$css_hash"/>
           </xsl:with-param>
@@ -64,7 +64,7 @@
           <xsl:with-param name="hash">sha384-+PEWXCk8F17zxsQsEjkuHjUN4yFMHv03eKxKLrqwDql8FJQM0NeSvHRZFVLfXyn7</xsl:with-param>
         </xsl:call-template>
         <xsl:call-template name="javascript">
-          <xsl:with-param name="url">//yegor256.github.io/judges/index.js</xsl:with-param>
+          <xsl:with-param name="url">https://yegor256.github.io/judges/assets/index.js</xsl:with-param>
           <xsl:with-param name="hash">
             <xsl:value-of select="$js_hash"/>
           </xsl:with-param>
