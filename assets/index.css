@@ -17,3 +17,4 @@ td { word-wrap: break-word; }
 .BR { color: #B6C649; }
 .hidden { color: #C1C1C1; }
 .w50 { width: 50%; }
+.empty { color: lightgray; font-family: sans-serif; }
