@@ -7,7 +7,7 @@ $(() => {
   $('#facts').tablesorter();
 });
 
-function updateTime() {
+updateTime = () => {
   const now = new Date();
   const isoTime = now.toISOString();
   const timeElement = document.getElementById('current-time');
