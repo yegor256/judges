@@ -117,4 +117,28 @@ class TestUpdate < Minitest::Test
       refute_nil(sum.seconds)
     end
   end
+
+  def test_appends_to_existing_summary
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'mistake here')
+      file = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert.then do |f|
+        f.what = 'judges-summary'
+        f.errors = 'first'
+        f.errors = 'second'
+      end
+      File.binwrite(file, fb.export)
+      Judges::Update.new(Loog::VERBOSE).run(
+        { 'quiet' => true, 'summary' => true, 'max-cycles' => 2 },
+        [d, file]
+      )
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      sums = fb.query('(eq what "judges-summary")').each.to_a
+      assert_equal(1, sums.size)
+      sum = sums.first
+      assert_equal(3, sum['error'].size)
+    end
+  end
 end

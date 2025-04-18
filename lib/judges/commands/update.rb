@@ -83,22 +83,49 @@ class Judges::Update
       end
       throw :"Update finished in #{c} cycle(s), did #{churn}"
     end
-    return unless opts['summary']
-    fb.query('(eq what "judges-summary")').delete!
-    f = fb.insert
-    f.what = 'judges-summary'
-    f.when = Time.now
-    f.version = Judges::VERSION
-    f.seconds = Time.now - start
-    f.cycles = c
-    f.inserted = churn.inserted.size
-    f.deleted = churn.deleted.size
-    f.added = churn.added.size
-    errors.each { |e| f.error = e }
-    impex.export(fb)
+    if opts['summary']
+      summarize(fb, churn, errors)
+      impex.export(fb)
+    end
   end
 
   private
+
+  # Update the summary.
+  # @param [Factbase] fb The factbase
+  # @param [Churn] churn The churn
+  # @param [Array<String>] errors List of errors
+  def summarize(fb, churn, errors)
+    before = fb.query('(eq what "judges-summary")').each.to_a
+    f =
+      if before.empty?
+        @loog.info('A summary not found')
+        s = fb.insert
+        s.what = 'judges-summary'
+        s.when = Time.now
+        s.version = Judges::VERSION
+        s.seconds = Time.now - start
+        s.cycles = c
+        s.inserted = churn.inserted.size
+        s.deleted = churn.deleted.size
+        s.added = churn.added.size
+        s
+      else
+        s = before.first
+        errs = s['errors']&.size || 0
+        @loog.info(
+          "A summary found, with #{errs || 'no'} error#{'s' if errs > 1}: " \
+          "#{%w[when cycles version inserted deleted added].map { |a| "#{a}=#{s[a]&.first}" }.join(', ')}"
+        )
+        s
+      end
+    if errors.empty?
+      @loog.info('No errors added to the summary')
+    else
+      errors.each { |e| f.error = e }
+      @loog.info("#{errors.size} error#{'s' if errors.size > 1} added to the summary")
+    end
+  end
 
   # Run all judges in a full cycle, one by one.
   #
