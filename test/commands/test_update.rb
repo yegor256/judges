@@ -125,11 +125,11 @@ class TestUpdate < Minitest::Test
       fb = Factbase.new
       fb.insert.then do |f|
         f.what = 'judges-summary'
-        f.errors = 'first'
-        f.errors = 'second'
+        f.error = 'first'
+        f.error = 'second'
       end
       File.binwrite(file, fb.export)
-      Judges::Update.new(Loog::VERBOSE).run(
+      Judges::Update.new(Loog::NULL).run(
         { 'quiet' => true, 'summary' => true, 'max-cycles' => 2 },
         [d, file]
       )

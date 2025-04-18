@@ -83,10 +83,9 @@ class Judges::Update
       end
       throw :"Update finished in #{c} cycle(s), did #{churn}"
     end
-    if opts['summary']
-      summarize(fb, churn, errors)
-      impex.export(fb)
-    end
+    return unless opts['summary']
+    summarize(fb, churn, errors, start, c)
+    impex.export(fb)
   end
 
   private
@@ -95,30 +94,31 @@ class Judges::Update
   # @param [Factbase] fb The factbase
   # @param [Churn] churn The churn
   # @param [Array<String>] errors List of errors
-  def summarize(fb, churn, errors)
+  # @param [Time] start Whe we started
+  # @param [Integer] cycles How many cycles
+  def summarize(fb, churn, errors, start, cycles)
     before = fb.query('(eq what "judges-summary")').each.to_a
+    if before.empty?
+      @loog.info('A summary not found')
+      s = fb.insert
+      s.what = 'judges-summary'
+      s.when = Time.now
+      s.version = Judges::VERSION
+      s.seconds = Time.now - start
+      s.cycles = cycles
+      s.inserted = churn.inserted.size
+      s.deleted = churn.deleted.size
+      s.added = churn.added.size
+    else
+      s = before.first
+      errs = s['errors']&.size || 0
+      @loog.info(
+        "A summary found, with #{errs || 'no'} error#{'s' if errs > 1}: " \
+        "#{%w[when cycles version inserted deleted added].map { |a| "#{a}=#{s[a]&.first}" }.join(', ')}"
+      )
+    end
     f =
-      if before.empty?
-        @loog.info('A summary not found')
-        s = fb.insert
-        s.what = 'judges-summary'
-        s.when = Time.now
-        s.version = Judges::VERSION
-        s.seconds = Time.now - start
-        s.cycles = c
-        s.inserted = churn.inserted.size
-        s.deleted = churn.deleted.size
-        s.added = churn.added.size
-        s
-      else
-        s = before.first
-        errs = s['errors']&.size || 0
-        @loog.info(
-          "A summary found, with #{errs || 'no'} error#{'s' if errs > 1}: " \
-          "#{%w[when cycles version inserted deleted added].map { |a| "#{a}=#{s[a]&.first}" }.join(', ')}"
-        )
-        s
-      end
+      s
     if errors.empty?
       @loog.info('No errors added to the summary')
     else
