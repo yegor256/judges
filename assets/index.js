@@ -9,9 +9,11 @@ $(() => {
 
 updateTime = () => {
   const now = new Date();
-  const isoTime = now.toISOString();
-  const timeElement = document.getElementById('current-time');
-  timeElement.textContent = `Current time: ${isoTime}`;
+  const iso = now.toISOString();
+  const div = document.getElementById('current-time');
+  div.textContent = `Current time: ${iso}`;
 }
-updateTime();
-setInterval(updateTime, 1000);
+$(() => {
+  updateTime();
+  setInterval(updateTime, 1000);
+});
