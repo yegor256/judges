@@ -83,6 +83,7 @@ class Judges::Update
       end
       throw :"Update finished in #{c} cycle(s), did #{churn}"
     end
+    fb.query('(eq what "judges-summary")').delete! if opts['reset-summary']
     return unless opts['summary']
     summarize(fb, churn, errors, start, c)
     impex.export(fb)

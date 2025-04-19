@@ -83,6 +83,8 @@ class JudgesGLI extend GLI::App
     c.switch([:q, :quiet], default_value: false)
     c.desc 'Place a summarization fact into the factbase'
     c.switch([:summary], default_value: false)
+    c.desc 'Remove judges-summary fact if it exists'
+    c.switch([:'reset-summary'], default_value: false)
     c.desc 'Use default logging facility'
     c.switch([:log], default_value: true)
     run_it(c, 'update')
