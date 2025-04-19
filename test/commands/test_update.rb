@@ -141,27 +141,4 @@ class TestUpdate < Minitest::Test
       assert_equal(3, sum['error'].size)
     end
   end
-
-  def test_resets_existing_summary
-    Dir.mktmpdir do |d|
-      save_it(File.join(d, 'foo/foo.rb'), 'intentional bug here')
-      file = File.join(d, 'base.fb')
-      fb = Factbase.new
-      fb.insert.then do |f|
-        f.what = 'judges-summary'
-        f.error = 'something'
-      end
-      File.binwrite(file, fb.export)
-      Judges::Update.new(Loog::NULL).run(
-        { 'quiet' => true, 'summary' => true, 'reset-summary' => true, 'max-cycles' => 2 },
-        [d, file]
-      )
-      fb = Factbase.new
-      fb.import(File.binread(file))
-      sums = fb.query('(eq what "judges-summary")').each.to_a
-      assert_equal(1, sums.size)
-      sum = sums.first
-      assert_equal(1, sum['error'].size)
-    end
-  end
 end

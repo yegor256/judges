@@ -18,6 +18,18 @@ Feature: Update
     Then Stdout contains "Update finished in 3 cycle(s), did 3i/0d/3a"
     And Exit code is zero
 
+  Scenario: Generate a summary fact, with errors
+    Given I make a temp directory
+    Then I have a "buggy/buggy.rb" file with content:
+    """
+      this is a bug
+    """
+    Then I run bin/judges with "update --quiet --summary --max-cycles 1 . simple.fb"
+    Then Exit code is zero
+    Then I run bin/judges with "inspect simple.fb"
+    Then Stdout contains "Facts: 1"
+    And Exit code is zero
+
   Scenario: Skips the judge on lifetime running out
     Given I make a temp directory
     Then I have a "simple/simple.rb" file with content:

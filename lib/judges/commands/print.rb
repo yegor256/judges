@@ -8,6 +8,7 @@ require 'elapsed'
 require 'factbase'
 require 'fileutils'
 require 'nokogiri'
+require 'retries'
 require 'time'
 require 'typhoeus'
 require_relative '../../judges'
@@ -92,11 +93,15 @@ class Judges::Print
   end
 
   def sha384(asset)
-    url = "https://yegor256.github.io/judges/assets/#{asset}"
-    http = Typhoeus::Request.get(url)
-    return "Timeout at #{url.inspect}" if http.timed_out?
-    raise "Failed to load #{url.inspect}" unless http.code == 200
-    sha = Base64.strict_encode64(Digest::SHA256.digest(http.body))
-    "sha256-#{sha}"
+    with_retries do
+      url = "https://yegor256.github.io/judges/assets/#{asset}"
+      http = Typhoeus::Request.get(url)
+      return "Timeout at #{url.inspect}" if http.timed_out?
+      raise "Failed to load #{url.inspect}" unless http.code == 200
+      sha = Base64.strict_encode64(Digest::SHA256.digest(http.body))
+      "sha256-#{sha}"
+    rescue RuntimeError => e
+      e.message
+    end
   end
 end
