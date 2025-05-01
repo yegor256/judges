@@ -45,6 +45,18 @@ class TestJudges < Minitest::Test
     end
   end
 
+  def test_shuffles_and_boosts
+    Dir.mktmpdir do |d|
+      names = %w[red blue green black orange pink yellow].sort
+      names.each do |n|
+        dir = File.join(d, n)
+        save_it(File.join(dir, "#{n}.rb"), 'puts 1')
+      end
+      list = Judges::Judges.new(d, nil, Loog::NULL, shuffle: '', boost: ['yellow']).each.to_a
+      assert_equal('yellow', list[0].name)
+    end
+  end
+
   def test_keeps_them_all
     colors = %w[blue orange yellow black white pink magenta]
     ['', 'b', 'ye'].each do |pfx|

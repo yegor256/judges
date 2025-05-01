@@ -58,7 +58,7 @@ class Judges::Update
     else
       @loog.debug("The following options provided:\n\t#{options.to_s.gsub("\n", "\n\t")}")
     end
-    judges = Judges::Judges.new(dir, opts['lib'], @loog, start:, shuffle: opts['shuffle'])
+    judges = Judges::Judges.new(dir, opts['lib'], @loog, start:, shuffle: opts['shuffle'], boost: opts['boost'])
     c = 0
     churn = Factbase::Churn.new
     errors = []

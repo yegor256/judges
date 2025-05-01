@@ -26,12 +26,13 @@ require_relative 'judge'
 # Copyright:: Copyright (c) 2024-2025 Yegor Bugayenko
 # License:: MIT
 class Judges::Judges
-  def initialize(dir, lib, loog, start: Time.now, shuffle: '')
+  def initialize(dir, lib, loog, start: Time.now, shuffle: '', boost: [])
     @dir = dir
     @lib = lib
     @loog = loog
     @start = start
     @shuffle = shuffle || ''
+    @boost = boost
   end
 
   # Get one judge by name.
@@ -65,7 +66,15 @@ class Judges::Judges
     mapping.keys.zip(positions).to_h.each do |before, after|
       good[after] = all[before]
     end
-    good.map { |a| a[0] }.each(&)
+    ret = []
+    good.map { |a| a[0] }.each do |j|
+      if @boost&.include?(j.name)
+        ret.prepend(j)
+      else
+        ret.append(j)
+      end
+    end
+    ret.each(&)
   end
 
   # Iterate over them all, with an index.
