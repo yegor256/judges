@@ -157,7 +157,7 @@ GEM
       ast (~> 2.4.1)
       racc
     prism (1.4.0)
-    psych (5.2.3)
+    psych (5.2.4)
       date
       stringio
     public_suffix (6.0.2)
