@@ -16,10 +16,16 @@ require_relative '../../judges/impex'
 # Copyright:: Copyright (c) 2024-2025 Yegor Bugayenko
 # License:: MIT
 class Judges::Join
+  # Initialize.
+  # @param [Loog] loog Logging facility
   def initialize(loog)
     @loog = loog
   end
 
+  # Run the join command.
+  # @param [Hash] _opts Command line options (not used)
+  # @param [Array] args List of command line arguments
+  # @raise [RuntimeError] If not exactly two arguments provided
   def run(_opts, args)
     raise 'Exactly two arguments required' unless args.size == 2
     master = Judges::Impex.new(@loog, args[0])

@@ -26,6 +26,8 @@ require_relative '../../judges/to_rel'
 # Copyright:: Copyright (c) 2024-2025 Yegor Bugayenko
 # License:: MIT
 class Judges::Update
+  # Initialize.
+  # @param [Loog] loog Logging facility
   def initialize(loog)
     @loog = loog
     @start = Time.now

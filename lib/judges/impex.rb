@@ -14,11 +14,17 @@ require_relative '../judges/to_rel'
 # Copyright:: Copyright (c) 2024-2025 Yegor Bugayenko
 # License:: MIT
 class Judges::Impex
+  # Initialize.
+  # @param [Loog] loog Logging facility
+  # @param [String] file File path for import/export operations
   def initialize(loog, file)
     @loog = loog
     @file = file
   end
 
+  # Import factbase from file.
+  # @param [Boolean] strict Whether to raise error if file doesn't exist
+  # @return [Factbase] The imported factbase
   def import(strict: true)
     fb = Factbase.new
     if File.exist?(@file)
@@ -33,6 +39,9 @@ class Judges::Impex
     fb
   end
 
+  # Import factbase from file into existing factbase.
+  # @param [Factbase] fb The factbase to import into
+  # @raise [RuntimeError] If file doesn't exist
   def import_to(fb)
     raise "The factbase is absent at #{@file.to_rel}" unless File.exist?(@file)
     elapsed(@loog, level: Logger::INFO) do
@@ -41,6 +50,8 @@ class Judges::Impex
     end
   end
 
+  # Export factbase to file.
+  # @param [Factbase] fb The factbase to export
   def export(fb)
     elapsed(@loog, level: Logger::INFO) do
       FileUtils.mkdir_p(File.dirname(@file))

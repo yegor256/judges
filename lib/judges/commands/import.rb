@@ -18,10 +18,16 @@ require_relative '../../judges/to_rel'
 # Copyright:: Copyright (c) 2024-2025 Yegor Bugayenko
 # License:: MIT
 class Judges::Import
+  # Initialize.
+  # @param [Loog] loog Logging facility
   def initialize(loog)
     @loog = loog
   end
 
+  # Run the import command.
+  # @param [Hash] opts Command line options (start with '--')
+  # @param [Array] args List of command line arguments
+  # @raise [RuntimeError] If not exactly two arguments provided or file not found
   def run(opts, args)
     raise 'Exactly two arguments required' unless args.size == 2
     raise "File not found #{args[0].to_rel}" unless File.exist?(args[0])

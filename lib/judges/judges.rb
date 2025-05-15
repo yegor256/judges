@@ -26,6 +26,13 @@ require_relative 'judge'
 # Copyright:: Copyright (c) 2024-2025 Yegor Bugayenko
 # License:: MIT
 class Judges::Judges
+  # Initialize.
+  # @param [String] dir Directory containing judges
+  # @param [String] lib Library directory
+  # @param [Loog] loog Logging facility
+  # @param [Time] start Start time
+  # @param [String] shuffle Prefix for names of judges to shuffle
+  # @param [Array<String>] boost Names of judges to boost in priority
   def initialize(dir, lib, loog, start: Time.now, shuffle: '', boost: [])
     @dir = dir
     @lib = lib
@@ -36,15 +43,18 @@ class Judges::Judges
   end
 
   # Get one judge by name.
-  # @return [Judge]
+  # @param [String] name The name of the judge
+  # @return [Judge] The judge object
+  # @raise [RuntimeError] If judge doesn't exist
   def get(name)
     d = File.absolute_path(File.join(@dir, name))
     raise "Judge #{name} doesn't exist in #{@dir}" unless File.exist?(d)
     Judges::Judge.new(d, @lib, @loog, start: @start)
   end
 
-  # Iterate over them all.
-  # @yield [Judge]
+  # Iterate over all judges.
+  # @yield [Judge] Yields each judge
+  # @return [Enumerator] If no block given
   def each(&)
     return to_enum(__method__) unless block_given?
     list =
@@ -77,8 +87,9 @@ class Judges::Judges
     ret.each(&)
   end
 
-  # Iterate over them all, with an index.
-  # @yield [(Judge, Integer)]
+  # Iterate over all judges with index.
+  # @yield [Judge, Integer] Yields each judge with its index
+  # @return [Integer] The total count of judges
   def each_with_index
     idx = 0
     each do |p|

@@ -16,10 +16,16 @@ require_relative '../../judges/impex'
 # Copyright:: Copyright (c) 2024-2025 Yegor Bugayenko
 # License:: MIT
 class Judges::Eval
+  # Initialize.
+  # @param [Loog] loog Logging facility
   def initialize(loog)
     @loog = loog
   end
 
+  # Run the eval command.
+  # @param [Hash] opts Command line options (start with '--')
+  # @param [Array] args List of command line arguments
+  # @raise [RuntimeError] If not exactly two arguments provided
   def run(opts, args)
     raise 'Exactly two arguments required' unless args.size == 2
     impex = Judges::Impex.new(@loog, args[0])

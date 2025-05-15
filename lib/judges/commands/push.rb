@@ -19,6 +19,8 @@ require_relative '../../judges/impex'
 # Copyright:: Copyright (c) 2024-2025 Yegor Bugayenko
 # License:: MIT
 class Judges::Push
+  # Initialize.
+  # @param [Loog] loog Logging facility
   def initialize(loog)
     @loog = loog
   end

@@ -12,7 +12,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/yegor256/judges/blob/master/LICENSE.txt)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fyegor256%2Fjudges.svg?type=shield&issueType=license)](https://app.fossa.com/projects/git%2Bgithub.com%2Fyegor256%2Fjudges?ref=badge_shield&issueType=license)
 
-A command line tool and a Ruby gem for running so called judges against a
+A command line tool and a Ruby gem for running so-called judges against a
 [factbase](https://github.com/yegor256/factbase).
 
 Every "judge" is a directory with a single `.rb` file and a number
@@ -64,10 +64,10 @@ via the command line `--option` flag of the `update` command; and `expected` is
 an array of XPath expressions that must be present in the XML of the Factbase
 when the test is finished.
 
-The `category` (default: `[]`) may have one or an array of categories,
+The `category` (default: `[]`) may have one category or an array of categories,
 which then may be turned on via the `--category` command line flag.
 
-The `repeat` (default: `1`) makes `input` to be repeated multiple times
+The `repeat` (default: `1`) makes the `input` to be repeated multiple times
 (mostly useful for speed measuring on big data inputs).
 
 The `runs` (default: `1`) is the number of times the `.rb` script should

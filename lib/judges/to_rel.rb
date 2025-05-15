@@ -11,6 +11,7 @@ require 'pathname'
 # License:: MIT
 class Object
   # Generates a relative name of a file (to the current dir).
+  # @return [String] Relative path to the file with optional quotes if it contains spaces
   def to_rel
     s = File.absolute_path(to_s)
     p = Pathname.new(s).relative_path_from(Dir.getwd)

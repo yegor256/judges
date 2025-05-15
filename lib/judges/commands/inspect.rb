@@ -15,10 +15,16 @@ require_relative '../../judges/impex'
 # Copyright:: Copyright (c) 2024-2025 Yegor Bugayenko
 # License:: MIT
 class Judges::Inspect
+  # Initialize.
+  # @param [Loog] loog Logging facility
   def initialize(loog)
     @loog = loog
   end
 
+  # Run the inspect command.
+  # @param [Hash] _opts Command line options (not used)
+  # @param [Array] args List of command line arguments
+  # @raise [RuntimeError] If no arguments provided
   def run(_opts, args)
     raise 'At lease one argument required' if args.empty?
     fb = Judges::Impex.new(@loog, args[0]).import

@@ -17,10 +17,15 @@ class Judges::Options
     @pairs = pairs
   end
 
+  # Check if options are empty.
+  # @return [Boolean] true if no options are set
   def empty?
     to_h.empty?
   end
 
+  # Merge with another Options object.
+  # @param [Judges::Options] other The other options to merge
+  # @return [Judges::Options] A new Options object with merged values
   def +(other)
     h = to_h
     other.to_h.each do |k, v|
@@ -38,6 +43,8 @@ class Judges::Options
     end.sort.join("\n")
   end
 
+  # Convert options to hash.
+  # @return [Hash] The options as a hash with symbol keys
   def to_h
     @to_h ||=
       begin
