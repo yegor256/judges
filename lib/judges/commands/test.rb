@@ -51,11 +51,11 @@ class Judges::Test
           next unless include?(opts, judge.name, tname)
           yaml = YAML.load_file(f, permitted_classes: [Time])
           if yaml['skip']
-            @loog.info("Skippped #{f.to_rel}")
+            @loog.info("Skipped #{f.to_rel}")
             next
           end
           unless Judges::Categories.new(opts['enable'], opts['disable']).ok?(yaml['category'])
-            @loog.info("Skippped #{f.to_rel} because of its category")
+            @loog.info("Skipped #{f.to_rel} because of its category")
             next
           end
           @loog.info("🛠️ Testing #{f.to_rel}:")

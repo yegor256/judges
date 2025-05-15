@@ -94,7 +94,7 @@ class Judges::Update
   # @param [Factbase] fb The factbase
   # @param [Churn] churn The churn
   # @param [Array<String>] errors List of errors
-  # @param [Time] start Whe we started
+  # @param [Time] start When we started
   # @param [Integer] cycles How many cycles
   def summarize(fb, churn, errors, start, cycles)
     before = fb.query('(eq what "judges-summary")').each.to_a
