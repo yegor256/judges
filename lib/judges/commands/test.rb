@@ -122,8 +122,8 @@ class Judges::Test
   def include?(opts, name, tname = nil)
     judges = opts['judge'] || []
     return true if judges.empty?
-    tre = tname.nil? ? '.+' : tname
-    judges.any? { |n| n.match?(%r{^#{name}(/#{tre})?$}) }
+    re = tname.nil? ? '.+' : tname
+    judges.any? { |n| n.match?(%r{^#{name}(/#{re})?$}) }
   end
 
   def prepare(fb, yaml)
