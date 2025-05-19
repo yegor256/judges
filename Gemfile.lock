@@ -78,6 +78,7 @@ GEM
     elapsed (0.0.1)
       loog (> 0)
       tago (> 0)
+    erb (5.0.1)
     ethon (0.16.0)
       ffi (>= 1.15.0)
     factbase (0.10.2)
@@ -172,7 +173,8 @@ GEM
     rake (13.2.1)
     random-port (0.7.5)
       tago (> 0)
-    rdoc (6.13.1)
+    rdoc (6.14.0)
+      erb
       psych (>= 4.0.0)
     regexp_parser (2.10.0)
     retries (0.0.5)
