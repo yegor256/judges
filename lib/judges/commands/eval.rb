@@ -22,7 +22,7 @@ class Judges::Eval
     @loog = loog
   end
 
-  # Run the eval command.
+  # Run the eval command (called by the +bin/judges+ script).
   # @param [Hash] opts Command line options (start with '--')
   # @param [Array] args List of command line arguments
   # @raise [RuntimeError] If not exactly two arguments provided
@@ -40,7 +40,7 @@ class Judges::Eval
       eval(expr)
       # rubocop:enable Security/Eval
       impex.export($fb)
-      throw :'Evaluated successfully'
+      throw :'👍 Evaluated successfully'
     end
   end
 end

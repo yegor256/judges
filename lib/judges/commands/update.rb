@@ -33,10 +33,10 @@ class Judges::Update
     @start = Time.now
   end
 
-  # Run it (it is supposed to be called by the +bin/judges+ script.
-  #
+  # Run the update command (called by the +bin/judges+ script).
   # @param [Hash] opts Command line options (start with '--')
   # @param [Array] args List of command line arguments
+  # @raise [RuntimeError] If not exactly two arguments provided or directory is missing
   def run(opts, args)
     raise 'Exactly two arguments required' unless args.size == 2
     dir = args[0]
@@ -81,9 +81,13 @@ class Judges::Update
           @loog.info("Too many cycles already, as set by --max-cycles=#{opts['max-cycles']}, breaking")
           break
         end
+        if opts['fail-fast'] && !errors.empty?
+          @loog.info("Due to #{errors.count} errors we must stop at the update cycle ##{c}")
+          break
+        end
         @loog.info("The cycle #{c} did #{delta}")
       end
-      throw :"Update finished in #{c} cycle(s), did #{churn}"
+      throw :"👍 Update completed in #{c} cycle(s), did #{churn}"
     end
     return unless opts['summary']
     summarize(fb, churn, errors, start, c)
@@ -144,6 +148,10 @@ class Judges::Update
     elapsed(@loog, level: Logger::INFO) do
       done =
         judges.each_with_index do |judge, i|
+          if opts['fail-fast'] && !errors.empty?
+            @loog.info("Not running #{judge.name.inspect} due to #{errors.count} errors above, in --fail-fast mode")
+            next
+          end
           next unless include?(opts, judge.name)
           @loog.info("\n👉 Running #{judge.name} (##{i}) at #{judge.dir.to_rel} (#{start.ago} already)...")
           elapsed(@loog, level: Logger::INFO) do

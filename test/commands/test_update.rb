@@ -141,4 +141,19 @@ class TestUpdate < Minitest::Test
       assert_equal(3, sum['error'].size)
     end
   end
+
+  def test_fail_fast_stops_cycle
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'error/error.rb'), 'invalid$ruby$syntax')
+      save_it(File.join(d, 'valid/valid.rb'), '$fb.insert')
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::NULL).run(
+        { 'fail-fast' => true, 'quiet' => true, 'max-cycles' => 3, 'boost' => 'error' },
+        [d, file]
+      )
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_equal(0, fb.size)
+    end
+  end
 end

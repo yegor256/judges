@@ -29,11 +29,12 @@ class Judges::Print
     @loog = loog
   end
 
-  # Run it (it is supposed to be called by the +bin/judges+ script.
+  # Run the print command (called by the +bin/judges+ script).
   # @param [Hash] opts Command line options (start with '--')
   # @param [Array] args List of command line arguments
+  # @raise [RuntimeError] If no arguments provided
   def run(opts, args)
-    raise 'At lease one argument required' if args.empty?
+    raise 'At least one argument required' if args.empty?
     f = args[0]
     fb = Judges::Impex.new(@loog, f).import
     fb.query("(not #{opts['query']})").delete! unless opts['query'].nil?
@@ -70,7 +71,7 @@ class Judges::Print
             raise "Unknown format '#{fmt}'"
         end
       File.binwrite(o, output)
-      throw :"Factbase printed to #{o.to_rel} (#{File.size(o)} bytes)"
+      throw :"👍 Factbase printed to #{o.to_rel} (#{File.size(o)} bytes)"
     end
   end
 

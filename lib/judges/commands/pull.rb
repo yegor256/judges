@@ -25,9 +25,10 @@ class Judges::Pull
     @loog = loog
   end
 
-  # Run it (it is supposed to be called by the +bin/judges+ script.
+  # Run the pull command (called by the +bin/judges+ script).
   # @param [Hash] opts Command line options (start with '--')
   # @param [Array] args List of command line arguments
+  # @raise [RuntimeError] If not exactly two arguments provided
   def run(opts, args)
     raise 'Exactly two arguments required' unless args.size == 2
     fb = Factbase.new
@@ -54,9 +55,9 @@ class Judges::Pull
           baza.unlock(name, opts['owner'])
           raise e
         end
-        throw :"Pulled #{fb.size} facts by the name '#{name}'"
+        throw :"👍 Pulled #{fb.size} facts by name '#{name}'"
       else
-        throw :"There is nothing to pull, the name '#{name}' is absent on the server"
+        throw :"⚠️ Nothing to pull - name '#{name}' not found on server"
       end
     end
   end
@@ -69,7 +70,7 @@ class Judges::Pull
     loop do
       break if baza.finished?(id)
       sleep 1
-      raise "Time is over, the job ##{id} ('#{name}') is still not finished" if Time.now - start > limit
+      raise "Time is over, the job ##{id} ('#{name}') is still not completed" if Time.now - start > limit
       lapsed = Time.now - start
       @loog.debug("Still waiting for the job ##{id} ('#{name}') to finish... (#{format('%.2f', lapsed)}s already)")
     end
