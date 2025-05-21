@@ -16,6 +16,5 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - run: npm install -g eslint@9.24.0
-      - run: npm install @eslint/js
+      - run: npm install
       - run: eslint
