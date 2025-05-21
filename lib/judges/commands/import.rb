@@ -24,7 +24,7 @@ class Judges::Import
     @loog = loog
   end
 
-  # Run the import command.
+  # Run the import command (called by the +bin/judges+ script).
   # @param [Hash] opts Command line options (start with '--')
   # @param [Array] args List of command line arguments
   # @raise [RuntimeError] If not exactly two arguments provided or file not found
@@ -47,7 +47,7 @@ class Judges::Import
         end
       end
       impex.export(fb)
-      throw :"Import of #{yaml.size} facts finished"
+      throw :"👍 Import of #{yaml.size} facts completed"
     end
   end
 end

@@ -33,10 +33,10 @@ class Judges::Update
     @start = Time.now
   end
 
-  # Run it (it is supposed to be called by the +bin/judges+ script.
-  #
+  # Run the update command (called by the +bin/judges+ script).
   # @param [Hash] opts Command line options (start with '--')
   # @param [Array] args List of command line arguments
+  # @raise [RuntimeError] If not exactly two arguments provided or directory is missing
   def run(opts, args)
     raise 'Exactly two arguments required' unless args.size == 2
     dir = args[0]
@@ -87,7 +87,7 @@ class Judges::Update
         end
         @loog.info("The cycle #{c} did #{delta}")
       end
-      throw :"Update finished in #{c} cycle(s), did #{churn}"
+      throw :"👍 Update finished in #{c} cycle(s), did #{churn}"
     end
     return unless opts['summary']
     summarize(fb, churn, errors, start, c)

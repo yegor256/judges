@@ -22,7 +22,7 @@ class Judges::Join
     @loog = loog
   end
 
-  # Run the join command.
+  # Run the join command (called by the +bin/judges+ script).
   # @param [Hash] _opts Command line options (not used)
   # @param [Array] args List of command line arguments
   # @raise [RuntimeError] If not exactly two arguments provided
@@ -34,7 +34,7 @@ class Judges::Join
       fb = master.import
       slave.import_to(fb)
       master.export(fb)
-      throw :'Two factbases joined'
+      throw :'👍 Two factbases joined successfully'
     end
   end
 end
