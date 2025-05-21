@@ -87,7 +87,7 @@ class Judges::Update
         end
         @loog.info("The cycle #{c} did #{delta}")
       end
-      throw :"👍 Update finished in #{c} cycle(s), did #{churn}"
+      throw :"👍 Update completed in #{c} cycle(s), did #{churn}"
     end
     return unless opts['summary']
     summarize(fb, churn, errors, start, c)

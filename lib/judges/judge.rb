@@ -59,7 +59,7 @@ class Judges::Judge
     end
     s = File.join(@dir, script)
     raise "Can't load '#{s}'" unless File.exist?(s)
-    elapsed(@loog, intro: "#{$judge} finished", level: Logger::INFO) do
+    elapsed(@loog, intro: "#{$judge} completed", level: Logger::INFO) do
       load(s, true)
       $fb.churn
       # rubocop:disable Lint/RescueException

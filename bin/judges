@@ -23,7 +23,7 @@ class JudgesGLI extend GLI::App
       start = Time.now
       @@loog.debug("Running '#{ruby}' command...")
       Object.const_get("Judges::#{ruby.capitalize}").new(@@loog).run(options, args)
-      @@loog.debug("Command '#{ruby}' finished in #{start.ago}")
+      @@loog.debug("Command '#{ruby}' completed in #{start.ago}")
     end
   end
 

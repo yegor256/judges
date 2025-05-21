@@ -15,7 +15,7 @@ Feature: Update
     Then Stdout contains "FOO → "
     Then Stdout contains "BAR → "
     Then Stdout contains "1 judge(s) processed"
-    Then Stdout contains "Update finished in 3 cycle(s), did 3i/0d/3a"
+    Then Stdout contains "Update completed in 3 cycle(s), did 3i/0d/3a"
     And Exit code is zero
 
   Scenario: Generate a summary fact, with errors
@@ -39,7 +39,7 @@ Feature: Update
     """
     Then I run bin/judges with "--verbose update --quiet --lifetime 1 --max-cycles 5 . simple.fb"
     Then Stdout contains "The 'simple' judge skipped, no time left"
-    Then Stdout contains "Update finished in 2 cycle(s), did 1i/0d/0a"
+    Then Stdout contains "Update completed in 2 cycle(s), did 1i/0d/0a"
     And Exit code is zero
 
   Scenario: Use options from a file
@@ -57,7 +57,7 @@ Feature: Update
     Then Stdout contains "A1 → "
     Then Stdout contains "A2 → "
     Then Stdout contains "1 judge(s) processed"
-    Then Stdout contains "Update finished"
+    Then Stdout contains "Update completed"
     And Exit code is zero
 
   Scenario: Simple run with a timeout for a judge
@@ -71,7 +71,7 @@ Feature: Update
     Then Stdout contains "execution expired"
     Then Stdout contains "judge timed out after"
     Then Stdout contains "1 judge(s) processed"
-    Then Stdout contains "Update finished in 1 cycle(s), did 0i/0d/0a"
+    Then Stdout contains "Update completed in 1 cycle(s), did 0i/0d/0a"
     And Exit code is zero
 
   Scenario: Simple run of a few judges, with a lib
@@ -87,7 +87,7 @@ Feature: Update
     """
     Then I run bin/judges with "update --lib mylib --max-cycles 1 mine simple.fb"
     Then Stdout contains "1 judge(s) processed"
-    Then Stdout contains "Update finished in 1 cycle(s)"
+    Then Stdout contains "Update completed in 1 cycle(s)"
     And Exit code is zero
 
   Scenario: The update fails when a bug in a judge

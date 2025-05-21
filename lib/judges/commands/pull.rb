@@ -70,7 +70,7 @@ class Judges::Pull
     loop do
       break if baza.finished?(id)
       sleep 1
-      raise "Time is over, the job ##{id} ('#{name}') is still not finished" if Time.now - start > limit
+      raise "Time is over, the job ##{id} ('#{name}') is still not completed" if Time.now - start > limit
       lapsed = Time.now - start
       @loog.debug("Still waiting for the job ##{id} ('#{name}') to finish... (#{format('%.2f', lapsed)}s already)")
     end
