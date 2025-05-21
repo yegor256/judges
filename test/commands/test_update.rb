@@ -147,7 +147,7 @@ class TestUpdate < Minitest::Test
       save_it(File.join(d, 'error/error.rb'), 'invalid$ruby$syntax')
       save_it(File.join(d, 'valid/valid.rb'), '$fb.insert')
       file = File.join(d, 'base.fb')
-      Judges::Update.new(Loog::VERBOSE).run(
+      Judges::Update.new(Loog::NULL).run(
         { 'fail-fast' => true, 'quiet' => true, 'max-cycles' => 3, 'boost' => 'error' },
         [d, file]
       )
