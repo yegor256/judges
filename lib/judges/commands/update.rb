@@ -148,6 +148,10 @@ class Judges::Update
     elapsed(@loog, level: Logger::INFO) do
       done =
         judges.each_with_index do |judge, i|
+          if opts['fail-fast'] && !errors.empty?
+            @loog.info("Not running #{judge.name.inspect} due to #{errors.count} errors above, in --fail-fast mode")
+            next
+          end
           next unless include?(opts, judge.name)
           @loog.info("\n👉 Running #{judge.name} (##{i}) at #{judge.dir.to_rel} (#{start.ago} already)...")
           elapsed(@loog, level: Logger::INFO) do
@@ -159,9 +163,6 @@ class Judges::Update
           @loog.warn(Backtrace.new(e))
           errors << e.message
         end
-      if opts['fail-fast'] && !errors.empty?
-        throw :"❌ We must stop after #{errors.count} errors"
-      end
       throw :"👍 #{done} judge(s) processed" if errors.empty?
       throw :"❌ #{done} judge(s) processed with #{errors.size} errors"
     end
