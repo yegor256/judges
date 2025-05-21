@@ -81,6 +81,10 @@ class Judges::Update
           @loog.info("Too many cycles already, as set by --max-cycles=#{opts['max-cycles']}, breaking")
           break
         end
+        if opts['fail-fast'] && !errors.empty?
+          @loog.info("Due to #{errors.count} errors we must stop at the update cycle ##{c}")
+          break
+        end
         @loog.info("The cycle #{c} did #{delta}")
       end
       throw :"Update finished in #{c} cycle(s), did #{churn}"
@@ -155,6 +159,9 @@ class Judges::Update
           @loog.warn(Backtrace.new(e))
           errors << e.message
         end
+      if opts['fail-fast'] && !errors.empty?
+        throw :"❌ We must stop after #{errors.count} errors"
+      end
       throw :"👍 #{done} judge(s) processed" if errors.empty?
       throw :"❌ #{done} judge(s) processed with #{errors.size} errors"
     end

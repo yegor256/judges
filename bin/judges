@@ -83,6 +83,8 @@ class JudgesGLI extend GLI::App
     c.flag([:'max-cycles'], default_value: 8, type: Integer)
     c.desc 'Stay quiet even if some judges fail'
     c.switch([:q, :quiet], default_value: false)
+    c.desc 'Stop processing after the first error'
+    c.switch([:'fail-fast'], default_value: false)
     c.desc 'Place a summarization fact into the factbase'
     c.switch([:summary], default_value: false)
     c.desc 'Use default logging facility'
