@@ -89,6 +89,8 @@ class JudgesGLI extend GLI::App
     c.switch([:summary], default_value: false)
     c.desc 'Use default logging facility'
     c.switch([:log], default_value: true)
+    c.desc 'Expect at least one judge to be used (fail if none are used)'
+    c.switch([:'expect-judges'], default_value: true)
     run_it(c, 'update')
   end
 
