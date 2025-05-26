@@ -156,4 +156,23 @@ class TestUpdate < Minitest::Test
       assert_equal(0, fb.size)
     end
   end
+
+  def test_fails_when_no_judges_used
+    assert_raises(StandardError) do
+      Dir.mktmpdir do |d|
+        save_it(File.join(d, 'foo/foo.rb'), '$fb.insert')
+        file = File.join(d, 'base.fb')
+        Judges::Update.new(Loog::NULL).run({ 'judge' => ['nonexistent'] }, [d, file])
+      end
+    end
+  end
+
+  def test_fails_when_empty_directory
+    assert_raises(StandardError) do
+      Dir.mktmpdir do |d|
+        file = File.join(d, 'base.fb')
+        Judges::Update.new(Loog::NULL).run({}, [d, file])
+      end
+    end
+  end
 end

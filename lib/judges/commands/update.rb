@@ -145,6 +145,7 @@ class Judges::Update
   def cycle(opts, judges, fb, options, start, errors)
     churn = Factbase::Churn.new
     global = {}
+    used = 0
     elapsed(@loog, level: Logger::INFO) do
       done =
         judges.each_with_index do |judge, i|
@@ -154,6 +155,7 @@ class Judges::Update
           end
           next unless include?(opts, judge.name)
           @loog.info("\n👉 Running #{judge.name} (##{i}) at #{judge.dir.to_rel} (#{start.ago} already)...")
+          used += 1
           elapsed(@loog, level: Logger::INFO) do
             c = one_judge(opts, fb, judge, global, options, errors)
             churn += c
@@ -165,6 +167,9 @@ class Judges::Update
         end
       throw :"👍 #{done} judge(s) processed" if errors.empty?
       throw :"❌ #{done} judge(s) processed with #{errors.size} errors"
+    end
+    if used.zero?
+      raise 'No judges were used'
     end
     unless errors.empty?
       raise "Failed to update correctly (#{errors.size} errors)" unless opts['quiet']
