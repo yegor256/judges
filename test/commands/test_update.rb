@@ -162,7 +162,7 @@ class TestUpdate < Minitest::Test
       Dir.mktmpdir do |d|
         save_it(File.join(d, 'foo/foo.rb'), '$fb.insert')
         file = File.join(d, 'base.fb')
-        Judges::Update.new(Loog::NULL).run({ 'judge' => ['nonexistent'] }, [d, file])
+        Judges::Update.new(Loog::NULL).run({ 'judge' => ['nonexistent'], 'expect-judges' => true }, [d, file])
       end
     end
   end
@@ -171,8 +171,25 @@ class TestUpdate < Minitest::Test
     assert_raises(StandardError) do
       Dir.mktmpdir do |d|
         file = File.join(d, 'base.fb')
-        Judges::Update.new(Loog::NULL).run({}, [d, file])
+        Judges::Update.new(Loog::NULL).run({ 'expect-judges' => true }, [d, file])
       end
+    end
+  end
+
+  def test_no_failure_when_expect_judges_false
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::NULL).run({ 'expect-judges' => false }, [d, file])
+      assert_path_exists(file)
+    end
+  end
+
+  def test_no_failure_with_nonexistent_judge_when_expect_judges_false
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert')
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::NULL).run({ 'judge' => ['nonexistent'], 'expect-judges' => false }, [d, file])
+      assert_path_exists(file)
     end
   end
 end

@@ -168,9 +168,7 @@ class Judges::Update
       throw :"👍 #{done} judge(s) processed" if errors.empty?
       throw :"❌ #{done} judge(s) processed with #{errors.size} errors"
     end
-    if used.zero?
-      raise 'No judges were used'
-    end
+    raise 'No judges were used' if used.zero? && opts['expect-judges']
     unless errors.empty?
       raise "Failed to update correctly (#{errors.size} errors)" unless opts['quiet']
       @loog.info('Not failing because of the --quiet flag provided')
