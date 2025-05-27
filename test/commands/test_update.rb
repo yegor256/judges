@@ -157,6 +157,21 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_isolates_churns
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'first/first.rb'), '$global[:fb] ||= $fb; 2 + 2')
+      save_it(File.join(d, 'second/second.rb'), '$global[:fb] ||= $fb; $global[:fb].insert')
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::VERBOSE).run(
+        { 'max-cycles' => 3, 'boost' => 'first' },
+        [d, file]
+      )
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_equal(3, fb.size)
+    end
+  end
+
   def test_fails_when_no_judges_used
     assert_raises(StandardError) do
       Dir.mktmpdir do |d|

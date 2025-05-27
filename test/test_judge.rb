@@ -25,6 +25,30 @@ class TestJudge < Minitest::Test
     end
   end
 
+  def test_counts_churn
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, "#{File.basename(d)}.rb"), '$fb.insert.foo = 42')
+      judge = Judges::Judge.new(d, nil, Loog::NULL)
+      fb = Factbase.new
+      c = judge.run(fb, {}, {}, {})
+      assert_equal(1, c.inserted)
+      assert_equal(0, c.deleted)
+      assert_equal(1, c.added)
+    end
+  end
+
+  def test_counts_churn_after_txn
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, "#{File.basename(d)}.rb"), '$fb.txn { |fbt| fbt.insert.foo = 42 }')
+      judge = Judges::Judge.new(d, nil, Loog::NULL)
+      fb = Factbase.new
+      c = judge.run(fb, {}, {}, {})
+      assert_equal(1, c.inserted)
+      assert_equal(0, c.deleted)
+      assert_equal(1, c.added)
+    end
+  end
+
   def test_run_isolated
     Dir.mktmpdir do |d|
       save_it(File.join(d, "#{File.basename(d)}.rb"), '$fb.insert')

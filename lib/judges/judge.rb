@@ -47,6 +47,7 @@ class Judges::Judge
     $options = options
     $loog = @loog
     $global = global
+    $global.delete(:fb) # to make sure Tallied is always actual
     $local = local
     $start = @start
     options.to_h.each { |k, v| ENV.store(k.to_s, v.to_s) }

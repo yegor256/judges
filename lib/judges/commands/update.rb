@@ -159,7 +159,8 @@ class Judges::Update
           elapsed(@loog, level: Logger::INFO) do
             c = one_judge(opts, fb, judge, global, options, errors)
             churn += c
-            throw :"👍 The '#{judge.name}' judge #{c} out of #{fb.size}"
+            throw :"👍 The '#{judge.name}' judge made zero changes to #{fb.size} facts" if c.zero?
+            throw :"👍 The '#{judge.name}' judge #{c} out of #{fb.size} facts"
           end
         rescue StandardError, SyntaxError => e
           @loog.warn(Backtrace.new(e))
@@ -187,7 +188,7 @@ class Judges::Update
   # @param [Hash] global Global options
   # @param [Judges::Options] options The options
   # @param [Array<String>] errors List of errors
-  # @return [Churn] How many modifications have been made
+  # @return [Factbase::Churn] How many modifications have been made
   def one_judge(opts, fb, judge, global, options, errors)
     local = {}
     start = Time.now
