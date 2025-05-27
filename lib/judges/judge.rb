@@ -28,25 +28,32 @@ class Judges::Judge
     @start = start
   end
 
-  # Print it as a string.
-  # @return [String] Name of it
+  # Returns the string representation of the judge.
+  #
+  # @return [String] The name of the judge (same as the directory name)
   def to_s
     name
   end
 
-  # Run it with the given Factbase and environment variables.
+  # Executes the judge script with the provided factbase and configuration.
   #
-  # @param [Factbase] fb The factbase
-  # @param [Hash] global Global options
-  # @param [Hash] local Local options
-  # @param [Judges::Options] options The options from command line
-  # @return [Factbase::Churn] The changes just made
+  # This method sets up the execution environment by creating global variables,
+  # loading library files, and running the judge script. It tracks execution time
+  # and captures any errors that occur during execution.
+  #
+  # @param [Factbase] fb The factbase instance to operate on
+  # @param [Hash] global Global configuration options shared across all judges
+  # @param [Hash] local Local configuration options specific to this judge
+  # @param [Judges::Options] options Command-line options object
+  # @return [Factbase::Churn] Object containing statistics about the changes made to the factbase
+  # @raise [RuntimeError] If the lib directory doesn't exist, the script can't be loaded, or execution fails
   def run(fb, global, local, options)
     $fb = Factbase::Tallied.new(fb)
     $judge = File.basename(@dir)
     $options = options
     $loog = @loog
     $global = global
+    $global.delete(:fb) # to make sure Tallied is always actual
     $local = local
     $start = @start
     options.to_h.each { |k, v| ENV.store(k.to_s, v.to_s) }
@@ -74,12 +81,22 @@ class Judges::Judge
     end
   end
 
-  # Get the name of the judge.
+  # Returns the name of the judge.
+  #
+  # The name is derived from the directory name containing the judge.
+  #
+  # @return [String] The base name of the judge directory
   def name
     File.basename(@dir)
   end
 
-  # Get the name of the .rb script in the judge.
+  # Returns the name of the main Ruby script file for this judge.
+  #
+  # The script file must have the same name as the judge directory with a .rb extension.
+  # For example, if the judge directory is "quality", the script must be "quality.rb".
+  #
+  # @return [String] The filename of the judge script (e.g., "judge_name.rb")
+  # @raise [RuntimeError] If the expected script file is not found in the judge directory
   def script
     b = "#{File.basename(@dir)}.rb"
     files = Dir.glob(File.join(@dir, '*.rb')).map { |f| File.basename(f) }
@@ -87,7 +104,12 @@ class Judges::Judge
     b
   end
 
-  # Return all .yml tests files.
+  # Returns all YAML test files in the judge directory.
+  #
+  # Test files are expected to have a .yml extension and contain test data
+  # used to validate the judge's behavior.
+  #
+  # @return [Array<String>] Array of absolute paths to all .yml files in the judge directory
   def tests
     Dir.glob(File.join(@dir, '*.yml'))
   end
