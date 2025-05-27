@@ -61,6 +61,13 @@ class JudgesGLI extend GLI::App
     true
   end
 
+  desc 'Print version of the tool'
+  command :version do |c|
+    c.action do
+      @@loog.info(Judges::VERSION)
+    end
+  end
+
   desc 'Update the factbase by executing all judges sequentially'
   command :update do |c|
     c.desc 'Options to pass to each judge'
