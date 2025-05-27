@@ -42,19 +42,30 @@ class Judges::Judges
     @boost = boost
   end
 
-  # Get one judge by name.
-  # @param [String] name The name of the judge
-  # @return [Judge] The judge object
-  # @raise [RuntimeError] If judge doesn't exist
+  # Retrieves a specific judge by its name.
+  #
+  # The judge must exist as a directory within the judges directory with the given name.
+  #
+  # @param [String] name The name of the judge to retrieve (directory name)
+  # @return [Judges::Judge] The judge object initialized with the found directory
+  # @raise [RuntimeError] If no judge directory exists with the given name
   def get(name)
     d = File.absolute_path(File.join(@dir, name))
     raise "Judge #{name} doesn't exist in #{@dir}" unless File.exist?(d)
     Judges::Judge.new(d, @lib, @loog, start: @start)
   end
 
-  # Iterate over all judges.
-  # @yield [Judge] Yields each judge
-  # @return [Enumerator] If no block given
+  # Iterates over all valid judges in the directory.
+  #
+  # This method discovers all judge directories, validates them (ensuring they contain
+  # a corresponding .rb file), and yields them in a specific order. The order is
+  # determined by:
+  # 1. Judges whose names match the boost list are placed first
+  # 2. Judges whose names start with the shuffle prefix are randomly reordered
+  # 3. All other judges maintain their alphabetical order
+  #
+  # @yield [Judges::Judge] Yields each valid judge object
+  # @return [Enumerator] Returns an enumerator if no block is given
   def each(&)
     return to_enum(__method__) unless block_given?
     list =
@@ -87,9 +98,14 @@ class Judges::Judges
     ret.each(&)
   end
 
-  # Iterate over all judges with index.
-  # @yield [Judge, Integer] Yields each judge with its index
-  # @return [Integer] The total count of judges
+  # Iterates over all judges while tracking their index position.
+  #
+  # This method calls the #each method and additionally provides a zero-based
+  # index for each judge yielded. The judges are processed in the same order
+  # as determined by the #each method (with boost and shuffle rules applied).
+  #
+  # @yield [Judges::Judge, Integer] Yields each judge object along with its index (starting from 0)
+  # @return [Integer] The total count of judges processed
   def each_with_index
     idx = 0
     each do |p|
