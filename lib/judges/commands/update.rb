@@ -8,6 +8,7 @@ require 'elapsed'
 require 'factbase'
 require 'factbase/churn'
 require 'factbase/logged'
+require 'factbase/fact_as_yaml'
 require 'logger'
 require 'tago'
 require 'timeout'
@@ -64,6 +65,15 @@ class Judges::Update
     c = 0
     churn = Factbase::Churn.new
     errors = []
+    sum = fb.query('(eq what "judges-summary")').each.to_a
+    if sum.empty?
+      @loog.info('Summary fact not found') unless opts['summary'] == 'off'
+    else
+      @loog.info("Summary fact found:\n\t#{Factbase::FactAsYaml.new(sum.first).to_s.gsub("\n", "\n\t")}")
+    end
+    if !sum.empty? && opts['summary'] == 'add'
+      @loog.info('Summary fact deleted') if fb.query('(eq what "judges-summary")').delete!
+    end
     elapsed(@loog, level: Logger::INFO) do
       loop do
         c += 1
@@ -89,9 +99,10 @@ class Judges::Update
       end
       throw :"👍 Update completed in #{c} cycle(s), did #{churn}"
     end
-    return unless opts['summary']
-    summarize(fb, churn, errors, start, c)
-    impex.export(fb)
+    if opts['summary'] == 'add' || opts['summary'] == 'append'
+      summarize(fb, churn, errors, start, c)
+      impex.export(fb)
+    end
   end
 
   private
@@ -105,7 +116,6 @@ class Judges::Update
   def summarize(fb, churn, errors, start, cycles)
     before = fb.query('(eq what "judges-summary")').each.to_a
     if before.empty?
-      @loog.info('A summary not found')
       s = fb.insert
       s.what = 'judges-summary'
       s.when = Time.now
@@ -119,18 +129,17 @@ class Judges::Update
       s = before.first
       errs = s['errors']&.size || 0
       @loog.info(
-        "A summary found, with #{errs || 'no'} error#{'s' if errs > 1}: " \
+        "A summary found, with #{errs.positive? || 'no'} error#{'s' if errs > 1 || errs.zero?}: " \
         "#{%w[when cycles version inserted deleted added].map { |a| "#{a}=#{s[a]&.first}" }.join(', ')}"
       )
     end
-    f =
-      s
     if errors.empty?
       @loog.info('No errors added to the summary')
     else
-      errors.each { |e| f.error = e }
+      errors.each { |e| s.error = e }
       @loog.info("#{errors.size} error#{'s' if errors.size > 1} added to the summary")
     end
+    true
   end
 
   # Run all judges in a full cycle, one by one.

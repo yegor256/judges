@@ -20,15 +20,34 @@ Feature: Update
 
   Scenario: Generate a summary fact, with errors
     Given I make a temp directory
-    Then I have a "buggy/buggy.rb" file with content:
-    """
-      this is a bug
-    """
-    Then I run bin/judges with "update --quiet --summary --max-cycles 1 . simple.fb"
+    Then I have a "buggy/buggy.rb" file with content: "this is an intentional bug"
+    Then I run bin/judges with "update --quiet --summary=append --max-cycles 1 . simple.fb"
     Then Exit code is zero
     Then I run bin/judges with "inspect simple.fb"
     Then Stdout contains "Facts: 1"
     And Exit code is zero
+
+  Scenario: Append to existing summary fact, with errors
+    Given I make a temp directory
+    Then I have a "buggy/buggy.rb" file with content: "this is an intentional bug"
+    Then I run bin/judges with "update --quiet --summary=append --max-cycles 1 . simple.fb"
+    Then Exit code is zero
+    Then Stdout contains "Summary fact not found"
+    Then I run bin/judges with "update --quiet --summary=append --max-cycles 1 . simple.fb"
+    Then I run bin/judges with "inspect simple.fb"
+    Then Stdout contains "Summary fact found"
+    Then Stdout contains "errors:"
+    And Exit code is zero
+
+  Scenario: Delete a previous summary fact and create new one
+    Given I make a temp directory
+    Then I have a "buggy/buggy.rb" file with content: "this is an intentional bug"
+    Then I run bin/judges with "update --quiet --summary=add --max-cycles 1 . simple.fb"
+    Then Exit code is zero
+    Then Stdout contains "Summary fact added"
+    Then I run bin/judges with "update --quiet --summary=add --max-cycles 1 . simple.fb"
+    Then Exit code is zero
+    And Stdout contains "Summary fact deleted"
 
   Scenario: Skips the judge on lifetime running out
     Given I make a temp directory
