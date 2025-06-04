@@ -123,3 +123,71 @@ Feature: Update
     And Exit code is zero
     Then I run bin/judges with "inspect simple.fb"
     Then Stdout contains "Facts: 1"
+
+  Scenario: Simple demote of a single judge
+    Given I make a temp directory
+    Then I have a "alpha/alpha.rb" file with content:
+    """
+      $fb.insert.name = 'alpha'
+    """
+    Then I have a "beta/beta.rb" file with content:
+    """
+      $fb.insert.name = 'beta'
+    """
+    Then I have a "gamma/gamma.rb" file with content:
+    """
+      $fb.insert.name = 'gamma'
+    """
+    Then I run bin/judges with "--verbose update --quiet --max-cycles 1 --demote beta . demote.fb"
+    Then Stdout contains "Running alpha"
+    Then Stdout contains "Running gamma"
+    Then Stdout contains "Running beta"
+    Then Stdout contains "3 judge(s) processed"
+    And Exit code is zero
+
+  Scenario: Demote multiple judges
+    Given I make a temp directory
+    Then I have a "first/first.rb" file with content:
+    """
+      $fb.insert.order = 'first'
+    """
+    Then I have a "second/second.rb" file with content:
+    """
+      $fb.insert.order = 'second'
+    """
+    Then I have a "third/third.rb" file with content:
+    """
+      $fb.insert.order = 'third'
+    """
+    Then I have a "fourth/fourth.rb" file with content:
+    """
+      $fb.insert.order = 'fourth'
+    """
+    Then I run bin/judges with "--verbose update --quiet --max-cycles 1 --demote second --demote fourth . multi.fb"
+    Then Stdout contains "Running first"
+    Then Stdout contains "Running third"
+    Then Stdout contains "Running second"
+    Then Stdout contains "Running fourth"
+    Then Stdout contains "4 judge(s) processed"
+    And Exit code is zero
+
+  Scenario: Combine boost and demote
+    Given I make a temp directory
+    Then I have a "priority/priority.rb" file with content:
+    """
+      $fb.insert.type = 'priority'
+    """
+    Then I have a "normal/normal.rb" file with content:
+    """
+      $fb.insert.type = 'normal'
+    """
+    Then I have a "delayed/delayed.rb" file with content:
+    """
+      $fb.insert.type = 'delayed'
+    """
+    Then I run bin/judges with "--verbose update --quiet --max-cycles 1 --boost priority --demote delayed . combined.fb"
+    Then Stdout contains "Running priority"
+    Then Stdout contains "Running normal"
+    Then Stdout contains "Running delayed"
+    Then Stdout contains "3 judge(s) processed"
+    And Exit code is zero

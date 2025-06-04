@@ -33,13 +33,15 @@ class Judges::Judges
   # @param [Time] start Start time
   # @param [String] shuffle Prefix for names of judges to shuffle
   # @param [Array<String>] boost Names of judges to boost in priority
-  def initialize(dir, lib, loog, start: Time.now, shuffle: '', boost: [])
+  # @param [Array<String>] demote Names of judges to demote in priority
+  def initialize(dir, lib, loog, start: Time.now, shuffle: '', boost: [], demote: [])
     @dir = dir
     @lib = lib
     @loog = loog
     @start = start
     @shuffle = shuffle || ''
     @boost = boost
+    @demote = demote
   end
 
   # Retrieves a specific judge by its name.
@@ -62,7 +64,8 @@ class Judges::Judges
   # determined by:
   # 1. Judges whose names match the boost list are placed first
   # 2. Judges whose names start with the shuffle prefix are randomly reordered
-  # 3. All other judges maintain their alphabetical order
+  # 3. Judges whose names match the demote list are placed last
+  # 4. All other judges maintain their alphabetical order
   #
   # @yield [Judges::Judge] Yields each valid judge object
   # @return [Enumerator] Returns an enumerator if no block is given
@@ -87,14 +90,19 @@ class Judges::Judges
     mapping.keys.zip(positions).to_h.each do |before, after|
       good[after] = all[before]
     end
-    ret = []
+    boosted = []
+    demoted = []
+    normal = []
     good.map { |a| a[0] }.each do |j|
       if @boost&.include?(j.name)
-        ret.prepend(j)
+        boosted.append(j)
+      elsif @demote&.include?(j.name)
+        demoted.append(j)
       else
-        ret.append(j)
+        normal.append(j)
       end
     end
+    ret = boosted + normal + demoted
     ret.each(&)
   end
 

@@ -82,6 +82,8 @@ class JudgesGLI extend GLI::App
     c.flag([:shuffle], default_value: '')
     c.desc 'Prioritize a judge to run before all others'
     c.flag([:boost], multiple: true)
+    c.desc 'Demote a judge to run after all others'
+    c.flag([:demote], multiple: true)
     c.desc 'Maximum time in seconds for the entire update cycle'
     c.flag([:lifetime], default_value: 300, type: Integer)
     c.desc 'Maximum time in seconds for each judge (forcefully terminates if exceeded)'
