@@ -104,4 +104,34 @@ class TestJudges < Minitest::Test
       assert_empty(list)
     end
   end
+
+  def test_demotes_judges
+    Dir.mktmpdir do |d|
+      names = %w[alpha beta gamma delta epsilon].sort
+      names.each do |n|
+        dir = File.join(d, n)
+        save_it(File.join(dir, "#{n}.rb"), 'puts 1')
+      end
+      list = Judges::Judges.new(d, nil, Loog::NULL, demote: %w[beta delta]).each.to_a
+      result = list.map(&:name)
+      assert_equal(%w[alpha epsilon gamma beta delta], result)
+    end
+  end
+
+  def test_boost_and_demote_together
+    Dir.mktmpdir do |d|
+      names = %w[one two three four five six].sort
+      names.each do |n|
+        dir = File.join(d, n)
+        save_it(File.join(dir, "#{n}.rb"), 'puts 1')
+      end
+      list = Judges::Judges.new(d, nil, Loog::NULL, boost: %w[six two], demote: %w[one four]).each.to_a
+      result = list.map(&:name)
+      assert_equal('six', result[0])
+      assert_equal('two', result[1])
+      demoted = result[-2..]
+      assert_includes(demoted, 'one')
+      assert_includes(demoted, 'four')
+    end
+  end
 end

@@ -60,7 +60,8 @@ class Judges::Update
     else
       @loog.debug("The following options provided:\n\t#{options.to_s.gsub("\n", "\n\t")}")
     end
-    judges = Judges::Judges.new(dir, opts['lib'], @loog, start:, shuffle: opts['shuffle'], boost: opts['boost'])
+    judges = Judges::Judges.new(dir, opts['lib'], @loog, start:, shuffle: opts['shuffle'], boost: opts['boost'],
+                                                         demote: opts['demote'])
     c = 0
     churn = Factbase::Churn.new
     errors = []
@@ -68,7 +69,7 @@ class Judges::Update
       loop do
         c += 1
         if c > 1
-          @loog.info("\nStarting cycle ##{c}#{opts['max-cycles'] ? " (out of #{opts['max-cycles']})" : ''}...")
+          @loog.info("\nStarting cycle ##{c}#{" (out of #{opts['max-cycles']})" if opts['max-cycles']}...")
         end
         delta = cycle(opts, judges, fb, options, start, errors)
         churn += delta
