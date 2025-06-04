@@ -72,8 +72,8 @@ class Judges::Update
     else
       @loog.info("Summary fact found:\n\t#{Factbase::FactAsYaml.new(sum.first).to_s.gsub("\n", "\n\t")}")
     end
-    if !sum.empty? && opts['summary'] == 'add'
-      @loog.info('Summary fact deleted') if fb.query('(eq what "judges-summary")').delete!
+    if !sum.empty? && opts['summary'] == 'add' && fb.query('(eq what "judges-summary")').delete!
+      @loog.info('Summary fact deleted')
     end
     elapsed(@loog, level: Logger::INFO) do
       loop do
@@ -100,10 +100,9 @@ class Judges::Update
       end
       throw :"👍 Update completed in #{c} cycle(s), did #{churn}"
     end
-    if opts['summary'] == 'add' || opts['summary'] == 'append'
-      summarize(fb, churn, errors, start, c)
-      impex.export(fb)
-    end
+    return unless %w[add append].include?(opts['summary'])
+    summarize(fb, churn, errors, start, c)
+    impex.export(fb)
   end
 
   private
@@ -140,7 +139,6 @@ class Judges::Update
       errors.each { |e| s.error = e }
       @loog.info("#{errors.size} error#{'s' if errors.size > 1} added to the summary")
     end
-    true
   end
 
   # Run all judges in a full cycle, one by one.
