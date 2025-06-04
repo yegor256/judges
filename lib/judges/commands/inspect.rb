@@ -3,6 +3,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2025 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require 'factbase/fact_as_yaml'
 require_relative '../../judges'
 require_relative '../../judges/impex'
 
@@ -29,5 +30,11 @@ class Judges::Inspect
     raise 'At least one argument required' if args.empty?
     fb = Judges::Impex.new(@loog, args[0]).import
     @loog.info("Facts: #{fb.size}")
+    sum = fb.query('(eq what "judges-summary")').each.to_a
+    if sum.empty?
+      @loog.info('Summary fact not found')
+    else
+      @loog.info("Summary fact found:\n\t#{Factbase::FactAsYaml.new(sum.first).gsub("\n", "\n\t")}")
+    end
   end
 end

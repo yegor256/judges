@@ -2,21 +2,21 @@ PATH
   remote: .
   specs:
     judges (0.0.0)
-      backtrace (~> 0)
-      baza.rb (~> 0)
+      backtrace (~> 0.4)
+      baza.rb (~> 0.5)
       concurrent-ruby (~> 1.2)
-      elapsed (~> 0)
-      factbase (~> 0.9)
+      elapsed (~> 0.0)
+      factbase (~> 0.11)
       gli (~> 2.21)
-      iri (~> 0)
-      loog (~> 0)
+      iri (~> 0.11)
+      loog (~> 0.6)
       moments (~> 0.3)
       nokogiri (~> 1.10)
-      others (~> 0)
-      retries (~> 0)
-      tago (~> 0)
-      timeout (~> 0)
-      total (~> 0)
+      others (~> 0.0)
+      retries (~> 0.0)
+      tago (~> 0.1)
+      timeout (~> 0.4)
+      total (~> 0.4)
       typhoeus (~> 1.3)
 
 GEM
@@ -104,12 +104,13 @@ GEM
     faraday-retry (2.3.1)
       faraday (~> 2.0)
     ffi (1.17.2-aarch64-linux-gnu)
+    ffi (1.17.2-aarch64-linux-musl)
     ffi (1.17.2-arm-linux-gnu)
+    ffi (1.17.2-arm-linux-musl)
     ffi (1.17.2-arm64-darwin)
-    ffi (1.17.2-x64-mingw-ucrt)
-    ffi (1.17.2-x86-linux-gnu)
     ffi (1.17.2-x86_64-darwin)
     ffi (1.17.2-x86_64-linux-gnu)
+    ffi (1.17.2-x86_64-linux-musl)
     gli (2.22.2)
       ostruct
     hashdiff (1.2.0)
@@ -121,7 +122,6 @@ GEM
     loog (0.6.1)
       logger (~> 1.0)
     mini_mime (1.1.5)
-    mini_portile2 (2.8.9)
     minitest (5.25.5)
     minitest-reporters (1.7.1)
       ansi
@@ -136,20 +136,21 @@ GEM
     net-http (0.6.0)
       uri
     net-ping (2.0.8)
-    nokogiri (1.18.8)
-      mini_portile2 (~> 2.8.2)
-      racc (~> 1.4)
     nokogiri (1.18.8-aarch64-linux-gnu)
+      racc (~> 1.4)
+    nokogiri (1.18.8-aarch64-linux-musl)
       racc (~> 1.4)
     nokogiri (1.18.8-arm-linux-gnu)
       racc (~> 1.4)
-    nokogiri (1.18.8-arm64-darwin)
+    nokogiri (1.18.8-arm-linux-musl)
       racc (~> 1.4)
-    nokogiri (1.18.8-x64-mingw-ucrt)
+    nokogiri (1.18.8-arm64-darwin)
       racc (~> 1.4)
     nokogiri (1.18.8-x86_64-darwin)
       racc (~> 1.4)
     nokogiri (1.18.8-x86_64-linux-gnu)
+      racc (~> 1.4)
+    nokogiri (1.18.8-x86_64-linux-musl)
       racc (~> 1.4)
     os (1.1.4)
     ostruct (0.6.1)
@@ -241,14 +242,14 @@ GEM
     yard (0.9.37)
 
 PLATFORMS
-  aarch64-linux
-  arm-linux
+  aarch64-linux-gnu
+  aarch64-linux-musl
+  arm-linux-gnu
+  arm-linux-musl
   arm64-darwin
-  arm64-darwin-23
-  x64-mingw-ucrt
-  x86-linux
   x86_64-darwin
-  x86_64-linux
+  x86_64-linux-gnu
+  x86_64-linux-musl
 
 DEPENDENCIES
   base64 (> 0)
@@ -275,4 +276,4 @@ DEPENDENCIES
   yard (~> 0.9)
 
 BUNDLED WITH
-   2.5.16
+   2.6.8

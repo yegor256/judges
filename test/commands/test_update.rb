@@ -104,7 +104,7 @@ class TestUpdate < Minitest::Test
       file = File.join(d, 'base.fb')
       2.times do
         Judges::Update.new(Loog::NULL).run(
-          { 'quiet' => true, 'summary' => true, 'max-cycles' => 2 },
+          { 'quiet' => true, 'summary' => 'add', 'max-cycles' => 2 },
           [d, file]
         )
       end
@@ -130,7 +130,7 @@ class TestUpdate < Minitest::Test
       end
       File.binwrite(file, fb.export)
       Judges::Update.new(Loog::NULL).run(
-        { 'quiet' => true, 'summary' => true, 'max-cycles' => 2 },
+        { 'quiet' => true, 'summary' => 'append', 'max-cycles' => 2 },
         [d, file]
       )
       fb = Factbase.new
