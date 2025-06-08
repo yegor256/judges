@@ -17,6 +17,9 @@ class TestDownload < Minitest::Test
   def test_download_simple_durable
     WebMock.disable_net_connect!
     content = 'Hello, World!'
+    stub_request(:get, 'https://example.org/durables/find?file=downloaded.txt&jname=myjudge').to_return(
+      status: 200, body: '42'
+    )
     stub_request(:get, 'https://example.org/durables/42/lock?owner=default').to_return(status: 302)
     stub_request(:get, 'https://example.org/durables/42').to_return(
       status: 200, body: content
@@ -32,7 +35,7 @@ class TestDownload < Minitest::Test
           'ssl' => true,
           'owner' => 'default'
         },
-        ['42', file]
+        ['myjudge', file]
       )
       assert_equal(content, File.read(file))
     end
@@ -41,6 +44,9 @@ class TestDownload < Minitest::Test
   def test_download_with_custom_owner
     WebMock.disable_net_connect!
     content = 'Custom content'
+    stub_request(:get, 'http://example.org/durables/find?file=data.bin&jname=judge1').to_return(
+      status: 200, body: '123'
+    )
     stub_request(:get, 'http://example.org/durables/123/lock?owner=custom').to_return(status: 302)
     stub_request(:get, 'http://example.org/durables/123').to_return(
       status: 200, body: content
@@ -56,7 +62,7 @@ class TestDownload < Minitest::Test
           'ssl' => false,
           'owner' => 'custom'
         },
-        ['123', file]
+        ['judge1', file]
       )
       assert_equal(content, File.read(file))
     end
@@ -64,6 +70,9 @@ class TestDownload < Minitest::Test
 
   def test_fails_on_http_error
     WebMock.disable_net_connect!
+    stub_request(:get, 'http://example.org/durables/find?file=test.txt&jname=somejudge').to_return(
+      status: 200, body: '99'
+    )
     stub_request(:get, 'http://example.org/durables/99/lock?owner=none').to_return(status: 302)
     stub_request(:get, 'http://example.org/durables/99').to_return(status: 404)
     stub_request(:get, 'http://example.org/durables/99/unlock?owner=none').to_return(status: 302)
@@ -78,7 +87,7 @@ class TestDownload < Minitest::Test
             'ssl' => false,
             'owner' => 'none'
           },
-          ['99', file]
+          ['somejudge', file]
         )
       end
     end
@@ -89,19 +98,27 @@ class TestDownload < Minitest::Test
       Judges::Download.new(Loog::NULL).run({}, ['only_one_arg'])
     end
     assert_raises(RuntimeError) do
-      Judges::Download.new(Loog::NULL).run({}, ['too', 'many', 'args'])
+      Judges::Download.new(Loog::NULL).run({}, %w[too many args])
     end
   end
 
-  def test_fails_with_non_positive_id
+  def test_handles_not_found_durable
+    WebMock.disable_net_connect!
+    stub_request(:get, 'http://example.org/durables/find?file=missing.txt&jname=notfound').to_return(
+      status: 404
+    )
     Dir.mktmpdir do |d|
-      file = File.join(d, 'test.txt')
-      assert_raises(RuntimeError) do
-        Judges::Download.new(Loog::NULL).run({}, ['0', file])
-      end
-      assert_raises(RuntimeError) do
-        Judges::Download.new(Loog::NULL).run({}, ['-5', file])
-      end
+      file = File.join(d, 'missing.txt')
+      Judges::Download.new(Loog::NULL).run(
+        {
+          'token' => '000',
+          'host' => 'example.org',
+          'port' => 80,
+          'ssl' => false
+        },
+        ['notfound', file]
+      )
+      refute_path_exists(file)
     end
   end
 end

@@ -30,9 +30,9 @@ class Judges::Download
   # @raise [RuntimeError] If not exactly two arguments provided
   def run(opts, args)
     raise 'Exactly two arguments required' unless args.size == 2
-    id = args[0].to_i
+    jname = args[0]
     path = args[1]
-    raise 'The durable ID must be a positive integer' unless id.positive?
+    name = File.basename(path)
     baza = BazaRb.new(
       opts['host'], opts['port'].to_i, opts['token'],
       ssl: opts['ssl'],
@@ -41,6 +41,12 @@ class Judges::Download
       retries: (opts['retries'] || 3).to_i
     )
     elapsed(@loog, level: Logger::INFO) do
+      id = baza.durable_find(jname, name)
+      if id.nil?
+        @loog.info("Durable '#{name}' not found in '#{jname}'")
+        return
+      end
+      @loog.info("Durable ##{id} ('#{name}') found in '#{jname}'")
       baza.durable_lock(id, opts['owner'] || 'default')
       begin
         baza.durable_load(id, path)

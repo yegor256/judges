@@ -99,7 +99,7 @@ class TestUpload < Minitest::Test
       Judges::Upload.new(Loog::NULL).run({}, ['only_one_arg'])
     end
     assert_raises(RuntimeError) do
-      Judges::Upload.new(Loog::NULL).run({}, ['too', 'many', 'args'])
+      Judges::Upload.new(Loog::NULL).run({}, %w[too many args])
     end
   end
 
