@@ -17,15 +17,15 @@ class TestUpload < Minitest::Test
   def test_upload_simple_durable
     WebMock.disable_net_connect!
     content = 'Hello, World!'
+    stub_request(:get, 'https://example.org/durables/find?file=upload.txt&jname=myjudge').to_return(
+      status: 404
+    )
     stub_request(:get, 'https://example.org/csrf').to_return(
       status: 200, body: 'test-csrf-token'
     )
     stub_request(:post, 'https://example.org/durables/place').to_return(
       status: 302, headers: { 'X-Zerocracy-DurableId' => '42' }
     )
-    stub_request(:get, 'https://example.org/durables/42/lock?owner=default').to_return(status: 302)
-    stub_request(:put, 'https://example.org/durables/42').to_return(status: 200)
-    stub_request(:get, 'https://example.org/durables/42/unlock?owner=default').to_return(status: 302)
     Dir.mktmpdir do |d|
       file = File.join(d, 'upload.txt')
       File.write(file, content)
@@ -37,7 +37,7 @@ class TestUpload < Minitest::Test
           'ssl' => true,
           'owner' => 'default'
         },
-        [file, 'foo']
+        ['myjudge', file]
       )
     end
   end
@@ -45,11 +45,8 @@ class TestUpload < Minitest::Test
   def test_upload_with_custom_owner
     WebMock.disable_net_connect!
     content = 'Binary data here'
-    stub_request(:get, 'http://example.org/csrf').to_return(
-      status: 200, body: 'test-csrf-token'
-    )
-    stub_request(:post, 'http://example.org/durables/place').to_return(
-      status: 302, headers: { 'X-Zerocracy-DurableId' => '123' }
+    stub_request(:get, 'http://example.org/durables/find?file=data.bin&jname=judge1').to_return(
+      status: 200, body: '123'
     )
     stub_request(:get, 'http://example.org/durables/123/lock?owner=custom').to_return(status: 302)
     stub_request(:put, 'http://example.org/durables/123').to_return(status: 200)
@@ -65,13 +62,16 @@ class TestUpload < Minitest::Test
           'ssl' => false,
           'owner' => 'custom'
         },
-        [file, 'bar']
+        ['judge1', file]
       )
     end
   end
 
   def test_fails_on_http_error
     WebMock.disable_net_connect!
+    stub_request(:get, 'http://example.org/durables/find?file=test.txt&jname=somejudge').to_return(
+      status: 404
+    )
     stub_request(:get, 'http://example.org/csrf').to_return(
       status: 200, body: 'test-csrf-token'
     )
@@ -88,7 +88,7 @@ class TestUpload < Minitest::Test
             'ssl' => false,
             'owner' => 'none'
           },
-          [file, 'foo']
+          ['somejudge', file]
         )
       end
     end
@@ -112,7 +112,7 @@ class TestUpload < Minitest::Test
           'port' => 80,
           'ssl' => false
         },
-        ['/nonexistent/file.txt', 'foo']
+        ['myjudge', '/nonexistent/file.txt']
       )
     end
   end

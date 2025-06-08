@@ -30,8 +30,10 @@ class Judges::Upload
   # @raise [RuntimeError] If not exactly two arguments provided
   def run(opts, args)
     raise 'Exactly two arguments required' unless args.size == 2
-    path = args[0]
-    name = args[1]
+    jname = args[0]
+    path = args[1]
+    raise "File not found: #{path}" unless File.exist?(path)
+    name = File.basename(path)
     baza = BazaRb.new(
       opts['host'], opts['port'].to_i, opts['token'],
       ssl: opts['ssl'],
@@ -40,14 +42,20 @@ class Judges::Upload
       retries: (opts['retries'] || 3).to_i
     )
     elapsed(@loog, level: Logger::INFO) do
-      id = baza.durable_place(name, path)
-      baza.durable_lock(id, opts['owner'] || 'default')
-      begin
-        baza.durable_save(id, path)
-        size = File.size(path)
-        throw :"👍 Uploaded #{path} to durable '#{name}' (ID: #{id}, #{size} bytes)"
-      ensure
-        baza.durable_unlock(id, opts['owner'] || 'default')
+      id = baza.durable_find(jname, name)
+      size = File.size(path)
+      if id.nil? || id.to_s.strip.empty?
+        id = baza.durable_place(jname, path)
+        throw :"👍 Uploaded #{path} to new durable '#{name}' in '#{jname}' (ID: #{id}, #{size} bytes)"
+      else
+        id = id.to_i
+        baza.durable_lock(id, opts['owner'] || 'default')
+        begin
+          baza.durable_save(id, path)
+          throw :"👍 Uploaded #{path} to existing durable '#{name}' in '#{jname}' (ID: #{id}, #{size} bytes)"
+        ensure
+          baza.durable_unlock(id, opts['owner'] || 'default')
+        end
       end
     end
   end
