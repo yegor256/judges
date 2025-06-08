@@ -162,7 +162,7 @@ class TestUpdate < Minitest::Test
       save_it(File.join(d, 'first/first.rb'), '$global[:fb] ||= $fb; 2 + 2')
       save_it(File.join(d, 'second/second.rb'), '$global[:fb] ||= $fb; $global[:fb].insert')
       file = File.join(d, 'base.fb')
-      Judges::Update.new(Loog::VERBOSE).run(
+      Judges::Update.new(Loog::NULL).run(
         { 'max-cycles' => 3, 'boost' => 'first' },
         [d, file]
       )
