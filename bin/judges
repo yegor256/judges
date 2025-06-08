@@ -217,6 +217,44 @@ class JudgesGLI extend GLI::App
     c.flag([:retries], type: Integer, default_value: 3)
     run_it(c, 'pull')
   end
+
+  desc 'Download a durable from the server by ID'
+  command :download do |c|
+    c.desc 'Authentication token'
+    c.flag([:token])
+    c.desc 'Server IP/hostname'
+    c.flag([:host], default_value: 'api.zerocracy.com')
+    c.desc 'Server TCP port number'
+    c.flag([:port], default_value: 443, type: Integer)
+    c.desc 'Connection and read timeout in seconds'
+    c.flag([:timeout], default_value: 30, type: Integer)
+    c.desc 'Enable SSL connection'
+    c.switch([:ssl], default_value: true)
+    c.desc 'Unique identifier for the operation'
+    c.flag([:owner], default_value: 'default', type: String)
+    c.desc 'Number of retry attempts'
+    c.flag([:retries], type: Integer, default_value: 3)
+    run_it(c, 'download')
+  end
+
+  desc 'Upload a file as a durable to the server'
+  command :upload do |c|
+    c.desc 'Authentication token'
+    c.flag([:token])
+    c.desc 'Server IP/hostname'
+    c.flag([:host], default_value: 'api.zerocracy.com')
+    c.desc 'Server TCP port number'
+    c.flag([:port], default_value: 443, type: Integer)
+    c.desc 'Connection and read timeout in seconds'
+    c.flag([:timeout], default_value: 30, type: Integer)
+    c.desc 'Enable SSL connection'
+    c.switch([:ssl], default_value: true)
+    c.desc 'Unique identifier for the operation'
+    c.flag([:owner], default_value: 'default', type: String)
+    c.desc 'Number of retry attempts'
+    c.flag([:retries], type: Integer, default_value: 3)
+    run_it(c, 'upload')
+  end
 end
 
 exit JudgesGLI.run(ARGV) if ENV['GLI_TESTING'].nil?
