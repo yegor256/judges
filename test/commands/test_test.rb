@@ -99,7 +99,7 @@ class TestTest < Minitest::Test
 
   def test_one_judge_negative
     Dir.mktmpdir do |d|
-      save_it(File.join(d, 'foo/foo.rb'), '')
+      save_it(File.join(d, 'foo/foo.rb'), '# empty judge')
       save_it(
         File.join(d, 'foo/x.yml'),
         <<-YAML
