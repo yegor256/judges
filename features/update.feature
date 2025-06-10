@@ -51,14 +51,20 @@ Feature: Update
 
   Scenario: Skips the judge on lifetime running out
     Given I make a temp directory
-    Then I have a "simple/simple.rb" file with content:
+    Then I have a "first/first.rb" file with content:
     """
       n = $fb.insert
+      n.type = 'first'
       sleep 1
     """
+    Then I have a "second/second.rb" file with content:
+    """
+      n = $fb.insert
+      n.type = 'second'
+    """
     Then I run bin/judges with "--verbose update --quiet --lifetime 1 --max-cycles 5 . simple.fb"
-    Then Stdout contains "The 'simple' judge skipped, no time left"
-    Then Stdout contains "Update completed in 2 cycle(s), did 1i/0d/0a"
+    Then Stdout contains "The 'second' judge skipped, no time left"
+    Then Stdout contains "Update completed in 1 cycle(s), did 1i/0d/1a"
     And Exit code is zero
 
   Scenario: Use options from a file
