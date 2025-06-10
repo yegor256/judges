@@ -37,6 +37,7 @@ class Judges::Test
     raise 'Exactly one argument required' unless args.size == 1
     dir = args[0]
     @loog.info("Testing judges in #{dir.to_rel}...")
+    validate_layout(dir)
     errors = []
     tested = 0
     tests = 0
@@ -187,6 +188,50 @@ class Judges::Test
     xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
     xpaths.each do |xp|
       raise "#{judge.name}/#{tname} doesn't match '#{xp}':\n#{xml}" if xml.xpath(xp).empty?
+    end
+  end
+
+  # Validates the directory layout to ensure judges are correctly organized.
+  # @param [String] dir The judges directory to validate
+  # @raise [RuntimeError] If the directory layout is incorrect
+  def validate_layout(dir)
+    return unless File.exist?(dir) && File.directory?(dir)
+    errors = []
+    
+    # Check for files in root directory (these should be in subdirectories)
+    Dir.glob(File.join(dir, '*')).each do |path|
+      next if File.directory?(path)
+      # Allow certain config files in root
+      basename = File.basename(path)
+      next if %w[.gitignore README.md LICENSE.txt].include?(basename)
+      next if basename.start_with?('.')
+      errors << "File '#{basename}' should be inside a judge directory, not in the root"
+    end
+    
+    # Check each subdirectory for correct structure
+    Dir.glob(File.join(dir, '*')).each do |subdir|
+      next unless File.directory?(subdir)
+      dirname = File.basename(subdir)
+      expected_script = File.join(subdir, "#{dirname}.rb")
+      
+      # Check if the matching .rb file exists
+      unless File.exist?(expected_script)
+        errors << "Judge directory '#{dirname}' must contain a file named '#{dirname}.rb'"
+      end
+      
+      # Check for nested judge directories (not allowed)
+      Dir.glob(File.join(subdir, '*')).each do |nested_path|
+        next unless File.directory?(nested_path)
+        nested_name = File.basename(nested_path)
+        nested_script = File.join(nested_path, "#{nested_name}.rb")
+        if File.exist?(nested_script)
+          errors << "Nested judge directory '#{dirname}/#{nested_name}' is not allowed"
+        end
+      end
+    end
+    
+    unless errors.empty?
+      raise "Directory layout validation failed:\n  #{errors.join("\n  ")}"
     end
   end
 end
