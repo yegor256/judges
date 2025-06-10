@@ -79,6 +79,11 @@ class Judges::Update
       loop do
         c += 1
         if c > 1
+          if opts['lifetime'] && Time.now - @start > opts['lifetime']
+            @loog.info("Not starting cycle ##{c}, no time left")
+            c -= 1
+            break
+          end
           @loog.info("\nStarting cycle ##{c}#{" (out of #{opts['max-cycles']})" if opts['max-cycles']}...")
         end
         delta = cycle(opts, judges, fb, options, start, errors)
