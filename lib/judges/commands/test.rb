@@ -198,35 +198,33 @@ class Judges::Test
     return unless File.exist?(dir) && File.directory?(dir)
     errors = []
     
-    # Check for files in root directory (these should be in subdirectories)
-    Dir.glob(File.join(dir, '*')).each do |path|
-      next if File.directory?(path)
-      # Allow certain config files in root
-      basename = File.basename(path)
-      next if %w[.gitignore README.md LICENSE.txt].include?(basename)
-      next if basename.start_with?('.')
-      errors << "File '#{basename}' should be inside a judge directory, not in the root"
-    end
-    
-    # Check each subdirectory for correct structure
-    Dir.glob(File.join(dir, '*')).each do |subdir|
-      next unless File.directory?(subdir)
-      dirname = File.basename(subdir)
-      expected_script = File.join(subdir, "#{dirname}.rb")
-      
-      # Check if the matching .rb file exists
-      unless File.exist?(expected_script)
-        errors << "Judge directory '#{dirname}' must contain a file named '#{dirname}.rb'"
-      end
-      
-      # Check for nested judge directories (not allowed)
-      Dir.glob(File.join(subdir, '*')).each do |nested_path|
-        next unless File.directory?(nested_path)
-        nested_name = File.basename(nested_path)
-        nested_script = File.join(nested_path, "#{nested_name}.rb")
-        if File.exist?(nested_script)
-          errors << "Nested judge directory '#{dirname}/#{nested_name}' is not allowed"
+    # Iterate over all entries in the directory
+    Dir.glob(File.join(dir, '*')).each do |entry|
+      if File.directory?(entry)
+        # Handle subdirectories
+        dirname = File.basename(entry)
+        expected_script = File.join(entry, "#{dirname}.rb")
+        
+        # Check if the matching .rb file exists
+        unless File.exist?(expected_script)
+          errors << "Judge directory '#{dirname}' must contain a file named '#{dirname}.rb'"
         end
+        
+        # Check for nested judge directories (not allowed)
+        Dir.glob(File.join(entry, '*')).each do |nested_path|
+          next unless File.directory?(nested_path)
+          nested_name = File.basename(nested_path)
+          nested_script = File.join(nested_path, "#{nested_name}.rb")
+          if File.exist?(nested_script)
+            errors << "Nested judge directory '#{dirname}/#{nested_name}' is not allowed"
+          end
+        end
+      else
+        # Handle files in the root directory
+        basename = File.basename(entry)
+        next if %w[.gitignore README.md LICENSE.txt].include?(basename)
+        next if basename.start_with?('.')
+        errors << "File '#{basename}' should be inside a judge directory, not in the root"
       end
     end
     
