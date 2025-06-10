@@ -167,7 +167,7 @@ class TestTest < Minitest::Test
       save_it(File.join(d, 'judge-one/judge-one.rb'), '$fb.insert.foo = 42')
       save_it(File.join(d, 'judge-two/judge-two.rb'), '$fb.insert.bar = 24')
       save_it(File.join(d, 'judge-one/test.yml'), "input: []\nexpected:\n  - /fb[count(f)=1]")
-      
+
       # This should not raise an error
       Judges::Test.new(Loog::NULL).run({}, [d])
       assert_path_exists(d)
@@ -179,10 +179,11 @@ class TestTest < Minitest::Test
       save_it(File.join(d, 'judge-one/judge-one.rb'), '$fb.insert.foo = 42')
       save_it(File.join(d, 'wrong-file.rb'), 'some content')
       save_it(File.join(d, 'judge-one/test.yml'), "input: []\nexpected:\n  - /fb[count(f)=1]")
-      
-      error = assert_raises(StandardError) do
-        Judges::Test.new(Loog::NULL).run({}, [d])
-      end
+
+      error =
+        assert_raises(StandardError) do
+          Judges::Test.new(Loog::NULL).run({}, [d])
+        end
       assert_includes(error.message, "File 'wrong-file.rb' should be inside a judge directory")
     end
   end
@@ -191,10 +192,11 @@ class TestTest < Minitest::Test
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'judge-one/wrong-name.rb'), '$fb.insert.foo = 42')
       save_it(File.join(d, 'judge-one/test.yml'), "input: []\nexpected:\n  - /fb[count(f)=1]")
-      
-      error = assert_raises(StandardError) do
-        Judges::Test.new(Loog::NULL).run({}, [d])
-      end
+
+      error =
+        assert_raises(StandardError) do
+          Judges::Test.new(Loog::NULL).run({}, [d])
+        end
       assert_includes(error.message, "Judge directory 'judge-one' must contain a file named 'judge-one.rb'")
     end
   end
@@ -204,10 +206,11 @@ class TestTest < Minitest::Test
       save_it(File.join(d, 'parent/parent.rb'), '$fb.insert.foo = 42')
       save_it(File.join(d, 'parent/nested/nested.rb'), '$fb.insert.bar = 24')
       save_it(File.join(d, 'parent/test.yml'), "input: []\nexpected:\n  - /fb[count(f)=1]")
-      
-      error = assert_raises(StandardError) do
-        Judges::Test.new(Loog::NULL).run({}, [d])
-      end
+
+      error =
+        assert_raises(StandardError) do
+          Judges::Test.new(Loog::NULL).run({}, [d])
+        end
       assert_includes(error.message, "Nested judge directory 'parent/nested' is not allowed")
     end
   end
@@ -218,7 +221,7 @@ class TestTest < Minitest::Test
       save_it(File.join(d, '.gitignore'), '*.tmp')
       save_it(File.join(d, 'README.md'), '# Judges')
       save_it(File.join(d, 'judge-one/test.yml'), "input: []\nexpected:\n  - /fb[count(f)=1]")
-      
+
       # This should not raise an error
       Judges::Test.new(Loog::NULL).run({}, [d])
       assert_path_exists(d)

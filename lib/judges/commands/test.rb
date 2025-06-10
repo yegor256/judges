@@ -197,39 +197,36 @@ class Judges::Test
   def validate_layout(dir)
     return unless File.exist?(dir) && File.directory?(dir)
     errors = []
-    
+    allowed_root_files = %w[.gitignore README.md LICENSE.txt].freeze
+
     # Iterate over all entries in the directory
     Dir.glob(File.join(dir, '*')).each do |entry|
       if File.directory?(entry)
         # Handle subdirectories
         dirname = File.basename(entry)
         expected_script = File.join(entry, "#{dirname}.rb")
-        
+
         # Check if the matching .rb file exists
         unless File.exist?(expected_script)
           errors << "Judge directory '#{dirname}' must contain a file named '#{dirname}.rb'"
         end
-        
+
         # Check for nested judge directories (not allowed)
         Dir.glob(File.join(entry, '*')).each do |nested_path|
           next unless File.directory?(nested_path)
           nested_name = File.basename(nested_path)
           nested_script = File.join(nested_path, "#{nested_name}.rb")
-          if File.exist?(nested_script)
-            errors << "Nested judge directory '#{dirname}/#{nested_name}' is not allowed"
-          end
+          errors << "Nested judge directory '#{dirname}/#{nested_name}' is not allowed" if File.exist?(nested_script)
         end
       else
         # Handle files in the root directory
         basename = File.basename(entry)
-        next if %w[.gitignore README.md LICENSE.txt].include?(basename)
+        next if allowed_root_files.include?(basename)
         next if basename.start_with?('.')
         errors << "File '#{basename}' should be inside a judge directory, not in the root"
       end
     end
-    
-    unless errors.empty?
-      raise "Directory layout validation failed:\n  #{errors.join("\n  ")}"
-    end
+
+    raise "Directory layout validation failed:\n  #{errors.join("\n  ")}" unless errors.empty?
   end
 end
