@@ -79,6 +79,35 @@ class TestPrint < Minitest::Test
     assert_empty(v.errors, "#{doc}\n\n#{v.errors.join('; ')}")
   end
 
+  def test_html_table_has_colgroup
+    WebMock.disable_net_connect!
+    stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(body: 'nothing')
+    stub_request(:get, 'https://yegor256.github.io/judges/assets/index.js').to_return(body: 'nothing')
+    fb = Factbase.new
+    f = fb.insert
+    f.what = 'test issue'
+    f.when = Time.now
+    f.ticket = 42
+    html = File.join(__dir__, '../../temp/colgroup_test.html')
+    FileUtils.rm_f(html)
+    Dir.mktmpdir do |d|
+      factbase_file = File.join(d, 'base.fb')
+      File.binwrite(factbase_file, fb.export)
+      Judges::Print.new(Loog::NULL).run(
+        { 'format' => 'html', 'columns' => 'what,when,ticket' },
+        [factbase_file, html]
+      )
+    end
+    doc = Nokogiri::HTML(File.read(html))
+    table = doc.at_css('table#facts')
+    refute_nil(table, 'Table with id="facts" should exist')
+    colgroup = table.at_css('colgroup')
+    refute_nil(colgroup, 'Table should have a colgroup element')
+    cols = colgroup.css('col')
+    assert_equal(4, cols.size, 'Should have 4 col elements (3 for columns + 1 for extra)')
+    assert_equal('w50', cols.last['class'], 'Last col should have class="w50"')
+  end
+
   def test_print_all_formats
     WebMock.disable_net_connect!
     stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(body: 'nothing')
