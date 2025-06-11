@@ -50,7 +50,7 @@ class Judges::Test
         next unless include?(opts, judge.name)
         @loog.info("\n👉 Testing #{judge.script} (##{i}) in #{judge.dir.to_rel}...")
         judge.tests.each do |f|
-          tname = File.basename(f).gsub(/\.yml$/, '')
+          tname = File.basename(f, '.yml')
           visible << "  #{judge.name}/#{tname}"
           next unless include?(opts, judge.name, tname)
           yaml = YAML.load_file(f, permitted_classes: [Time])
