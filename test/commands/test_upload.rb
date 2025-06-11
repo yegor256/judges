@@ -26,6 +26,9 @@ class TestUpload < Minitest::Test
     stub_request(:post, 'https://example.org/durables/place').to_return(
       status: 302, headers: { 'X-Zerocracy-DurableId' => '42' }
     )
+    stub_request(:get, %r{https://example.org/durables/42/lock}).to_return(status: 302)
+    stub_request(:put, %r{https://example.org/durables/42}).to_return(status: 200)
+    stub_request(:get, %r{https://example.org/durables/42/unlock}).to_return(status: 302)
     Dir.mktmpdir do |d|
       file = File.join(d, 'upload.txt')
       File.write(file, content)
