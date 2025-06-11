@@ -23,6 +23,8 @@ require_relative '../../judges/categories'
 # Copyright:: Copyright (c) 2024-2025 Yegor Bugayenko
 # License:: MIT
 class Judges::Test
+  # Allowed configuration files in the root directory
+  ALLOWED_ROOT_FILES = %w[.gitignore README.md LICENSE.txt].freeze
   # Initialize.
   # @param [Loog] loog Logging facility
   def initialize(loog)
@@ -197,36 +199,52 @@ class Judges::Test
   def validate_layout(dir)
     return unless File.exist?(dir) && File.directory?(dir)
     errors = []
-    allowed_root_files = %w[.gitignore README.md LICENSE.txt].freeze
 
-    # Iterate over all entries in the directory
     Dir.glob(File.join(dir, '*')).each do |entry|
       if File.directory?(entry)
-        # Handle subdirectories
-        dirname = File.basename(entry)
-        expected_script = File.join(entry, "#{dirname}.rb")
-
-        # Check if the matching .rb file exists
-        unless File.exist?(expected_script)
-          errors << "Judge directory '#{dirname}' must contain a file named '#{dirname}.rb'"
-        end
-
-        # Check for nested judge directories (not allowed)
-        Dir.glob(File.join(entry, '*')).each do |nested_path|
-          next unless File.directory?(nested_path)
-          nested_name = File.basename(nested_path)
-          nested_script = File.join(nested_path, "#{nested_name}.rb")
-          errors << "Nested judge directory '#{dirname}/#{nested_name}' is not allowed" if File.exist?(nested_script)
-        end
+        validate_judge_directory(entry, errors)
       else
-        # Handle files in the root directory
-        basename = File.basename(entry)
-        next if allowed_root_files.include?(basename)
-        next if basename.start_with?('.')
-        errors << "File '#{basename}' should be inside a judge directory, not in the root"
+        validate_root_file(entry, errors)
       end
     end
 
     raise "Directory layout validation failed:\n  #{errors.join("\n  ")}" unless errors.empty?
+  end
+
+  # Validates a judge directory
+  # @param [String] entry The directory path to validate
+  # @param [Array] errors The array to collect errors
+  def validate_judge_directory(entry, errors)
+    dirname = File.basename(entry)
+    expected_script = File.join(entry, "#{dirname}.rb")
+
+    unless File.exist?(expected_script)
+      errors << "Judge directory '#{dirname}' must contain a file named '#{dirname}.rb'"
+    end
+
+    validate_no_nested_judges(entry, dirname, errors)
+  end
+
+  # Validates that there are no nested judge directories
+  # @param [String] entry The directory path to check
+  # @param [String] dirname The directory name
+  # @param [Array] errors The array to collect errors
+  def validate_no_nested_judges(entry, dirname, errors)
+    Dir.glob(File.join(entry, '*')).each do |nested_path|
+      next unless File.directory?(nested_path)
+      nested_name = File.basename(nested_path)
+      nested_script = File.join(nested_path, "#{nested_name}.rb")
+      errors << "Nested judge directory '#{dirname}/#{nested_name}' is not allowed" if File.exist?(nested_script)
+    end
+  end
+
+  # Validates a file in the root directory
+  # @param [String] entry The file path to validate
+  # @param [Array] errors The array to collect errors
+  def validate_root_file(entry, errors)
+    basename = File.basename(entry)
+    return if ALLOWED_ROOT_FILES.include?(basename)
+    return if basename.start_with?('.')
+    errors << "File '#{basename}' should be inside a judge directory, not in the root"
   end
 end
