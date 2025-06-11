@@ -18,11 +18,11 @@ gem 'rake', '~>13.2', require: false
 gem 'random-port', '~>0.0', require: false
 gem 'rdoc', '>0', require: false
 gem 'rubocop', '~>1.74', require: false
-gem 'selenium-webdriver', '~>4.27', require: false
 gem 'rubocop-minitest', '>0', require: false
 gem 'rubocop-performance', '>0', require: false
 gem 'rubocop-rake', '>0', require: false
 gem 'rubocop-rspec', '>0', require: false
+gem 'selenium-webdriver', '~>4.27', require: false
 gem 'simplecov', '~>0.22', require: false
 gem 'simplecov-cobertura', '~>2.1', require: false
 gem 'w3c_validators', '~>1.3', require: false
