@@ -7,7 +7,7 @@ source 'https://rubygems.org'
 gemspec
 
 gem 'base64', '>0'
-gem 'cucumber', '~>9.2', require: false
+gem 'cucumber', '~>10.0', require: false
 gem 'minitest', '~>5.25', require: false
 gem 'minitest-reporters', '~>1.7', require: false
 gem 'minitest-retry', '~>0.2', require: false
