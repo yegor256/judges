@@ -20,11 +20,12 @@ class TestDownload < Minitest::Test
     stub_request(:get, 'https://example.org/durables/find?file=downloaded.txt&jname=myjudge').to_return(
       status: 200, body: '42'
     )
-    stub_request(:get, 'https://example.org/durables/42/lock?owner=default').to_return(status: 302)
+    stub_request(:get, 'https://example.org/csrf').to_return(body: 'test-csrf-token')
+    stub_request(:post, %r{https://example.org/durables/42/lock}).to_return(status: 302)
     stub_request(:get, 'https://example.org/durables/42').to_return(
-      status: 200, body: content
+      status: 200, body: content, headers: {}
     )
-    stub_request(:get, 'https://example.org/durables/42/unlock?owner=default').to_return(status: 302)
+    stub_request(:post, %r{https://example.org/durables/42/unlock}).to_return(status: 302)
     Dir.mktmpdir do |d|
       file = File.join(d, 'downloaded.txt')
       Judges::Download.new(Loog::NULL).run(
@@ -44,14 +45,15 @@ class TestDownload < Minitest::Test
   def test_download_with_custom_owner
     WebMock.disable_net_connect!
     content = 'Custom content'
-    stub_request(:get, 'http://example.org/durables/find?file=data.bin&jname=judge1').to_return(
+    stub_request(:get, %r{http://example.org/durables/find}).to_return(
       status: 200, body: '123'
     )
-    stub_request(:get, 'http://example.org/durables/123/lock?owner=custom').to_return(status: 302)
+    stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
+    stub_request(:post, %r{http://example.org/durables/123/lock}).to_return(status: 302)
     stub_request(:get, 'http://example.org/durables/123').to_return(
-      status: 200, body: content
+      status: 200, body: content, headers: {}
     )
-    stub_request(:get, 'http://example.org/durables/123/unlock?owner=custom').to_return(status: 302)
+    stub_request(:post, %r{http://example.org/durables/123/unlock}).to_return(status: 302)
     Dir.mktmpdir do |d|
       file = File.join(d, 'data.bin')
       Judges::Download.new(Loog::NULL).run(
@@ -73,9 +75,10 @@ class TestDownload < Minitest::Test
     stub_request(:get, 'http://example.org/durables/find?file=test.txt&jname=somejudge').to_return(
       status: 200, body: '99'
     )
-    stub_request(:get, 'http://example.org/durables/99/lock?owner=none').to_return(status: 302)
+    stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
+    stub_request(:post, %r{http://example.org/durables/99/lock}).to_return(status: 302)
     stub_request(:get, 'http://example.org/durables/99').to_return(status: 404)
-    stub_request(:get, 'http://example.org/durables/99/unlock?owner=none').to_return(status: 302)
+    stub_request(:post, %r{http://example.org/durables/99/unlock}).to_return(status: 302)
     Dir.mktmpdir do |d|
       file = File.join(d, 'test.txt')
       assert_raises(StandardError) do

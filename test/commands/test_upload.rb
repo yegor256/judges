@@ -20,15 +20,13 @@ class TestUpload < Minitest::Test
     stub_request(:get, 'https://example.org/durables/find?file=upload.txt&jname=myjudge').to_return(
       status: 404
     )
-    stub_request(:get, 'https://example.org/csrf').to_return(
-      status: 200, body: 'test-csrf-token'
-    )
+    stub_request(:get, 'https://example.org/csrf').to_return(body: 'test-csrf-token')
     stub_request(:post, 'https://example.org/durables/place').to_return(
       status: 302, headers: { 'X-Zerocracy-DurableId' => '42' }
     )
-    stub_request(:get, %r{https://example.org/durables/42/lock}).to_return(status: 302)
+    stub_request(:post, %r{https://example.org/durables/42/lock}).to_return(status: 302)
     stub_request(:put, %r{https://example.org/durables/42}).to_return(status: 200)
-    stub_request(:get, %r{https://example.org/durables/42/unlock}).to_return(status: 302)
+    stub_request(:post, %r{https://example.org/durables/42/unlock}).to_return(status: 302)
     Dir.mktmpdir do |d|
       file = File.join(d, 'upload.txt')
       File.write(file, content)
@@ -51,9 +49,10 @@ class TestUpload < Minitest::Test
     stub_request(:get, 'http://example.org/durables/find?file=data.bin&jname=judge1').to_return(
       status: 200, body: '123'
     )
-    stub_request(:get, 'http://example.org/durables/123/lock?owner=custom').to_return(status: 302)
+    stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
+    stub_request(:post, %r{http://example.org/durables/123/lock}).to_return(status: 302)
     stub_request(:put, 'http://example.org/durables/123').to_return(status: 200)
-    stub_request(:get, 'http://example.org/durables/123/unlock?owner=custom').to_return(status: 302)
+    stub_request(:post, %r{http://example.org/durables/123/unlock}).to_return(status: 302)
     Dir.mktmpdir do |d|
       file = File.join(d, 'data.bin')
       File.write(file, content)
@@ -75,9 +74,7 @@ class TestUpload < Minitest::Test
     stub_request(:get, 'http://example.org/durables/find?file=test.txt&jname=somejudge').to_return(
       status: 404
     )
-    stub_request(:get, 'http://example.org/csrf').to_return(
-      status: 200, body: 'test-csrf-token'
-    )
+    stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
     stub_request(:post, 'http://example.org/durables/place').to_return(status: 500)
     Dir.mktmpdir do |d|
       file = File.join(d, 'test.txt')

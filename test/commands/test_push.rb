@@ -16,8 +16,9 @@ require_relative '../test__helper'
 class TestPush < Minitest::Test
   def test_push_simple_factbase
     WebMock.disable_net_connect!
-    stub_request(:get, 'https://example.org/lock/foo?owner=none').to_return(status: 302)
-    stub_request(:get, 'https://example.org/unlock/foo?owner=none').to_return(status: 302)
+    stub_request(:get, 'https://example.org/csrf').to_return(body: 'test-csrf-token')
+    stub_request(:post, %r{https://example.org/lock/foo}).to_return(status: 302)
+    stub_request(:post, %r{https://example.org/unlock/foo}).to_return(status: 302)
     stub_request(:put, 'https://example.org/push/foo').to_return(
       status: 200, body: '42'
     )
@@ -52,9 +53,10 @@ class TestPush < Minitest::Test
 
   def test_fails_on_http_error
     WebMock.disable_net_connect!
-    stub_request(:get, 'http://example.org/lock/foo?owner=none').to_return(status: 302)
+    stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
+    stub_request(:post, %r{http://example.org/lock/foo}).to_return(status: 302)
     stub_request(:put, 'http://example.org/push/foo').to_return(status: 500)
-    stub_request(:get, 'http://example.org/unlock/foo?owner=none').to_return(status: 302)
+    stub_request(:post, %r{http://example.org/unlock/foo}).to_return(status: 302)
     Dir.mktmpdir do |d|
       file = File.join(d, 'base.fb')
       fb = Factbase.new
