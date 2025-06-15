@@ -5,6 +5,7 @@
 
 $stdout.sync = true
 
+require 'baza-rb/version'
 require 'gli'
 require 'loog'
 require 'tago'
@@ -61,6 +62,7 @@ class JudgesGLI extend GLI::App
     end
     require 'factbase'
     @@loog.debug("Factbase #{Factbase::VERSION}")
+    @@loog.debug("Baza-rb #{BazaRb::VERSION}")
     @@loog.debug("Ruby: #{RUBY_VERSION}-p#{RUBY_PATCHLEVEL}")
     @@loog.debug("Current directory: #{Dir.getwd}")
     @@loog.debug("Time: #{Time.now.utc.iso8601}")
