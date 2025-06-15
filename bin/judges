@@ -17,6 +17,8 @@ Encoding.default_internal = Encoding::UTF_8
 
 class JudgesGLI extend GLI::App
 
+  @@args = ARGV.dup
+
   def self.run_it(cmd, ruby)
     cmd.action do |global, options, args|
       require_relative "../lib/judges/commands/#{ruby}"
@@ -41,10 +43,15 @@ class JudgesGLI extend GLI::App
   switch([:v, :verbose])
   desc 'Specify Factbase version to use'
   flag([:factbase], type: String)
+  desc 'Echo the entire command line'
+  switch([:echo])
 
   pre do |global, command, options, args|
     if global[:verbose]
       @@loog = Loog::VERBOSE
+    end
+    if global[:echo]
+      @@loog.info("+ #{File.absolute_path($0)} #{@@args.join(' ')}")
     end
     @@loog.debug("Judges #{Judges::VERSION}")
     if global[:factbase]
