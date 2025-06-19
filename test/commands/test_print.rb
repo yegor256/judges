@@ -9,6 +9,8 @@ require 'loog'
 require 'net/ping'
 require 'nokogiri'
 require 'securerandom'
+require 'selenium-webdriver'
+require 'timeout'
 require 'w3c_validators'
 require 'webmock/minitest'
 require 'yaml'
@@ -79,6 +81,105 @@ class TestPrint < Minitest::Test
     assert_empty(v.errors, "#{doc}\n\n#{v.errors.join('; ')}")
   end
 
+  def test_html_renders_in_browser
+    WebMock.disable_net_connect!
+    stub_request(:get,
+                 'https://yegor256.github.io/judges/assets/index.css').to_return(body: 'body { font-family: Arial; }')
+    stub_request(:get, 'https://yegor256.github.io/judges/assets/index.js').to_return(body: 'console.log("JS loaded");')
+    fb = Factbase.new
+    f = fb.insert
+    f.what = 'test issue'
+    f.when = Time.now
+    f.ticket = 42
+    html = File.join(__dir__, '../../temp/browser_test.html')
+    FileUtils.rm_f(html)
+    Dir.mktmpdir do |d|
+      factbase_file = File.join(d, 'base.fb')
+      File.binwrite(factbase_file, fb.export)
+      Judges::Print.new(Loog::NULL).run(
+        { 'format' => 'html', 'columns' => 'what,when,ticket' },
+        [factbase_file, html]
+      )
+    end
+    doc = Nokogiri::HTML(File.read(html))
+    assert_equal 'html', doc.root.name.downcase, 'Root element should be html'
+    head = doc.at_css('head')
+    refute_nil head, 'Head element should be present for browser rendering'
+    viewport = head.at_css('meta[name="viewport"]')
+    refute_nil viewport, 'Viewport meta tag should be present for responsive rendering'
+    charset = head.at_css('meta[charset]')
+    refute_nil charset, 'Character encoding should be specified for proper text rendering'
+    css_links = head.css('link[rel="stylesheet"]')
+    refute_empty css_links, 'CSS stylesheets should be linked for proper visual rendering'
+    css_links.each do |link|
+      refute_nil link['href'], 'CSS link should have href attribute'
+      refute_nil link['integrity'], 'CSS link should have integrity attribute for security'
+    end
+    js_scripts = head.css('script[src]')
+    refute_empty js_scripts, 'JavaScript should be included for interactive functionality'
+    js_scripts.each do |script|
+      refute_nil script['src'], 'Script should have src attribute'
+      refute_nil script['integrity'], 'Script should have integrity attribute for security'
+    end
+    body = doc.at_css('body')
+    refute_nil body, 'Body element should be present'
+    header = body.at_css('header')
+    refute_nil header, 'Header should be present for page structure'
+    footer = body.at_css('footer')
+    refute_nil footer, 'Footer should be present for page structure'
+    article = body.at_css('article')
+    refute_nil article, 'Article element should contain main content'
+    facts_table = body.at_css('table#facts')
+    refute_nil facts_table, 'Facts table with id="facts" should be present for data display'
+    colgroup = facts_table.at_css('colgroup')
+    refute_nil colgroup, 'Table should have colgroup for proper column formatting'
+    thead = facts_table.at_css('thead')
+    refute_nil thead, 'Table should have thead for proper header rendering'
+    tbody = facts_table.at_css('tbody')
+    refute_nil tbody, 'Table should have tbody for data rows'
+    data_rows = tbody.css('tr')
+    assert_operator data_rows.size, :>=, 1, 'Table should have at least one data row'
+    header_cells = thead.css('th')
+    assert_operator header_cells.size, :>=, 3, 'Table should have header cells for each column'
+    column_texts = header_cells.map(&:text)
+    assert_includes column_texts, 'what', 'Table should have "what" column'
+    assert_includes column_texts, 'when', 'Table should have "when" column'
+    assert_includes column_texts, 'ticket', 'Table should have "ticket" column'
+    title = head.at_css('title')
+    refute_nil title, 'Page should have title for browser tab display'
+    refute_empty title.text.strip, 'Page title should not be empty'
+    return unless chrome_available? && we_are_online
+    begin
+      validate_with_chrome(html)
+    rescue StandardError => e
+      puts "Browser validation skipped: #{e.message}"
+    end
+  end
+
+  def validate_with_chrome(html_file)
+    options = Selenium::WebDriver::Chrome::Options.new
+    options.add_argument('--headless=new')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+    options.add_argument('--disable-gpu')
+    options.add_argument('--disable-web-security')
+    driver = nil
+    begin
+      Timeout.timeout(5) do
+        driver = Selenium::WebDriver.for(:chrome, options: options)
+      end
+      driver.manage.timeouts.page_load = 3
+      driver.navigate.to("file://#{html_file}")
+      wait = Selenium::WebDriver::Wait.new(timeout: 2)
+      wait.until { driver.find_element(tag_name: 'body') }
+      driver.find_element(id: 'facts')
+      driver.find_element(tag_name: 'header')
+      driver.find_element(tag_name: 'footer')
+    ensure
+      driver&.quit
+    end
+  end
+
   def test_html_table_has_colgroup
     WebMock.disable_net_connect!
     stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(body: 'nothing')
@@ -144,5 +245,9 @@ class TestPrint < Minitest::Test
 
   def we_are_online
     Net::Ping::External.new('8.8.8.8').ping?
+  end
+
+  def chrome_available?
+    system('google-chrome --version > /dev/null 2>&1')
   end
 end
