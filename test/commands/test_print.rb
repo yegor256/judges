@@ -73,7 +73,7 @@ class TestPrint < Minitest::Test
       end
     assert_empty(xml.errors, xml)
     refute_empty(xml.xpath('/html'), xml)
-    skip('We are offline') unless we_are_online
+    skip('We are offline') unless we_are_online?
     WebMock.enable_net_connect!
     v = W3CValidators::NuValidator.new.validate_file(html)
     assert_empty(v.errors, "#{doc}\n\n#{v.errors.join('; ')}")
@@ -142,7 +142,7 @@ class TestPrint < Minitest::Test
 
   private
 
-  def we_are_online
+  def we_are_online?
     Net::Ping::External.new('8.8.8.8').ping?
   end
 end

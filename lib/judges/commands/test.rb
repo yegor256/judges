@@ -47,40 +47,43 @@ class Judges::Test
       judges.each_with_index do |judge, i|
         visible << judge.name
         next unless include?(opts, judge.name)
-        @loog.info("\n👉 Testing #{judge.script} (##{i}) in #{judge.dir.to_rel}...")
+        @loog.info("👉 Testing #{judge.script} (##{i}) in #{judge.dir.to_rel}...")
+        buf = Loog::Buffer.new
+        judge = judge.with_loog(buf)
         judge.tests.each do |f|
           tname = File.basename(f).gsub(/\.yml$/, '')
           visible << "  #{judge.name}/#{tname}"
           next unless include?(opts, judge.name, tname)
           yaml = YAML.load_file(f, permitted_classes: [Time])
           if yaml['skip']
-            @loog.info("Skipped #{f.to_rel}")
+            buf.info("Skipped #{f.to_rel}")
             next
           end
           unless Judges::Categories.new(opts['enable'], opts['disable']).ok?(yaml['category'])
-            @loog.info("Skipped #{f.to_rel} because of its category")
+            buf.info("Skipped #{f.to_rel} because of its category")
             next
           end
-          @loog.info("🛠️ Testing #{f.to_rel}:")
+          buf.info("🛠️ Testing #{f.to_rel}:")
           start = Time.now
           badge = "#{judge.name}/#{tname}"
           begin
             fb = Factbase.new
             prepare(fb, yaml)
             yaml['before']&.each do |n|
-              j = judges.get(n)
-              @loog.info("Running #{j.script} judge as a pre-condition...")
+              j = judges.get(n).with_loog(buf)
+              buf.info("Running #{j.script} judge as a pre-condition...")
               test_one(fb, opts, j, n, yaml, assert: false)
             end
             test_one(fb, opts, judge, tname, yaml)
             yaml['after']&.each do |rb|
-              @loog.info("Running #{rb} assertion script...")
+              buf.info("Running #{rb} assertion script...")
               $fb = fb
-              $loog = @loog
+              $loog = buf
               load(File.join(judge.dir, rb), true)
             end
             tests += 1
           rescue StandardError => e
+            @loog.info(buf.to_s)
             @loog.warn(Backtrace.new(e))
             errors << badge
           end

@@ -35,6 +35,14 @@ class Judges::Judge
     name
   end
 
+  # A new judge, with a different log.
+  #
+  # @param [Loog] loog New log
+  # @return [Judges::Judge] Similar judge, but log is different
+  def with_loog(loog)
+    Judges::Judge.new(@dir, @lib, loog, start: @start)
+  end
+
   # Executes the judge script with the provided factbase and configuration.
   #
   # This method sets up the execution environment by creating global variables,
