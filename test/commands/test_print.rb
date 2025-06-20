@@ -6,8 +6,8 @@
 require 'factbase'
 require 'fileutils'
 require 'loog'
-require 'net/ping'
 require 'nokogiri'
+require 'online'
 require 'securerandom'
 require 'w3c_validators'
 require 'webmock/minitest'
@@ -73,8 +73,8 @@ class TestPrint < Minitest::Test
       end
     assert_empty(xml.errors, xml)
     refute_empty(xml.xpath('/html'), xml)
-    skip('We are offline') unless we_are_online?
     WebMock.enable_net_connect!
+    skip('We are offline') unless online?
     v = W3CValidators::NuValidator.new.validate_file(html)
     assert_empty(v.errors, "#{doc}\n\n#{v.errors.join('; ')}")
   end
@@ -138,11 +138,5 @@ class TestPrint < Minitest::Test
       Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml', 'auto' => true }, [f])
       assert_equal(mtime, File.mtime(y))
     end
-  end
-
-  private
-
-  def we_are_online?
-    Net::Ping::External.new('8.8.8.8').ping?
   end
 end

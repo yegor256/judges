@@ -11,7 +11,6 @@ AllCops:
   SuggestExtensions: false
   NewCops: enable
 plugins:
-  - rubocop-rspec
   - rubocop-minitest
   - rubocop-performance
   - rubocop-rake
