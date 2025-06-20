@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
     'for a set of judges.'
   s.authors = ['Yegor Bugayenko']
   s.email = 'yegor256@gmail.com'
-  s.homepage = 'http://github.com/yegor256/judges'
+  s.homepage = 'https://github.com/yegor256/judges'
   s.files = `git ls-files`.split($RS)
   s.executables = s.files.grep(%r{^bin/}) { |f| File.basename(f) }
   s.rdoc_options = ['--charset=UTF-8']
