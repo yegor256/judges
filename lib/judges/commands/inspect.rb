@@ -34,7 +34,7 @@ class Judges::Inspect
     if sum.empty?
       @loog.info('Summary fact not found')
     else
-      @loog.info("Summary fact found:\n\t#{Factbase::FactAsYaml.new(sum.first).gsub("\n", "\n\t")}")
+      @loog.info("Summary fact found:\n\t#{Factbase::FactAsYaml.new(sum.first).to_s.gsub("\n", "\n\t")}")
     end
   end
 end

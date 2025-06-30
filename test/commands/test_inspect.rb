@@ -26,4 +26,19 @@ class TestInspect < Minitest::Test
       assert_includes(loog.to_s, 'Facts: 2')
     end
   end
+
+  def test_simple_inspect_with_summary
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert.then do |f|
+        f.what = 'judges-summary'
+        f.error = 'something'
+      end
+      File.binwrite(f, fb.export)
+      loog = Loog::Buffer.new
+      Judges::Inspect.new(loog).run({}, [f])
+      assert_includes(loog.to_s, 'Facts: 1')
+    end
+  end
 end
