@@ -27,11 +27,15 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          # Download prebuilt curl binaries that include libcurl.dll
-          Invoke-WebRequest -Uri "https://curl.se/windows/dl-8.11.1/curl-8.11.1-win64-mingw.zip" -OutFile "curl.zip"
-          Expand-Archive -Path "curl.zip" -DestinationPath "."
-          # Add the bin directory to PATH so libcurl.dll can be found
-          echo "$PWD\curl-8.11.1-win64-mingw\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+          # Use chocolatey to install curl properly
+          choco install curl -y
+          # The curl package installs to a specific location
+          $curlPath = "C:\ProgramData\chocolatey\lib\curl\tools\curl-8.14.1_1-win64-mingw\bin"
+          if (-not (Test-Path $curlPath)) {
+            # Try to find the actual curl installation path
+            $curlPath = (Get-ChildItem "C:\ProgramData\chocolatey\lib\curl\tools" -Directory | Select-Object -First 1).FullName + "\bin"
+          }
+          echo $curlPath | Out-File -FilePath $env:GITHUB_PATH -Append
       - run: bundle config set --global path "$(pwd)/vendor/bundle"
       - run: bundle install --no-color
       - run: bundle exec rake
