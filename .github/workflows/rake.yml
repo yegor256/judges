@@ -25,7 +25,13 @@ jobs:
           bundler-cache: true
       - name: Install libcurl on Windows
         if: runner.os == 'Windows'
-        run: choco install curl -y
+        shell: pwsh
+        run: |
+          # Download prebuilt curl binaries that include libcurl.dll
+          Invoke-WebRequest -Uri "https://curl.se/windows/dl-8.11.1/curl-8.11.1-win64-mingw.zip" -OutFile "curl.zip"
+          Expand-Archive -Path "curl.zip" -DestinationPath "."
+          # Add the bin directory to PATH so libcurl.dll can be found
+          echo "$PWD\curl-8.11.1-win64-mingw\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
       - run: bundle config set --global path "$(pwd)/vendor/bundle"
       - run: bundle install --no-color
       - run: bundle exec rake
