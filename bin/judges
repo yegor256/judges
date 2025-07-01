@@ -49,6 +49,8 @@ class JudgesGLI extend GLI::App
 
   desc 'Enable verbose mode with maximum logging'
   switch([:v, :verbose])
+  desc 'Print diagnostic information about the environment, at the start'
+  switch([:hello])
   desc 'Specify Factbase version to use'
   flag([:factbase], type: String)
   desc 'Echo the entire command line'
@@ -68,12 +70,17 @@ class JudgesGLI extend GLI::App
       gem 'factbase', ver
     end
     require 'factbase'
-    @@loog.debug("Factbase #{Factbase::VERSION}")
-    @@loog.debug("Baza-rb #{BazaRb::VERSION}")
-    @@loog.debug("Ruby: #{RUBY_VERSION}-p#{RUBY_PATCHLEVEL}")
-    @@loog.debug("Current directory: #{Dir.getwd}")
-    @@loog.debug("Time: #{Time.now.utc.iso8601}")
-    @@loog.debug("Total memory: #{Total::Mem.new.bytes / (1024 * 1024)}Mb")
+    if global[:hello]
+      [
+        "Judges #{Judges::VERSION}",
+        "Factbase #{Factbase::VERSION}",
+        "Baza-rb #{BazaRb::VERSION}",
+        "Ruby: #{RUBY_VERSION}-p#{RUBY_PATCHLEVEL}",
+        "Current directory: #{Dir.getwd}",
+        "Time: #{Time.now.utc.iso8601}",
+        "Total memory: #{Total::Mem.new.bytes / (1024 * 1024)}Mb"
+      ].each { |m| @@loog.info(m) }
+    end
     true
   end
 

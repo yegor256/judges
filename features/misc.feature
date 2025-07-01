@@ -5,7 +5,7 @@ Feature: Misc
   I want to get some meta info
 
   Scenario: Help can be printed
-    When I run bin/judges with "-h"
+    When I run bin/judges with "--help --hello"
     Then Exit code is zero
     And Stdout contains "--help"
 
