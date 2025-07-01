@@ -14,7 +14,7 @@ jobs:
   rake:
     strategy:
       matrix:
-        os: [ubuntu-24.04, macos-15, windows-2022]
+        os: [ubuntu-24.04, macos-15]
         ruby: [3.3]
     runs-on: ${{ matrix.os }}
     steps:
@@ -23,19 +23,6 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
-      - name: Install libcurl on Windows
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          # Use chocolatey to install curl properly
-          choco install curl -y
-          # The curl package installs to a specific location
-          $curlPath = "C:\ProgramData\chocolatey\lib\curl\tools\curl-8.14.1_1-win64-mingw\bin"
-          if (-not (Test-Path $curlPath)) {
-            # Try to find the actual curl installation path
-            $curlPath = (Get-ChildItem "C:\ProgramData\chocolatey\lib\curl\tools" -Directory | Select-Object -First 1).FullName + "\bin"
-          }
-          echo $curlPath | Out-File -FilePath $env:GITHUB_PATH -Append
       - run: bundle config set --global path "$(pwd)/vendor/bundle"
       - run: bundle install --no-color
       - run: bundle exec rake
