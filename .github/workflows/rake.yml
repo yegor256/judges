@@ -23,6 +23,11 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
+      - name: Install libcurl on Windows
+        if: runner.os == 'Windows'
+        run: |
+          choco install curl -y
+          refreshenv
       - run: bundle config set --global path "$(pwd)/vendor/bundle"
       - run: bundle install --no-color
       - run: bundle exec rake
