@@ -75,8 +75,12 @@ class TestPrint < Minitest::Test
     refute_empty(xml.xpath('/html'), xml)
     WebMock.enable_net_connect!
     skip('We are offline') unless online?
-    v = W3CValidators::NuValidator.new.validate_file(html)
-    assert_empty(v.errors, "#{doc}\n\n#{v.errors.join('; ')}")
+    begin
+      v = W3CValidators::NuValidator.new.validate_file(html)
+      assert_empty(v.errors, "#{doc}\n\n#{v.errors.join('; ')}")
+    rescue W3CValidators::ValidatorUnavailable
+      skip('Cloud validator is too busy')
+    end
   end
 
   def test_html_table_has_colgroup
