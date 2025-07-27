@@ -161,4 +161,57 @@ class TestTest < Minitest::Test
       assert_path_exists(d)
     end
   end
+
+  def test_with_timeout_success
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        timeout: 5
+        expected:
+          - /fb[count(f)=1]
+          - /fb/f[foo='42']
+        YAML
+      )
+      Judges::Test.new(Loog::NULL).run({}, [d])
+      assert_path_exists(d)
+    end
+  end
+
+  def test_with_timeout_failure
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'sleep(10)')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        timeout: 1
+        YAML
+      )
+      assert_raises(StandardError) do
+        Judges::Test.new(Loog::NULL).run({}, [d])
+      end
+    end
+  end
+
+  def test_with_timeout_in_after_script
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(File.join(d, 'foo/assert.rb'), 'sleep(10)')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        timeout: 1
+        after:
+          - assert.rb
+        YAML
+      )
+      assert_raises(StandardError) do
+        Judges::Test.new(Loog::NULL).run({}, [d])
+      end
+    end
+  end
 end

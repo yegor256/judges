@@ -8,6 +8,7 @@ require 'factbase'
 require 'backtrace'
 require 'factbase/to_xml'
 require 'elapsed'
+require 'timeout'
 require_relative '../../judges'
 require_relative '../../judges/to_rel'
 require_relative '../../judges/judges'
@@ -79,7 +80,13 @@ class Judges::Test
               buf.info("Running #{rb} assertion script...")
               $fb = fb
               $loog = buf
-              load(File.join(judge.dir, rb), true)
+              if yaml['timeout']
+                Timeout.timeout(yaml['timeout']) do
+                  load(File.join(judge.dir, rb), true)
+                end
+              else
+                load(File.join(judge.dir, rb), true)
+              end
             end
             tests += 1
           rescue StandardError => e
@@ -161,6 +168,7 @@ class Judges::Test
   def test_one(fb, opts, judge, tname, yaml, assert: true)
     options = Judges::Options.new(opts['option']) + Judges::Options.new(yaml['options'])
     runs = opts['runs'] || yaml['runs'] || 1
+    timeout = yaml['timeout']
     (1..runs).each do |r|
       fbx = fb
       if opts['log']
@@ -169,8 +177,16 @@ class Judges::Test
       end
       expected_failure = yaml['expected_failure']
       begin
-        judge.run(fbx, {}, {}, options)
+        if timeout
+          Timeout.timeout(timeout) do
+            judge.run(fbx, {}, {}, options)
+          end
+        else
+          judge.run(fbx, {}, {}, options)
+        end
         raise 'Exception expected but not raised' if expected_failure
+      rescue Timeout::Error => e
+        raise "Test timed out after #{timeout} seconds"
       # rubocop:disable Lint/RescueException
       rescue Exception => e
         # rubocop:enable Lint/RescueException
