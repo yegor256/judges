@@ -140,6 +140,7 @@ class Judges::Test
   end
 
   def prepare(fb, yaml)
+    id = 1
     inputs = yaml['input']
     (yaml['repeat']&.to_i || 1).times do
       inputs&.each do |i|
@@ -150,6 +151,10 @@ class Judges::Test
               f.send(:"#{k}=", v)
             end
           else
+            if k == '_id'
+              vv = id
+              id += 1
+            end
             f.send(:"#{k}=", vv)
           end
         end
