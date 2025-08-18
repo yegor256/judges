@@ -6,7 +6,7 @@
 source 'https://rubygems.org'
 gemspec
 
-gem 'base64', '~>0.0'
+gem 'base64', '~>0.3'
 gem 'cucumber', '~>10.0', require: false
 gem 'diff-lcs', '1.6.2', require: false # GPL
 gem 'minitest', '~>5.25', require: false
@@ -15,13 +15,13 @@ gem 'minitest-retry', '~>0.2', require: false
 gem 'net-ping', '~>2.0', require: false
 gem 'online', '~>0.0', require: false
 gem 'os', '~>1.1', require: false
-gem 'qbash', '~>0.0', require: false
+gem 'qbash', '~>0.4', require: false
 gem 'rake', '~>13.2', require: false
-gem 'random-port', '~>0.0', require: false
+gem 'random-port', '~>0.7', require: false
 gem 'rubocop', '~>1.74', require: false
-gem 'rubocop-minitest', '~>0.0', require: false
+gem 'rubocop-minitest', '~>0.38', require: false
 gem 'rubocop-performance', '~>1.25', require: false
-gem 'rubocop-rake', '~>0.0', require: false
+gem 'rubocop-rake', '~>0.7', require: false
 gem 'simplecov', '~>0.22', require: false
 gem 'simplecov-cobertura', '~>3.0', require: false
 gem 'w3c_validators', '~>1.3', require: false
