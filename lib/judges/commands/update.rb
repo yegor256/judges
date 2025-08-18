@@ -46,7 +46,8 @@ class Judges::Update
     impex = Judges::Impex.new(@loog, args[1])
     fb = impex.import(strict: false)
     fb = Factbase::Logged.new(fb, @loog) if opts['log']
-    options = Judges::Options.new(opts['option'])
+    options = Judges::Options.new(timeout: opts['timeout'], lifetime: opts['lifetime'])
+    options += Judges::Options.new(opts['option'])
     if opts['options-file']
       options += Judges::Options.new(
         File.readlines(opts['options-file'])

@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: MIT
 
 require 'loog'
+require 'loog/tee'
 require 'nokogiri'
 require 'factbase/to_xml'
 require_relative '../test__helper'
@@ -85,6 +86,18 @@ class TestUpdate < Minitest::Test
       fb.import(File.binread(file))
       xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
       refute_empty(xml.xpath('/fb/f[foo="444"]'), xml)
+    end
+  end
+
+  def test_passes_timeout_and_lifetime_through
+    %w[lifetime timeout].each do |o|
+      Dir.mktmpdir do |d|
+        save_it(File.join(d, 'foo/foo.rb'), "$loog.info '#{o}=' + $options.#{o}.to_s")
+        file = File.join(d, 'base.fb')
+        log = Loog::Buffer.new
+        Judges::Update.new(Loog::Tee.new(log, Loog::VERBOSE)).run({ o => 666 }, [d, file])
+        assert_includes(log.to_s, "#{o}=666")
+      end
     end
   end
 
