@@ -95,7 +95,7 @@ class TestUpdate < Minitest::Test
         save_it(File.join(d, 'foo/foo.rb'), "$loog.info '#{o}=' + $options.#{o}.to_s")
         file = File.join(d, 'base.fb')
         log = Loog::Buffer.new
-        Judges::Update.new(Loog::Tee.new(log, Loog::VERBOSE)).run({ o => 666 }, [d, file])
+        Judges::Update.new(Loog::Tee.new(log, Loog::NULL)).run({ o => 666 }, [d, file])
         assert_includes(log.to_s, "#{o}=666")
       end
     end
