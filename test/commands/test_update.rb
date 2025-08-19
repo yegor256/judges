@@ -89,6 +89,18 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_terminates_on_lifetime
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'sleep 999')
+      file = File.join(d, 'base.fb')
+      log = Loog::Buffer.new
+      assert_raises(StandardError) do
+        Judges::Update.new(Loog::Tee.new(log, Loog::NULL)).run({ 'lifetime' => 0.1 }, [d, file])
+      end
+      assert_includes(log.to_s, 'execution expired')
+    end
+  end
+
   def test_passes_timeout_and_lifetime_through
     %w[lifetime timeout].each do |o|
       Dir.mktmpdir do |d|

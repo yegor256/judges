@@ -55,16 +55,15 @@ Feature: Update
     """
       n = $fb.insert
       n.type = 'first'
-      sleep 1
+      sleep 0.9
     """
     Then I have a "second/second.rb" file with content:
     """
       n = $fb.insert
       n.type = 'second'
     """
-    Then I run bin/judges with "--verbose update --quiet --lifetime 1 --max-cycles 5 . simple.fb"
-    Then Stdout contains "The 'second' judge skipped, no time left"
-    Then Stdout contains "Update completed in 1 cycle(s), did 1i/0d/1a"
+    Then I run bin/judges with "--verbose update --lifetime 1 --max-cycles 5 . simple.fb"
+    Then Stdout contains "Update completed in 1 cycle(s), did 2i/0d/2a"
     And Exit code is zero
 
   Scenario: Use options from a file

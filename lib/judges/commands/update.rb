@@ -42,7 +42,6 @@ class Judges::Update
     raise 'Exactly two arguments required' unless args.size == 2
     dir = args[0]
     raise "The directory is absent: #{dir.to_rel}" unless File.exist?(dir)
-    start = Time.now
     impex = Judges::Impex.new(@loog, args[1])
     fb = impex.import(strict: false)
     fb = Factbase::Logged.new(fb, @loog) if opts['log']
@@ -62,8 +61,19 @@ class Judges::Update
     else
       @loog.debug("The following options provided:\n\t#{options.to_s.gsub("\n", "\n\t")}")
     end
-    judges = Judges::Judges.new(dir, opts['lib'], @loog, start:, shuffle: opts['shuffle'], boost: opts['boost'],
-                                                         demote: opts['demote'])
+    judges = Judges::Judges.new(
+      dir, opts['lib'], @loog,
+      start: @start, shuffle: opts['shuffle'], boost: opts['boost'],
+      demote: opts['demote']
+    )
+    Timeout.timeout(opts['lifetime']) do
+      loop_them(impex, judges, fb, opts, options)
+    end
+  end
+
+  private
+
+  def loop_them(impex, judges, fb, opts, options)
     c = 0
     churn = Factbase::Churn.new
     errors = []
@@ -80,14 +90,14 @@ class Judges::Update
       loop do
         c += 1
         if c > 1
-          if opts['lifetime'] && Time.now - @start > opts['lifetime']
+          if opts['lifetime'] && Time.now - @start > opts['lifetime'] * 0.51
             @loog.info("Not starting cycle ##{c}, no time left")
             c -= 1
             break
           end
           @loog.info("\nStarting cycle ##{c}#{" (out of #{opts['max-cycles']})" if opts['max-cycles']}...")
         end
-        delta = cycle(opts, judges, fb, options, start, errors)
+        delta = cycle(opts, judges, fb, options, errors)
         churn += delta
         impex.export(fb)
         if delta.zero?
@@ -107,26 +117,23 @@ class Judges::Update
       throw :"👍 Update completed in #{c} cycle(s), did #{churn}"
     end
     return unless %w[add append].include?(opts['summary'])
-    summarize(fb, churn, errors, start, c)
+    summarize(fb, churn, errors, c)
     impex.export(fb)
   end
-
-  private
 
   # Update the summary.
   # @param [Factbase] fb The factbase
   # @param [Churn] churn The churn
   # @param [Array<String>] errors List of errors
-  # @param [Time] start When we started
   # @param [Integer] cycles How many cycles
-  def summarize(fb, churn, errors, start, cycles)
+  def summarize(fb, churn, errors, cycles)
     before = fb.query('(eq what "judges-summary")').each.to_a
     if before.empty?
       s = fb.insert
       s.what = 'judges-summary'
       s.when = Time.now
       s.version = Judges::VERSION
-      s.seconds = Time.now - start
+      s.seconds = Time.now - @start
       s.cycles = cycles
       s.inserted = churn.inserted.size
       s.deleted = churn.deleted.size
@@ -153,10 +160,9 @@ class Judges::Update
   # @param [Judges::Judges] judges The judges
   # @param [Factbase] fb The factbase
   # @param [Judges::Options] options The options
-  # @param [Float] start When we started
   # @param [Array<String>] errors List of errors
   # @return [Factbase::Churn] How many modifications have been made
-  def cycle(opts, judges, fb, options, start, errors)
+  def cycle(opts, judges, fb, options, errors)
     churn = Factbase::Churn.new
     global = {}
     used = 0
@@ -168,7 +174,7 @@ class Judges::Update
             next
           end
           next unless include?(opts, judge.name)
-          @loog.info("\n👉 Running #{judge.name} (##{i}) at #{judge.dir.to_rel} (#{start.ago} already)...")
+          @loog.info("\n👉 Running #{judge.name} (##{i}) at #{judge.dir.to_rel} (#{@start.ago} already)...")
           used += 1
           elapsed(@loog, level: Logger::INFO) do
             c = one_judge(opts, fb, judge, global, options, errors)
