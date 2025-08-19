@@ -12,7 +12,6 @@ gem 'diff-lcs', '1.6.2', require: false # GPL
 gem 'minitest', '~>5.25', require: false
 gem 'minitest-reporters', '~>1.7', require: false
 gem 'minitest-retry', '~>0.2', require: false
-gem 'net-ping', '~>2.0', require: false
 gem 'online', '~>0.0', require: false
 gem 'os', '~>1.1', require: false
 gem 'qbash', '~>0.4', require: false
