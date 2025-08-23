@@ -51,6 +51,18 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_accepts_changes_from_slow_judge
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1; sleep 10')
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::NULL).run({ 'timeout' => 0.1, 'quiet' => true }, [d, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
+      refute_empty(xml.xpath('/fb/f[foo]'), xml)
+    end
+  end
+
   def test_extend_existing_factbase
     Dir.mktmpdir do |d|
       file = File.join(d, 'base.fb')
