@@ -60,6 +60,11 @@ class TestOptions < Minitest::Test
     assert_nil(opts.xxx)
   end
 
+  def test_with_nil_values
+    opts = Judges::Options.new('foo' => nil)
+    assert_nil(opts.foo)
+  end
+
   def test_converts_to_string
     opts = Judges::Options.new('foo' => 44, 'bar' => 'long-string-maybe-secret')
     s = opts.to_s

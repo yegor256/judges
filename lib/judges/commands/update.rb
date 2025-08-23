@@ -45,7 +45,10 @@ class Judges::Update
     impex = Judges::Impex.new(@loog, args[1])
     fb = impex.import(strict: false)
     fb = Factbase::Logged.new(fb, @loog) if opts['log']
-    options = Judges::Options.new(timeout: opts['timeout'], lifetime: opts['lifetime'])
+    options = Judges::Options.new(timeout: opts['timeout']&.to_i, lifetime: opts['lifetime']&.to_i)
+    if options.lifetime && options.timeout && options.lifetime < options.timeout * 1.1
+      raise "The --timeout=#{options.timeout} must be at least 10 percent smaller than --lifetime=#{options.lifetime}"
+    end
     options += Judges::Options.new(opts['option'])
     if opts['options-file']
       options += Judges::Options.new(
