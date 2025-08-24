@@ -55,7 +55,28 @@ class TestUpdate < Minitest::Test
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1; sleep 10')
       file = File.join(d, 'base.fb')
-      Judges::Update.new(Loog::NULL).run({ 'timeout' => 0.1, 'quiet' => true }, [d, file])
+      Judges::Update.new(Loog::NULL).run(
+        { 'timeout' => 0.1, 'quiet' => true, 'fail-fast' => true },
+        [d, file]
+      )
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
+      refute_empty(xml.xpath('/fb/f[foo]'), xml)
+    end
+  end
+
+  def test_reports_changes_from_slow_judge
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1; sleep 10')
+      file = File.join(d, 'base.fb')
+      log = Loog::Buffer.new
+      Judges::Update.new(Loog::Tee.new(log, Loog::NULL)).run(
+        { 'timeout' => 0.1, 'quiet' => true, 'fail-fast' => true },
+        [d, file]
+      )
+      assert_includes(log.to_s, 'did 1i/0d/1a')
+      assert_includes(log.to_s, 'Update completed in 1 cycle(s), did 1i/0d/1a')
       fb = Factbase.new
       fb.import(File.binread(file))
       xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)

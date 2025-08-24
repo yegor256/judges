@@ -215,6 +215,7 @@ class Judges::Update
   def one_judge(opts, fb, judge, global, options, errors)
     local = {}
     start = Time.now
+    fb = Factbase::Tallied.new(fb)
     begin
       if opts['lifetime'] && Time.now - @start > opts['lifetime']
         throw :"👎 The '#{judge.name}' judge skipped, no time left"
@@ -224,8 +225,8 @@ class Judges::Update
       end
     rescue Timeout::Error, Timeout::ExitException => e
       errors << "Judge #{judge.name} stopped by timeout after #{start.ago}: #{e.message}"
-      throw :"👎 The '#{judge.name}' judge timed out after #{start.ago}: #{e.message}"
     end
+    fb.churn
   end
 
   def include?(opts, name)

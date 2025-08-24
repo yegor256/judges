@@ -63,7 +63,7 @@ Feature: Update
       n.type = 'second'
     """
     Then I run bin/judges with "--verbose update --quiet --lifetime 2 --timeout 1 --max-cycles 5 . simple.fb"
-    Then Stdout contains "Update completed in 2 cycle(s), did 1i/0d/1a"
+    Then Stdout contains "Update completed in 2 cycle(s), did 3i/0d/3a"
     And Exit code is zero
 
   Scenario: Use options from a file
@@ -93,7 +93,6 @@ Feature: Update
     """
     Then I run bin/judges with "--verbose update --timeout 1 --quiet . foo.fb"
     Then Stdout contains "execution expired"
-    Then Stdout contains "judge timed out after"
     Then Stdout contains "1 judge(s) processed"
     Then Stdout contains "Update completed in 1 cycle(s), did 0i/0d/0a"
     And Exit code is zero

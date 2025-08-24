@@ -53,10 +53,10 @@ class Judges::Judge
   # @param [Hash] global Global configuration options shared across all judges
   # @param [Hash] local Local configuration options specific to this judge
   # @param [Judges::Options] options Command-line options object
-  # @return [Factbase::Churn] Object containing statistics about the changes made to the factbase
+  # @return [nil] Nothing
   # @raise [RuntimeError] If the lib directory doesn't exist, the script can't be loaded, or execution fails
   def run(fb, global, local, options)
-    $fb = Factbase::Tallied.new(fb)
+    $fb = fb
     $judge = File.basename(@dir)
     $options = options
     $loog = @loog
@@ -76,7 +76,7 @@ class Judges::Judge
     raise "Can't load '#{s}'" unless File.exist?(s)
     elapsed(@loog, good: "#{$judge} completed", level: Logger::INFO) do
       load(s, true)
-      $fb.churn
+      nil
       # rubocop:disable Lint/RescueException
     rescue Exception => e
       # rubocop:enable Lint/RescueException
