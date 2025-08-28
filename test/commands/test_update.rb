@@ -41,7 +41,7 @@ class TestUpdate < Minitest::Test
 
   def test_cancels_slow_execution
     Dir.mktmpdir do |d|
-      10.times do |i|
+      100.times do |i|
         save_it(File.join(d, "foo-#{i}/foo-#{i}.rb"), '$fb.insert.foo = 0.05; sleep 2;')
       end
       file = File.join(d, 'base.fb')

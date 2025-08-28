@@ -76,6 +76,8 @@ class Judges::Update
     rescue Timeout::Error, Timeout::ExitException => e
       raise e unless opts['quiet']
       @loog.info("Had to stop due to the --lifetime=#{opts['lifetime']}")
+    ensure
+      impex.export(fb)
     end
   end
 
