@@ -69,8 +69,13 @@ class Judges::Update
       start: @start, shuffle: opts['shuffle'], boost: opts['boost'],
       demote: opts['demote']
     )
-    Timeout.timeout(opts['lifetime']) do
-      loop_them(impex, judges, fb, opts, options)
+    begin
+      Timeout.timeout(opts['lifetime']) do
+        loop_them(impex, judges, fb, opts, options)
+      end
+    rescue Timeout::Error, Timeout::ExitException => e
+      raise e unless opts['quiet']
+      @loog.info("Had to stop due to the --lifetime=#{opts['lifetime']}")
     end
   end
 
