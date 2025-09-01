@@ -150,7 +150,7 @@ class Judges::Update
       s.added = churn.added.size
     else
       s = before.first
-      errs = s['errors']&.size || 0
+      errs = s['error']&.size || 0
       @loog.info(
         "A summary found, with #{errs.positive? || 'no'} error#{'s' if errs > 1 || errs.zero?}: " \
         "#{%w[when cycles version inserted deleted added].map { |a| "#{a}=#{s[a]&.first}" }.join(', ')}"
