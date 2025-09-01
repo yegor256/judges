@@ -183,6 +183,13 @@ class Judges::Update
             @loog.info("Not running #{judge.name.inspect} due to #{errors.count} errors above, in --fail-fast mode")
             next
           end
+          if opts['lifetime'] && opts['timeout']
+            remained = @start + opts['lifetime'] - Time.now
+            if remained < opts['timeout'] / 16
+              @loog.info("Not running #{judge.name.inspect}, not enough time left (just #{remained.seconds})")
+              next
+            end
+          end
           next unless include?(opts, judge.name)
           @loog.info("\n👉 Running #{judge.name} (##{i}) at #{judge.dir.to_rel} (#{@start.ago} already)...")
           used += 1
