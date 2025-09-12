@@ -31,7 +31,7 @@ class TestJudges < Minitest::Test
 
   def test_shuffles_them
     Dir.mktmpdir do |d|
-      names = %w[apple banana blueberry mellon orange papaya pear strawberry].sort
+      names = %w[apple banana blueberry mellon orange papaya pear strawberry grapes pineapple grapefruit].sort
       names.each do |n|
         dir = File.join(d, n)
         save_it(File.join(dir, "#{n}.rb"), 'puts 1')
