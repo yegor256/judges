@@ -9,7 +9,7 @@ require 'baza-rb'
 require 'elapsed'
 require_relative '../../judges'
 
-# The +upload+ command.
+# The +upload+ command, to send a durable to Zerocracy.
 #
 # This class is instantiated by the +bin/judge+ command line interface. You
 # are not supposed to instantiate it yourself.
@@ -45,17 +45,19 @@ class Judges::Upload
       id = baza.durable_find(jname, name)
       size = File.size(path)
       if id.nil? || id.to_s.strip.empty?
-        id = baza.durable_place(jname, path)
-        throw :"👍 Uploaded #{path} to new durable '#{name}' in '#{jname}' (ID: #{id}, #{size} bytes)"
-      else
-        id = id.to_i
-        baza.durable_lock(id, opts['owner'] || 'default')
-        begin
-          baza.durable_save(id, path)
-          throw :"👍 Uploaded #{path} to existing durable '#{name}' in '#{jname}' (ID: #{id}, #{size} bytes)"
-        ensure
-          baza.durable_unlock(id, opts['owner'] || 'default')
+        Tempfile.create do |f|
+          File.write(f.path, 'placeholder')
+          id = baza.durable_place(jname, f.path)
+          @loog.info("Placed a placeholder to new durable '#{name}' in '#{jname}' (ID: #{id})")
         end
+      end
+      id = id.to_i
+      baza.durable_lock(id, opts['owner'] || 'default')
+      begin
+        baza.durable_save(id, path)
+        throw :"👍 Uploaded #{path} to existing durable '#{name}' in '#{jname}' (ID: #{id}, #{size} bytes)"
+      ensure
+        baza.durable_unlock(id, opts['owner'] || 'default')
       end
     end
   end
