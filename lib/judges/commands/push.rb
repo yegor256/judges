@@ -30,7 +30,7 @@ class Judges::Push
   # @param [Array] args List of command line arguments
   # @raise [RuntimeError] If not exactly two arguments provided
   def run(opts, args)
-    raise 'Exactly two arguments required' unless args.size == 2
+    raise 'Exactly two arguments required: <name> and <path>' unless args.size == 2
     name = args[0]
     fb = Judges::Impex.new(@loog, args[1]).import
     baza = BazaRb.new(
@@ -44,8 +44,8 @@ class Judges::Push
     elapsed(@loog, level: Logger::INFO) do
       baza.lock(name, opts['owner'])
       begin
-        id = baza.push(name, fb.export, opts['meta'] || [])
-        throw :"👍 Pushed #{fb.size} facts, job ID is #{id}"
+        baza.push(name, fb.export, opts['meta'] || [])
+        throw :"👍 Pushed #{fb.size} facts to baza"
       ensure
         baza.unlock(name, opts['owner'])
       end
