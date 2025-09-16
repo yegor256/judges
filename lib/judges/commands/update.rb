@@ -74,6 +74,7 @@ class Judges::Update
         loop_them(impex, judges, fb, opts, options)
       end
     rescue Timeout::Error, Timeout::ExitException => e
+      @loog.error("Terminated due to --lifetime=#{opts['lifetime']}")
       raise e unless opts['quiet']
       @loog.info("Had to stop due to the --lifetime=#{opts['lifetime']}")
     ensure
@@ -238,6 +239,7 @@ class Judges::Update
         judge.run(fb, global, local, options)
       end
     rescue Timeout::Error, Timeout::ExitException => e
+      @loog.error("Terminated due to --timeout=#{opts['timeout']}")
       errors << "Judge #{judge.name} stopped by timeout after #{start.ago}: #{e.message}"
     end
     fb.churn
