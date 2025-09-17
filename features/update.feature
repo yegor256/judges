@@ -94,7 +94,7 @@ Feature: Update
     Then I run bin/judges with "--verbose update --timeout 1 --quiet . foo.fb"
     Then Stdout contains "execution expired"
     Then Stdout contains "1 judge(s) processed"
-    Then Stdout contains "Update completed in 1 cycle(s), did 0i/0d/0a"
+    Then Stdout contains "Update completed in 1 cycle(s), did nothing"
     And Exit code is zero
 
   Scenario: Simple run of a few judges, with a lib
