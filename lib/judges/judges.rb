@@ -30,15 +30,15 @@ class Judges::Judges
   # @param [String] dir Directory containing judges
   # @param [String] lib Library directory
   # @param [Loog] loog Logging facility
-  # @param [Time] start Start time
+  # @param [Time] epoch Start time
   # @param [String] shuffle Prefix for names of judges to shuffle
   # @param [Array<String>] boost Names of judges to boost in priority
   # @param [Array<String>] demote Names of judges to demote in priority
-  def initialize(dir, lib, loog, start: Time.now, shuffle: '', boost: [], demote: [])
+  def initialize(dir, lib, loog, epoch: Time.now, shuffle: '', boost: [], demote: [])
     @dir = dir
     @lib = lib
     @loog = loog
-    @start = start
+    @epoch = epoch
     @shuffle = shuffle || ''
     @boost = boost
     @demote = demote
@@ -54,7 +54,7 @@ class Judges::Judges
   def get(name)
     d = File.absolute_path(File.join(@dir, name))
     raise "Judge #{name} doesn't exist in #{@dir}" unless File.exist?(d)
-    Judges::Judge.new(d, @lib, @loog, start: @start)
+    Judges::Judge.new(d, @lib, @loog, epoch: @epoch)
   end
 
   # Iterates over all valid judges in the directory.

@@ -21,11 +21,11 @@ class Judges::Judge
   # @param [String] dir The directory with the judge
   # @param [String] lib The directory with the lib/
   # @param [Loog] loog The logging facility
-  def initialize(dir, lib, loog, start: Time.now)
+  def initialize(dir, lib, loog, epoch: Time.now)
     @dir = dir
     @lib = lib
     @loog = loog
-    @start = start
+    @epoch = epoch
   end
 
   # Returns the string representation of the judge.
@@ -40,7 +40,7 @@ class Judges::Judge
   # @param [Loog] loog New log
   # @return [Judges::Judge] Similar judge, but log is different
   def with_loog(loog)
-    Judges::Judge.new(@dir, @lib, loog, start: @start)
+    Judges::Judge.new(@dir, @lib, loog, epoch: @epoch)
   end
 
   # Executes the judge script with the provided factbase and configuration.
@@ -63,7 +63,8 @@ class Judges::Judge
     $global = global
     $global.delete(:fb) # to make sure Tallied is always actual
     $local = local
-    $start = @start
+    $epoch = @epoch
+    $kickoff = Time.now
     options.to_h.each { |k, v| ENV.store(k.to_s, v.to_s) }
     unless @lib.nil?
       raise "Lib dir #{@lib.to_rel} is absent" unless File.exist?(@lib)
@@ -85,7 +86,7 @@ class Judges::Judge
       raise e if e.is_a?(Timeout::ExitException)
       raise "#{e.message} (#{e.class.name})"
     ensure
-      $fb = $judge = $options = $loog = nil
+      $fb = $judge = $options = $loog = $epoch = $kickoff = nil
     end
   end
 

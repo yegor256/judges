@@ -31,7 +31,8 @@ global variables available to it:
   a judge is finished;
 * `$global` — a hash map that is never cleaned up;
 * `$judge` — the basename of the directory, where the `.rb` script is located.
-* `$start` — the time moment when plugin was started
+* `$epoch` — the time moment when plugin was started
+* `$kickoff` — the time moment when a judge was started
 
 Every `.yml` file must be formatted as such:
 

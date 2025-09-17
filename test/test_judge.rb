@@ -71,11 +71,11 @@ class TestJudge < Minitest::Test
     Dir.mktmpdir do |d|
       j = 'this_is_it'
       dir = File.join(d, j)
-      save_it(File.join(dir, "#{j}.rb"), '$loog.info("start=#{$start}")')
+      save_it(File.join(dir, "#{j}.rb"), '$loog.info("epoch=#{$epoch}")')
       log = Loog::Buffer.new
       time = Time.now
-      Judges::Judge.new(dir, nil, log, start: time).run(Factbase.new, {}, {}, {})
-      assert_includes(log.to_s, "start=#{time}")
+      Judges::Judge.new(dir, nil, log, epoch: time).run(Factbase.new, {}, {}, {})
+      assert_includes(log.to_s, "epoch=#{time}")
     end
   end
 
