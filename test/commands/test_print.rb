@@ -78,7 +78,7 @@ class TestPrint < Minitest::Test
     begin
       v = W3CValidators::NuValidator.new.validate_file(html)
       assert_empty(v.errors, "#{doc}\n\n#{v.errors.join('; ')}")
-    rescue W3CValidators::ValidatorUnavailable
+    rescue W3CValidators::ValidatorUnavailable, OpenSSL::SSL::SSLError
       skip('Cloud validator is too busy')
     end
   end

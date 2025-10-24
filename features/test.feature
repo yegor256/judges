@@ -16,9 +16,9 @@ Feature: Test
     And Exit code is zero
 
   Scenario: Factbase version can be set
-    When I run bin/judges with "--factbase 0.16.7 --verbose test --judge guess ./fixtures"
+    When I run bin/judges with "--factbase 0.16.8 --verbose test --judge guess ./fixtures"
     Then Exit code is zero
-    And Stdout contains "Factbase version to be used: '0.16.7'"
+    And Stdout contains "Factbase version to be used: '0.16.8'"
 
   Scenario: Simple test of no judges
     Given I run bin/judges with "test --judge absent_for_sure ./fixtures"

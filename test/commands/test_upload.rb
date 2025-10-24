@@ -17,7 +17,7 @@ class TestUpload < Minitest::Test
   def test_upload_simple_durable
     WebMock.disable_net_connect!
     content = 'Hello, World!'
-    stub_request(:get, 'https://example.org/durables/find?file=upload.txt&jname=myjudge').to_return(
+    stub_request(:get, 'https://example.org/durables/find?file=upload.txt&jname=myjudge&pname=myjudge').to_return(
       status: 404
     )
     stub_request(:get, 'https://example.org/csrf').to_return(body: 'test-csrf-token')
@@ -46,7 +46,7 @@ class TestUpload < Minitest::Test
   def test_upload_with_custom_owner
     WebMock.disable_net_connect!
     content = 'Binary data here'
-    stub_request(:get, 'http://example.org/durables/find?file=data.bin&jname=judge1').to_return(
+    stub_request(:get, 'http://example.org/durables/find?file=data.bin&jname=judge1&pname=judge1').to_return(
       status: 200, body: '123'
     )
     stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
@@ -71,7 +71,7 @@ class TestUpload < Minitest::Test
 
   def test_fails_on_http_error
     WebMock.disable_net_connect!
-    stub_request(:get, 'http://example.org/durables/find?file=test.txt&jname=somejudge').to_return(
+    stub_request(:get, 'http://example.org/durables/find?file=test.txt&jname=somejudge&pname=somejudge').to_return(
       status: 404
     )
     stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
