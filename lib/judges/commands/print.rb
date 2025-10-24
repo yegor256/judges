@@ -89,13 +89,14 @@ class Judges::Print
         'columns' => opts['columns'] || 'when,what,who',
         'hidden' => opts['hidden'] || '_id,_version,_time,_job',
         'version' => Judges::VERSION,
-        'css_hash' => sha384('index.css'),
-        'js_hash' => sha384('index.js')
+        'css_hash' => sha384(opts, 'index.css'),
+        'js_hash' => sha384(opts, 'index.js')
       )
     )
   end
 
-  def sha384(asset)
+  def sha384(opts, asset)
+    return 'sha256-offline' if opts['offline']
     with_retries do
       url = "https://yegor256.github.io/judges/assets/#{asset}"
       http = Typhoeus::Request.get(url)

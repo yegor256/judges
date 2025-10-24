@@ -55,6 +55,8 @@ class JudgesGLI extend GLI::App
   flag([:factbase], type: String)
   desc 'Echo the entire command line'
   switch([:echo])
+  desc 'Stay strictly offline, never attempt to reach Internet resources'
+  switch([:offline])
 
   pre do |global, command, options, args|
     if global[:verbose]
