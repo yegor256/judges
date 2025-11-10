@@ -19,29 +19,35 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
-      - name: Install libcurl on Windows
-        if: matrix.os == 'windows-2022'
-        run: |
-          C:\msys64\usr\bin\pacman.exe -S --noconfirm mingw-w64-ucrt-x86_64-curl
-          echo "Installed curl package, checking files:"
-          dir C:\msys64\ucrt64\bin\*curl*
-          echo "Creating libcurl.dll symlink if needed:"
-          if exist "C:\msys64\ucrt64\bin\libcurl-4.dll" (
-            if not exist "C:\msys64\ucrt64\bin\libcurl.dll" (
-              mklink "C:\msys64\ucrt64\bin\libcurl.dll" "C:\msys64\ucrt64\bin\libcurl-4.dll"
-            )
-          )
-          echo "Final check for libcurl files:"
-          dir C:\msys64\ucrt64\bin\*curl*
-        shell: cmd
-      - name: Add MSYS2 to PATH on Windows
-        if: matrix.os == 'windows-2022'
-        run: echo "C:\msys64\ucrt64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-        shell: pwsh
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
+      - name: Install libcurl on Windows (using Ruby's MSYS2)
+        if: matrix.os == 'windows-2022'
+        run: |
+          # Find Ruby installation path dynamically
+          $rubyPath = (Get-Command ruby).Path | Split-Path | Split-Path
+          $rubyMsys2 = Join-Path $rubyPath "msys64"
+          Write-Host "Using Ruby path: $rubyPath"
+          Write-Host "Using MSYS2 path: $rubyMsys2"
+          
+          if (Test-Path $rubyMsys2) {
+            & "$rubyMsys2\usr\bin\pacman.exe" -S --noconfirm mingw-w64-ucrt-x86_64-curl
+            Write-Host "Installed curl package, checking files:"
+            Get-ChildItem "$rubyMsys2\ucrt64\bin\*curl*"
+            if (Test-Path "$rubyMsys2\ucrt64\bin\libcurl-4.dll") {
+              if (-not (Test-Path "$rubyMsys2\ucrt64\bin\libcurl.dll")) {
+                New-Item -ItemType SymbolicLink -Path "$rubyMsys2\ucrt64\bin\libcurl.dll" -Target "$rubyMsys2\ucrt64\bin\libcurl-4.dll"
+                Write-Host "Created symlink: libcurl.dll -> libcurl-4.dll"
+              }
+            }
+          } else {
+            Write-Host "MSYS2 path not found at: $rubyMsys2"
+            Write-Host "Available Ruby paths:"
+            Get-ChildItem $rubyPath
+          }
+        shell: pwsh
       - run: bundle config set --global path "$(pwd)/vendor/bundle"
       - run: bundle install --no-color
       - run: bundle exec rake
