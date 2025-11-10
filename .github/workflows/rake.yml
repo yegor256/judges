@@ -18,6 +18,21 @@ jobs:
         ruby: [3.3]
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Install libcurl on Windows
+        if: matrix.os == 'windows-2022'
+        run: |
+          C:\msys64\usr\bin\pacman.exe -S --noconfirm mingw-w64-ucrt-x86_64-curl
+          echo "Installed curl package, checking files:"
+          dir C:\msys64\ucrt64\bin\*curl*
+          echo "Creating libcurl.dll symlink if needed:"
+          if exist "C:\msys64\ucrt64\bin\libcurl-4.dll" (
+            if not exist "C:\msys64\ucrt64\bin\libcurl.dll" (
+              mklink "C:\msys64\ucrt64\bin\libcurl.dll" "C:\msys64\ucrt64\bin\libcurl-4.dll"
+            )
+          )
+          echo "Final check for libcurl files:"
+          dir C:\msys64\ucrt64\bin\*curl*
+        shell: cmd
       - uses: actions/checkout@v5
       - uses: ruby/setup-ruby@v1
         with:
