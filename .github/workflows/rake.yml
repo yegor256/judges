@@ -44,4 +44,4 @@ jobs:
           bundler-cache: true
       - run: bundle config set --global path "$(pwd)/vendor/bundle"
       - run: bundle install --no-color
-        run: bundle exec rake
+      - run: bundle exec rake
