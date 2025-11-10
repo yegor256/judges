@@ -49,4 +49,17 @@ jobs:
         shell: pwsh
       - run: bundle config set --global path "$(pwd)/vendor/bundle"
       - run: bundle install --no-color
-      - run: bundle exec rake
+      - name: Create custom temp directory on Windows
+        if: matrix.os == 'windows-2022'
+        run: New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\tmp"
+        shell: pwsh
+      - name: Run tests with Windows temp dir fix
+        if: matrix.os == 'windows-2022'
+        run: bundle exec rake
+        env:
+          TMPDIR: ${{ github.workspace }}\tmp
+          TMP: ${{ github.workspace }}\tmp
+          TEMP: ${{ github.workspace }}\tmp
+      - name: Run tests (non-Windows)
+        if: matrix.os != 'windows-2022'
+        run: bundle exec rake
