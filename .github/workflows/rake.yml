@@ -19,6 +19,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
+      - name: Install libcurl on Windows
+        if: matrix.os == 'windows-2022'
+        run: |
+          C:\msys64\usr\bin\pacman.exe -S --noconfirm mingw-w64-ucrt-x86_64-curl
+        shell: cmd
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
