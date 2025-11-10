@@ -24,10 +24,21 @@ jobs:
         run: |
           C:\msys64\usr\bin\pacman.exe -S --noconfirm mingw-w64-ucrt-x86_64-curl
         shell: cmd
+      - name: Add MSYS2 to PATH on Windows
+        if: matrix.os == 'windows-2022'
+        run: echo "C:\msys64\ucrt64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        shell: pwsh
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
       - run: bundle config set --global path "$(pwd)/vendor/bundle"
       - run: bundle install --no-color
-      - run: bundle exec rake
+      - name: Run rake with libcurl path
+        if: matrix.os == 'windows-2022'
+        run: bundle exec rake
+        env:
+          PATH: "C:/msys64/ucrt64/bin;${{ env.PATH }}"
+      - name: Run rake (non-Windows)
+        if: matrix.os != 'windows-2022'
+        run: bundle exec rake
