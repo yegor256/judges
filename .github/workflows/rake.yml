@@ -31,7 +31,6 @@ jobs:
           $rubyMsys2 = Join-Path $rubyPath "msys64"
           Write-Host "Using Ruby path: $rubyPath"
           Write-Host "Using MSYS2 path: $rubyMsys2"
-          
           if (Test-Path $rubyMsys2) {
             & "$rubyMsys2\usr\bin\pacman.exe" -S --noconfirm mingw-w64-ucrt-x86_64-curl
             Write-Host "Installed curl package, checking files:"
