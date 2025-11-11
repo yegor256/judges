@@ -144,8 +144,11 @@ class Judges::Options
   # Method names are automatically converted to uppercase symbols to match
   # the keys in the options hash.
   #
-  # @param [Symbol, String] method_name The option name to retrieve
-  # @return [Object, nil] The value of the option, or nil if not found
+  # @!method method_missing(method_name, *args)
+  #   Dynamic method to access option values
+  #   @param [Symbol] method_name The name of the option to retrieve
+  #   @param [Array] args Additional arguments (unused)
+  #   @return [Object, nil] The value of the option, or nil if not found
   # @example Access options as methods
   #   options = Judges::Options.new(["token=abc123", "max_speed=100"])
   #   options.token # => "abc123"

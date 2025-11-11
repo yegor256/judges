@@ -73,15 +73,20 @@ class JudgesGLI extend GLI::App
     end
     require 'factbase'
     if global[:hello]
-      [
+      info = [
         "Judges #{Judges::VERSION}",
         "Factbase #{Factbase::VERSION}",
         "Baza-rb #{BazaRb::VERSION}",
         "Ruby: #{RUBY_VERSION}-p#{RUBY_PATCHLEVEL}",
         "Current directory: #{Dir.getwd}",
-        "Time: #{Time.now.utc.iso8601}",
-        "Total memory: #{Total::Mem.new.bytes / (1024 * 1024)}Mb"
-      ].each { |m| @@loog.info(m) }
+        "Time: #{Time.now.utc.iso8601}"
+      ]
+      begin
+        info << "Total memory: #{Total::Mem.new.bytes / (1024 * 1024)}Mb"
+      rescue Total::CantDetect => e
+        @@loog.debug("Can't detect memory: #{e.message}")
+      end
+      info.each { |m| @@loog.info(m) }
     end
     true
   end

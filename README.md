@@ -20,10 +20,10 @@ of `.yml` files. A script in the Ruby file is executed with the following
 global variables available to it:
 
 * `$fb` — an instance
-  of [`Factbase`](https://www.rubydoc.info/gems/factbase/0.0.22/Factbase),
+  of [Factbase](https://www.rubydoc.info/gems/factbase/0.0.22/Factbase),
   where facts may be added/updated;
 * `$loog` — an instance
-  of [`Loog`](https://www.rubydoc.info/gems/loog/0.5.1/Loog),
+  of [Loog](https://www.rubydoc.info/gems/loog/0.5.1/Loog),
   where `.info` and `.debug` logs are welcome;
 * `$options` — a holder of options coming from either the `--option` command
   line flag or the `.yml` file during testing;

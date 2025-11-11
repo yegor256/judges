@@ -45,10 +45,15 @@ class Judges::Upload
       id = baza.durable_find(jname, name)
       size = File.size(path)
       if id.nil? || id.to_s.strip.empty?
-        Tempfile.create do |f|
+        f = Tempfile.new('placeholder')
+        begin
           File.write(f.path, 'placeholder')
+          f.close
           id = baza.durable_place(jname, f.path)
           @loog.info("Placed a placeholder to new durable '#{name}' in '#{jname}' (ID: #{id})")
+        ensure
+          f.close unless f.closed?
+          f.unlink
         end
       end
       id = id.to_i
