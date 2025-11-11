@@ -55,7 +55,7 @@ Feature: Update
     """
       n = $fb.insert
       n.type = 'first'
-      sleep 1.5
+      sleep 1.44
     """
     Then I have a "second/second.rb" file with content:
     """
