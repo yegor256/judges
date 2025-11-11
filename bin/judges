@@ -99,6 +99,7 @@ class JudgesGLI extend GLI::App
   end
 
   desc 'Update the factbase by executing all judges sequentially'
+  arg_name '<dir> <factbase>'
   command :update do |c|
     c.desc 'Options to pass to each judge'
     c.flag([:o, :option], multiple: true, arg_name: '<key=value>')
@@ -134,6 +135,7 @@ class JudgesGLI extend GLI::App
   end
 
   desc 'Evaluate a single Ruby expression against the factbase'
+  arg_name '<factbase> <expression>'
   command :eval do |c|
     c.desc 'Use default logging facility'
     c.switch([:log], default_value: true)
@@ -141,11 +143,13 @@ class JudgesGLI extend GLI::App
   end
 
   desc 'Join two factbases'
+  arg_name '<first> <second>'
   command :join do |c|
     run_it(c, 'join')
   end
 
   desc 'Import YAML into a factbase'
+  arg_name '<factbase> <yaml>'
   command :import do |c|
     c.desc 'Use default logging facility'
     c.switch([:log], default_value: true)
@@ -153,6 +157,7 @@ class JudgesGLI extend GLI::App
   end
 
   desc 'Remove outdated facts from the factbase'
+  arg_name 'factbase'
   command :trim do |c|
     c.desc 'Delete only facts matching the specified expression'
     c.flag([:query], default_value: '(never)')
@@ -160,6 +165,7 @@ class JudgesGLI extend GLI::App
   end
 
   desc 'Convert the factbase to a human-readable format (YAML, JSON, etc.)'
+  arg_name '<factbase> [<output>]'
   command :print do |c|
     c.desc 'Output format (xml, json, or yaml)'
     c.flag([:format], default_value: 'yaml')
@@ -179,11 +185,13 @@ class JudgesGLI extend GLI::App
   end
 
   desc 'Inspect the factbase and display all available metadata'
+  arg_name '<factbase>'
   command :inspect do |c|
     run_it(c, 'inspect')
   end
 
   desc 'Run automated tests for all judges'
+  arg_name '<dir>'
   command :test do |c|
     c.desc 'Options to pass to each judge (may be overridden by YAML)'
     c.flag([:o, :option], multiple: true, arg_name: '<key=value>')
@@ -205,6 +213,7 @@ class JudgesGLI extend GLI::App
   end
 
   desc 'Push the factbase to the server and unlock it remotely'
+  arg_name '<name> <factbase>'
   command :push do |c|
     c.desc 'Authentication token'
     c.flag([:token])
@@ -228,6 +237,7 @@ class JudgesGLI extend GLI::App
   end
 
   desc 'Pull the factbase from the server and lock it remotely'
+  arg_name '<name> <factbase>'
   command :pull do |c|
     c.desc 'Authentication token'
     c.flag([:token])
@@ -249,6 +259,7 @@ class JudgesGLI extend GLI::App
   end
 
   desc 'Download a durable from the server by ID'
+  arg_name '<id> <factbase>'
   command :download do |c|
     c.desc 'Authentication token'
     c.flag([:token])
@@ -268,6 +279,7 @@ class JudgesGLI extend GLI::App
   end
 
   desc 'Upload a file as a durable to the server'
+  arg_name '<file> <path>'
   command :upload do |c|
     c.desc 'Authentication token'
     c.flag([:token])
