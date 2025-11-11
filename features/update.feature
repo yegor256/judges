@@ -55,14 +55,14 @@ Feature: Update
     """
       n = $fb.insert
       n.type = 'first'
-      sleep 1.44
+      sleep 1.91
     """
     Then I have a "second/second.rb" file with content:
     """
       n = $fb.insert
       n.type = 'second'
     """
-    Then I run bin/judges with "--verbose update --quiet --lifetime 3 --timeout 2 --max-cycles 5 . simple.fb"
+    Then I run bin/judges with "--verbose update --quiet --lifetime 4 --timeout 3 --max-cycles 5 . simple.fb"
     Then Stdout contains "Update completed in 2 cycle(s), did 3i/0d/3a"
     And Exit code is zero
 
