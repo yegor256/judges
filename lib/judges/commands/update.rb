@@ -186,7 +186,7 @@ class Judges::Update
           end
           if opts['lifetime'] && opts['timeout']
             remained = @start + opts['lifetime'] - Time.now
-            if remained < opts['timeout'] / 16
+            if remained < opts['timeout'].to_f / 16
               @loog.info("Not running #{judge.name.inspect}, not enough time left (just #{remained.seconds})")
               next
             end
