@@ -13,6 +13,7 @@ require 'tago'
 require 'time'
 require 'total'
 require_relative '../lib/judges'
+require_relative '../lib/judges/ascii_loog'
 
 Encoding.default_external = Encoding::UTF_8
 Encoding.default_internal = Encoding::UTF_8
@@ -57,10 +58,15 @@ class JudgesGLI extend GLI::App
   switch([:echo])
   desc 'Stay strictly offline, never attempt to reach Internet resources'
   switch([:offline])
+  desc 'Suppress all Unicode symbols in the output'
+  switch([:ascii])
 
   pre do |global, command, options, args|
     if global[:verbose]
       @@loog = Loog::VERBOSE
+    end
+    if global[:ascii]
+      @@loog = Judges::AsciiLoog.new(@@loog)
     end
     if global[:echo]
       @@loog.info("+ #{File.absolute_path($0)} #{@@args.join(' ')}")
