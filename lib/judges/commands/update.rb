@@ -16,6 +16,7 @@ require_relative '../../judges'
 require_relative '../../judges/impex'
 require_relative '../../judges/judges'
 require_relative '../../judges/options'
+require_relative '../../judges/statistics'
 require_relative '../../judges/to_rel'
 
 # The +update+ command.
@@ -88,7 +89,7 @@ class Judges::Update
     c = 0
     churn = Factbase::Churn.new
     errors = []
-    statistics = {} if opts['statistics']
+    statistics = opts['statistics'] ? Judges::Statistics.new : nil
     sum = fb.query('(eq what "judges-summary")').each.to_a
     if sum.empty?
       @loog.info('Summary fact not found') unless opts['summary'] == 'off'
@@ -128,19 +129,7 @@ class Judges::Update
       end
       throw :"👍 Update completed in #{c} cycle(s), did #{churn}"
     end
-    if opts['statistics'] && statistics && !statistics.empty?
-      fmt = "%-30s\t%9s\t%15s\t%-9s"
-      @loog.info(
-        [
-          'Judge execution summary:',
-          format(fmt, 'Judge', 'Seconds', 'Changes', 'Result'),
-          format(fmt, '---', '---', '---', '---'),
-          statistics.sort_by { |_, v| v[:time] }.reverse.map do |name, stats|
-            format(fmt, name, format('%.3f', stats[:time]), stats[:churn] ? stats[:churn].to_s : 'N/A', stats[:result])
-          end.join("\n  ")
-        ].join("\n  ")
-      )
-    end
+    statistics&.report(@loog)
     return unless %w[add append].include?(opts['summary'])
     summarize(fb, churn, errors, c)
     impex.export(fb)
@@ -186,7 +175,7 @@ class Judges::Update
   # @param [Factbase] fb The factbase
   # @param [Judges::Options] options The options
   # @param [Array<String>] errors List of errors
-  # @param [Hash] statistics Statistics tracking hash (optional)
+  # @param [Judges::Statistics] statistics Statistics tracking object (optional)
   # @return [Factbase::Churn] How many modifications have been made
   def cycle(opts, judges, fb, options, errors, statistics = nil)
     delta = Factbase::Churn.new
@@ -197,18 +186,14 @@ class Judges::Update
         judges.each_with_index do |judge, i|
           if opts['fail-fast'] && !errors.empty?
             @loog.info("Not running #{judge.name.inspect} due to #{errors.count} errors above, in --fail-fast mode")
-            if statistics && include?(opts, judge.name)
-              statistics[judge.name] = { time: 0, result: 'SKIPPED (fail-fast)', churn: nil }
-            end
+            statistics&.record(judge.name, 0, 'SKIPPED (fail-fast)') if include?(opts, judge.name)
             next
           end
           if opts['lifetime'] && opts['timeout']
             remained = @start + opts['lifetime'] - Time.now
             if remained < opts['timeout'].to_f / 16
               @loog.info("Not running #{judge.name.inspect}, not enough time left (just #{remained.seconds})")
-              if statistics && include?(opts, judge.name)
-                statistics[judge.name] = { time: 0, result: 'SKIPPED (timeout)', churn: nil }
-              end
+              statistics&.record(judge.name, 0, 'SKIPPED (timeout)') if include?(opts, judge.name)
               next
             end
           end
@@ -229,13 +214,7 @@ class Judges::Update
           errors << e.message
           result = 'ERROR'
         ensure
-          if statistics && start_time
-            statistics[judge.name] = {
-              time: Time.now - start_time,
-              result: result,
-              churn: impact
-            }
-          end
+          statistics&.record(judge.name, Time.now - start_time, result, impact) if start_time
         end
       throw :"👍 #{done} judge(s) processed" if errors.empty?
       throw :"❌ #{done} judge(s) processed with #{errors.size} errors"
