@@ -16,6 +16,7 @@ require_relative '../../judges'
 require_relative '../../judges/impex'
 require_relative '../../judges/judges'
 require_relative '../../judges/options'
+require_relative '../../judges/statistics'
 require_relative '../../judges/to_rel'
 
 # The +update+ command.
@@ -88,6 +89,7 @@ class Judges::Update
     c = 0
     churn = Factbase::Churn.new
     errors = []
+    statistics = opts['statistics'] ? Judges::Statistics.new : nil
     sum = fb.query('(eq what "judges-summary")').each.to_a
     if sum.empty?
       @loog.info('Summary fact not found') unless opts['summary'] == 'off'
@@ -108,7 +110,7 @@ class Judges::Update
           end
           @loog.info("\nStarting cycle ##{c}#{" (out of #{opts['max-cycles']})" if opts['max-cycles']}...")
         end
-        delta = cycle(opts, judges, fb, options, errors)
+        delta = cycle(opts, judges, fb, options, errors, statistics)
         churn += delta
         impex.export(fb)
         if delta.zero?
@@ -127,6 +129,7 @@ class Judges::Update
       end
       throw :"👍 Update completed in #{c} cycle(s), did #{churn}"
     end
+    statistics&.report(@loog)
     return unless %w[add append].include?(opts['summary'])
     summarize(fb, churn, errors, c)
     impex.export(fb)
@@ -172,9 +175,10 @@ class Judges::Update
   # @param [Factbase] fb The factbase
   # @param [Judges::Options] options The options
   # @param [Array<String>] errors List of errors
+  # @param [Judges::Statistics] statistics Statistics tracking object (optional)
   # @return [Factbase::Churn] How many modifications have been made
-  def cycle(opts, judges, fb, options, errors)
-    churn = Factbase::Churn.new
+  def cycle(opts, judges, fb, options, errors, statistics = nil)
+    delta = Factbase::Churn.new
     global = {}
     used = 0
     elapsed(@loog, level: Logger::INFO) do
@@ -182,27 +186,35 @@ class Judges::Update
         judges.each_with_index do |judge, i|
           if opts['fail-fast'] && !errors.empty?
             @loog.info("Not running #{judge.name.inspect} due to #{errors.count} errors above, in --fail-fast mode")
+            statistics&.record(judge.name, 0, 'SKIPPED (fail-fast)') if include?(opts, judge.name)
             next
           end
           if opts['lifetime'] && opts['timeout']
             remained = @start + opts['lifetime'] - Time.now
             if remained < opts['timeout'].to_f / 16
               @loog.info("Not running #{judge.name.inspect}, not enough time left (just #{remained.seconds})")
+              statistics&.record(judge.name, 0, 'SKIPPED (timeout)') if include?(opts, judge.name)
               next
             end
           end
           next unless include?(opts, judge.name)
           @loog.info("\n👉 Running #{judge.name} (##{i}) at #{judge.dir.to_rel} (#{@start.ago} already)...")
           used += 1
+          start_time = Time.now
+          result = 'OK'
+          impact = nil
           elapsed(@loog, level: Logger::INFO) do
-            c = one_judge(opts, fb, judge, global, options, errors)
-            churn += c
-            throw :"👍 The '#{judge.name}' judge made zero changes to #{fb.size} facts" if c.zero?
-            throw :"👍 The '#{judge.name}' judge #{c} out of #{fb.size} facts"
+            impact = one_judge(opts, fb, judge, global, options, errors)
+            delta += impact
+            throw :"👍 The '#{judge.name}' judge made zero changes to #{fb.size} facts" if impact.zero?
+            throw :"👍 The '#{judge.name}' judge #{impact} out of #{fb.size} facts"
           end
         rescue StandardError, SyntaxError => e
           @loog.warn(Backtrace.new(e))
           errors << e.message
+          result = 'ERROR'
+        ensure
+          statistics&.record(judge.name, Time.now - start_time, result, impact) if start_time
         end
       throw :"👍 #{done} judge(s) processed" if errors.empty?
       throw :"❌ #{done} judge(s) processed with #{errors.size} errors"
@@ -215,7 +227,7 @@ class Judges::Update
       raise "Failed to update correctly (#{errors.size} errors)" unless opts['quiet']
       @loog.info('Not failing because of the --quiet flag provided')
     end
-    churn
+    delta
   end
 
   # Run a single judge.

@@ -214,3 +214,44 @@ Feature: Update
     Then Stdout contains "Running delayed"
     Then Stdout contains "3 judge(s) processed"
     And Exit code is zero
+
+  Scenario: Show statistics for judge execution
+    Given I make a temp directory
+    Then I have a "alpha/alpha.rb" file with content:
+    """
+      $fb.insert.name = 'alpha'
+    """
+    Then I have a "beta/beta.rb" file with content:
+    """
+      $fb.insert.name = 'beta'
+    """
+    Then I run bin/judges with "update --statistics --quiet --max-cycles 1 . stats.fb"
+    Then Stdout contains "Judge execution summary:"
+    Then Stdout contains "Judge"
+    Then Stdout contains "Seconds"
+    Then Stdout contains "Changes"
+    Then Stdout contains "Cycles"
+    Then Stdout contains "Result"
+    Then Stdout contains "alpha"
+    Then Stdout contains "beta"
+    Then Stdout contains "OK"
+    And Exit code is zero
+
+  Scenario: Summarize results in statistics
+    Given I make a temp directory
+    Then I have a "alpha/alpha.rb" file with content:
+    """
+      $fb.insert.name = 'alpha'
+      sleep 1.91
+    """
+    Then I have a "beta/beta.rb" file with content:
+    """
+      $fb.insert.name = 'beta'
+    """
+    Then I run bin/judges with "update --statistics --quiet --max-cycles 2 --lifetime 4 --timeout 3 . stats.fb"
+    Then Stdout contains "Judge execution summary:"
+    Then Stdout contains "alpha"
+    Then Stdout contains "beta"
+    Then Stdout contains "1xOK"
+    Then Stdout contains "1xSKIPPED (timeout)"
+    And Exit code is zero
