@@ -41,7 +41,7 @@ class TestJudges < Minitest::Test
       assert_equal('blueberry', list[2].name)
       refute_equal(names.join(' '), list.map(&:name).join(' '))
       list = Judges::Judges.new(d, nil, Loog::NULL, shuffle: '').each.to_a
-      assert_equal(names.join(' '), list.map(&:name).join(' '))
+      refute_equal(names.join(' '), list.map(&:name).join(' '))
     end
   end
 
@@ -54,6 +54,7 @@ class TestJudges < Minitest::Test
       end
       list = Judges::Judges.new(d, nil, Loog::NULL, shuffle: '', boost: ['yellow']).each.to_a
       assert_equal('yellow', list[0].name)
+      refute_equal((names - ['yellow']).join(' '), list[1..].map(&:name).join(' '))
     end
   end
 
@@ -114,7 +115,9 @@ class TestJudges < Minitest::Test
       end
       list = Judges::Judges.new(d, nil, Loog::NULL, demote: %w[beta delta]).each.to_a
       result = list.map(&:name)
-      assert_equal(%w[alpha epsilon gamma beta delta], result)
+      demoted = result[-2..]
+      assert_includes(demoted, 'beta')
+      assert_includes(demoted, 'delta')
     end
   end
 
@@ -125,10 +128,11 @@ class TestJudges < Minitest::Test
         dir = File.join(d, n)
         save_it(File.join(dir, "#{n}.rb"), 'puts 1')
       end
-      list = Judges::Judges.new(d, nil, Loog::NULL, boost: %w[six two], demote: %w[one four]).each.to_a
+      list = Judges::Judges.new(d, nil, Loog::NULL, boost: %w[six two], demote: %w[one four], shuffle: 'xyz').each.to_a
       result = list.map(&:name)
-      assert_equal('six', result[0])
-      assert_equal('two', result[1])
+      boosted = result[0..1]
+      assert_includes(boosted, 'six')
+      assert_includes(boosted, 'two')
       demoted = result[-2..]
       assert_includes(demoted, 'one')
       assert_includes(demoted, 'four')

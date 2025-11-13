@@ -62,10 +62,10 @@ class Judges::Judges
   # This method discovers all judge directories, validates them (ensuring they contain
   # a corresponding .rb file), and yields them in a specific order. The order is
   # determined by:
-  # 1. Judges whose names match the boost list are placed first
-  # 2. Judges whose names start with the shuffle prefix are randomly reordered
+  # 1. Randomly reorder judges (if shuffle prefix is empty, shuffle all judges;
+  #    if prefix is not empty, shuffle only those NOT starting with the prefix)
+  # 2. Judges whose names match the boost list are placed first
   # 3. Judges whose names match the demote list are placed last
-  # 4. All other judges maintain their alphabetical order
   #
   # @yield [Judges::Judge] Yields each valid judge object
   # @return [Enumerator] Returns an enumerator if no block is given
@@ -84,7 +84,7 @@ class Judges::Judges
     good = all.dup
     mapping = all
       .map { |a| [a[0].name, a[1], a[1]] }
-      .reject { |a| a[0].start_with?(@shuffle) }
+      .reject { |a| !@shuffle.empty? && a[0].start_with?(@shuffle) }
       .to_h { |a| [a[1], a[2]] }
     positions = mapping.values.shuffle
     mapping.keys.zip(positions).to_h.each do |before, after|
