@@ -34,7 +34,8 @@ class Judges::Judges
   # @param [String] shuffle Prefix for names of judges to shuffle
   # @param [Array<String>] boost Names of judges to boost in priority
   # @param [Array<String>] demote Names of judges to demote in priority
-  def initialize(dir, lib, loog, epoch: Time.now, shuffle: '', boost: [], demote: [])
+  # @param [Integer] seed Random seed for judge ordering (default: 0)
+  def initialize(dir, lib, loog, epoch: Time.now, shuffle: '', boost: [], demote: [], seed: 0)
     @dir = dir
     @lib = lib
     @loog = loog
@@ -42,6 +43,7 @@ class Judges::Judges
     @shuffle = shuffle || ''
     @boost = boost
     @demote = demote
+    @seed = seed || 0
   end
 
   # Retrieves a specific judge by its name.
@@ -86,7 +88,7 @@ class Judges::Judges
       .map { |a| [a[0].name, a[1], a[1]] }
       .reject { |a| !@shuffle.empty? && a[0].start_with?(@shuffle) }
       .to_h { |a| [a[1], a[2]] }
-    positions = mapping.values.shuffle
+    positions = mapping.values.shuffle(random: Random.new(@seed))
     mapping.keys.zip(positions).to_h.each do |before, after|
       good[after] = all[before]
     end
