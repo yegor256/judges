@@ -121,6 +121,45 @@ class TestJudges < Minitest::Test
     end
   end
 
+  def test_same_seed_produces_same_order
+    Dir.mktmpdir do |d|
+      names = %w[alpha beta gamma delta epsilon zeta eta theta].sort
+      names.each do |n|
+        dir = File.join(d, n)
+        save_it(File.join(dir, "#{n}.rb"), 'puts 1')
+      end
+      first = Judges::Judges.new(d, nil, Loog::NULL, seed: 42).each.to_a
+      second = Judges::Judges.new(d, nil, Loog::NULL, seed: 42).each.to_a
+      assert_equal(first.map(&:name), second.map(&:name), 'Same seed should produce same order')
+    end
+  end
+
+  def test_different_seed_produces_different_order
+    Dir.mktmpdir do |d|
+      names = %w[alpha beta gamma delta epsilon zeta eta theta].sort
+      names.each do |n|
+        dir = File.join(d, n)
+        save_it(File.join(dir, "#{n}.rb"), 'puts 1')
+      end
+      first = Judges::Judges.new(d, nil, Loog::NULL, seed: 42).each.to_a
+      second = Judges::Judges.new(d, nil, Loog::NULL, seed: 99).each.to_a
+      refute_equal(first.map(&:name), second.map(&:name), 'Different seeds should produce different orders')
+    end
+  end
+
+  def test_default_seed
+    Dir.mktmpdir do |d|
+      names = %w[alpha beta gamma delta epsilon zeta eta theta].sort
+      names.each do |n|
+        dir = File.join(d, n)
+        save_it(File.join(dir, "#{n}.rb"), 'puts 1')
+      end
+      first = Judges::Judges.new(d, nil, Loog::NULL, seed: 0).each.to_a
+      second = Judges::Judges.new(d, nil, Loog::NULL).each.to_a
+      assert_equal(first.map(&:name), second.map(&:name), 'Default seed should be 0')
+    end
+  end
+
   def test_boost_and_demote_together
     Dir.mktmpdir do |d|
       names = %w[one two three four five six].sort

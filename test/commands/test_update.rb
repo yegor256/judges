@@ -279,4 +279,13 @@ class TestUpdate < Minitest::Test
       assert_path_exists(file)
     end
   end
+
+  def test_seed_parameter_is_passed_through
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert')
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::NULL).run({ 'seed' => 42, 'max-cycles' => 1, 'timeout' => 1 }, [d, file])
+      assert_path_exists(file)
+    end
+  end
 end
