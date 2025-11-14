@@ -68,7 +68,7 @@ class Judges::Update
     judges = Judges::Judges.new(
       dir, opts['lib'], @loog,
       epoch: @epoch, shuffle: opts['shuffle'], boost: opts['boost'],
-      demote: opts['demote']
+      demote: opts['demote'], seed: opts['seed']
     )
     begin
       Timeout.timeout(opts['lifetime']) do
