@@ -56,6 +56,11 @@ When(/^I run bash with:$/) do |text|
   @exitstatus = $CHILD_STATUS.exitstatus
 end
 
+Then(/^([a-z].+) contains "([^"]*)"$/) do |file, txt|
+  data = File.read(file)
+  raise "The file #{file} doesn't contain '#{txt}':\n#{data}" unless data.include?(txt)
+end
+
 Then(/^Stdout contains "([^"]*)"$/) do |txt|
   raise "STDOUT doesn't contain '#{txt}':\n#{@stdout}" unless @stdout.include?(txt)
 end

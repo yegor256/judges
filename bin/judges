@@ -27,6 +27,7 @@ class JudgesGLI extend GLI::App
       require_relative "../lib/judges/commands/#{ruby}"
       start = Time.now
       @@loog.debug("Running '#{ruby}' command...")
+      options = global.merge(options)
       begin
         Object.const_get("Judges::#{ruby.capitalize}").new(@@loog).run(options, args)
         @@loog.debug("Command '#{ruby}' completed in #{start.ago}")
