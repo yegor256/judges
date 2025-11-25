@@ -4,7 +4,7 @@
 [![We recommend RubyMine](https://www.elegantobjects.org/rubymine.svg)](https://www.jetbrains.com/ruby/)
 
 [![rake](https://github.com/yegor256/judges/actions/workflows/rake.yml/badge.svg)](https://github.com/yegor256/judges/actions/workflows/rake.yml)
-[![PDD status](https://www.0pdd.com/svg?name=yegor256/judges)](https://www.0pdd.com/p?name=yegor256/judges)
+[![PDD status](https://www.0pdd.com/svg?name=yegor256/judges)](https:Test//www.0pdd.com/p?name=yegor256/judges)
 [![Gem Version](https://badge.fury.io/rb/judges.svg)](https://badge.fury.io/rb/judges)
 [![Test Coverage](https://img.shields.io/codecov/c/github/yegor256/judges.svg)](https://codecov.io/github/yegor256/judges?branch=master)
 [![Yard Docs](https://img.shields.io/badge/yard-docs-blue.svg)](https://rubydoc.info/github/yegor256/judges/master/frames)
