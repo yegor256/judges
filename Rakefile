@@ -7,7 +7,6 @@ require 'os'
 require 'qbash'
 require 'rubygems'
 require 'rake'
-require 'rdoc'
 require 'rake/clean'
 require 'shellwords'
 

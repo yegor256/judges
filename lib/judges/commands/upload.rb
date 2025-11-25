@@ -43,19 +43,15 @@ class Judges::Upload
     )
     elapsed(@loog, level: Logger::INFO) do
       id = baza.durable_find(jname, name)
-      size = File.size(path)
       if id.nil? || id.to_s.strip.empty?
-        f = Tempfile.new('placeholder')
-        begin
-          File.write(f.path, 'placeholder')
-          f.close
-          id = baza.durable_place(jname, f.path)
+        Dir.mktmpdir do |tmp|
+          f = File.join(tmp, name)
+          File.write(f, 'placeholder')
+          id = baza.durable_place(jname, f)
           @loog.info("Placed a placeholder to new durable '#{name}' in '#{jname}' (ID: #{id})")
-        ensure
-          f.close unless f.closed?
-          f.unlink
         end
       end
+      size = File.size(path)
       id = id.to_i
       baza.durable_lock(id, opts['owner'] || 'default')
       begin

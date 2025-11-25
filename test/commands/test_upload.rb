@@ -21,9 +21,9 @@ class TestUpload < Minitest::Test
       status: 404
     )
     stub_request(:get, 'https://example.org/csrf').to_return(body: 'test-csrf-token')
-    stub_request(:post, 'https://example.org/durables/place').to_return(
-      status: 302, headers: { 'X-Zerocracy-DurableId' => '42' }
-    )
+    stub_request(:post, 'https://example.org/durables/place')
+      .with(body: /.*file=upload\.txt.*/)
+      .to_return(status: 302, headers: { 'X-Zerocracy-DurableId' => '42' })
     stub_request(:post, %r{https://example.org/durables/42/lock}).to_return(status: 302)
     stub_request(:put, %r{https://example.org/durables/42}).to_return(status: 200)
     stub_request(:post, %r{https://example.org/durables/42/unlock}).to_return(status: 302)
