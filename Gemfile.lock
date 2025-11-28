@@ -22,13 +22,13 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    addressable (2.8.7)
-      public_suffix (>= 2.0.2, < 7.0)
+    addressable (2.8.8)
+      public_suffix (>= 2.0.2, < 8.0)
     ansi (1.5.0)
     ast (2.4.3)
     backtrace (0.4.1)
     base64 (0.3.0)
-    baza.rb (0.11.0)
+    baza.rb (0.11.1)
       backtrace (~> 0.4)
       elapsed (~> 0.2)
       faraday (~> 2.13)
@@ -70,7 +70,7 @@ GEM
     cucumber-html-formatter (21.15.1)
       cucumber-messages (> 19, < 28)
     cucumber-messages (27.2.0)
-    cucumber-tag-expressions (8.0.0)
+    cucumber-tag-expressions (8.1.0)
     decoor (0.1.0)
     diff-lcs (1.6.2)
     docile (1.4.1)
@@ -81,7 +81,7 @@ GEM
     ethon (0.18.0)
       ffi (>= 1.15.0)
       logger
-    factbase (0.16.8)
+    factbase (0.17.0)
       backtrace (~> 0.4)
       decoor (~> 0.1)
       ellipsized (~> 0.3)
@@ -166,7 +166,7 @@ GEM
       ast (~> 2.4.1)
       racc
     prism (1.6.0)
-    public_suffix (6.0.2)
+    public_suffix (7.0.0)
     qbash (0.4.8)
       backtrace (> 0)
       elapsed (> 0)
