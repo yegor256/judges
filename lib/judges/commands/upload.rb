@@ -44,6 +44,8 @@ class Judges::Upload
     elapsed(@loog, level: Logger::INFO) do
       id = baza.durable_find(jname, name)
       if id.nil? || id.to_s.strip.empty?
+        # Block form of Dir.mkdir causes error Errno::EACCESS on windows
+        # so we use non-block form
         tmp = Dir.mktmpdir
         begin
           f = File.join(tmp, name)
