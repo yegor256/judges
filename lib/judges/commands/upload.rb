@@ -44,11 +44,14 @@ class Judges::Upload
     elapsed(@loog, level: Logger::INFO) do
       id = baza.durable_find(jname, name)
       if id.nil? || id.to_s.strip.empty?
-        Dir.mktmpdir do |tmp|
+        tmp = Dir.mktmpdir
+        begin
           f = File.join(tmp, name)
           File.write(f, 'placeholder')
           id = baza.durable_place(jname, f)
           @loog.info("Placed a placeholder to new durable '#{name}' in '#{jname}' (ID: #{id})")
+        ensure
+          FileUtils.rm_rf(tmp, secure: true)
         end
       end
       size = File.size(path)
