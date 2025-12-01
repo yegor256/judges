@@ -98,6 +98,19 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_exports_fb_only_once
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1;')
+      file = File.join(d, 'base.fb')
+      log = Loog::Buffer.new
+      Judges::Update.new(Loog::Tee.new(log, Loog::NULL)).run(
+        { 'quiet' => true, 'max-cycles' => 2 },
+        [d, file]
+      )
+      assert_equal(1, log.to_s.scan('Factbase exported to').count)
+    end
+  end
+
   def test_extend_existing_factbase
     Dir.mktmpdir do |d|
       file = File.join(d, 'base.fb')

@@ -72,7 +72,7 @@ class Judges::Update
     )
     begin
       Timeout.timeout(opts['lifetime']) do
-        loop_them(impex, judges, fb, opts, options)
+        loop_them(judges, fb, opts, options)
       end
     rescue Timeout::Error, Timeout::ExitException => e
       @loog.error("Terminated due to --lifetime=#{opts['lifetime']}")
@@ -85,7 +85,7 @@ class Judges::Update
 
   private
 
-  def loop_them(impex, judges, fb, opts, options)
+  def loop_them(judges, fb, opts, options)
     c = 0
     churn = Factbase::Churn.new
     errors = []
@@ -112,7 +112,6 @@ class Judges::Update
         end
         delta = cycle(opts, judges, fb, options, errors, statistics)
         churn += delta
-        impex.export(fb)
         if delta.zero?
           @loog.info("The update cycle ##{c} has made no changes to the factbase, let's stop")
           break
@@ -132,7 +131,6 @@ class Judges::Update
     statistics&.report(@loog)
     return unless %w[add append].include?(opts['summary'])
     summarize(fb, churn, errors, c)
-    impex.export(fb)
   end
 
   # Update the summary.
