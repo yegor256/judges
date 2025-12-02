@@ -111,6 +111,43 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_exports_fb_despite_judge_syntax_error
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      save_it(File.join(d, 'bar/bar.rb'), 'this$is$a$broken$Ruby$script')
+      file = File.join(d, 'base.fb')
+      assert_raises(StandardError) do
+        Judges::Update.new(Loog::NULL).run(
+          { 'quiet' => false, 'max-cycles' => 1 },
+          [d, file]
+        )
+      end
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
+      refute_empty(xml.xpath('/fb/f[foo]'), xml)
+    end
+  end
+
+  def test_exports_all_judges_despite_lifetime_timeout
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      save_it(File.join(d, 'bar/bar.rb'), '$fb.insert.bar = 2; sleep 1')
+      file = File.join(d, 'base.fb')
+      assert_raises(StandardError) do
+        Judges::Update.new(Loog::NULL).run(
+          { 'quiet' => false, 'max-cycles' => 2, 'lifetime' => 2 },
+          [d, file]
+        )
+      end
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
+      assert_equal(2, xml.xpath('/fb/f[foo]').size)
+      assert_equal(2, xml.xpath('/fb/f[bar]').size)
+    end
+  end
+
   def test_extend_existing_factbase
     Dir.mktmpdir do |d|
       file = File.join(d, 'base.fb')
