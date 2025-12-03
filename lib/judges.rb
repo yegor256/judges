@@ -8,5 +8,5 @@
 # Copyright:: Copyright (c) 2024-2025 Yegor Bugayenko
 # License:: MIT
 module Judges
-  VERSION = '0.0.0' unless const_defined?(:VERSION)
+  VERSION = '0.57.3' unless const_defined?(:VERSION)
 end
