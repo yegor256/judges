@@ -8,6 +8,7 @@ require 'factbase'
 require 'backtrace'
 require 'factbase/to_xml'
 require 'elapsed'
+require 'ellipsized'
 require 'timeout'
 require_relative '../../judges'
 require_relative '../../judges/to_rel'
@@ -106,7 +107,7 @@ class Judges::Test
             format(fmt, 'Script', 'Seconds', 'Result'),
             format(fmt, '---', '---', '---'),
             times.sort_by { |_, v| v }.reverse.map do |script, sec|
-              format(fmt, script, format('%.3f', sec), errors.include?(script) ? 'ERROR' : 'OK')
+              format(fmt, script.ellipsized(50), format('%.3f', sec), errors.include?(script) ? 'ERROR' : 'OK')
             end.join("\n  ")
           ].join("\n  ")
         )
