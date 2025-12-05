@@ -70,9 +70,10 @@ class Judges::Update
       epoch: @epoch, shuffle: opts['shuffle'], boost: opts['boost'],
       demote: opts['demote'], seed: opts['seed']
     )
+    churn = nil
     begin
       Timeout.timeout(opts['lifetime']) do
-        loop_them(judges, fb, opts, options)
+        churn = loop_them(judges, fb, opts, options)
       end
     rescue Timeout::Error, Timeout::ExitException => e
       @loog.error("Terminated due to --lifetime=#{opts['lifetime']}")
@@ -80,6 +81,7 @@ class Judges::Update
       @loog.info("Had to stop due to the --lifetime=#{opts['lifetime']}")
     ensure
       impex.export(fb)
+      churn_export(opts['churn'], churn) if opts['churn'] && churn
     end
   end
 
@@ -129,8 +131,10 @@ class Judges::Update
       throw :"👍 Update completed in #{c} cycle(s), did #{churn}"
     end
     statistics&.report(@loog)
-    return unless %w[add append].include?(opts['summary'])
-    summarize(fb, churn, errors, c)
+    if %w[add append].include?(opts['summary'])
+      summarize(fb, churn, errors, c)
+    end
+    churn
   end
 
   # Update the summary.
@@ -259,5 +263,15 @@ class Judges::Update
     judges = opts['judge'] || []
     return true if judges.empty?
     judges.any?(name)
+  end
+
+  # Export churn to a file.
+  # @param [String] file The file path to write to
+  # @param [Factbase::Churn] churn The churn object
+  def churn_export(file, churn)
+    File.write(file, churn.to_s)
+    @loog.info("Churn written to #{file}: #{churn}")
+  rescue StandardError => e
+    @loog.error("Failed to write churn to #{file}: #{e.message}")
   end
 end

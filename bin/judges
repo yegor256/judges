@@ -142,6 +142,8 @@ class JudgesGLI extend GLI::App
     c.switch([:statistics], default_value: false)
     c.desc 'Expect at least one judge to be used (fail if none are used)'
     c.switch([:'expect-judges'], default_value: true)
+    c.desc 'File to write churn information to (e.g., /tmp/churn.txt)'
+    c.flag([:churn])
     run_it(c, 'update')
   end
 

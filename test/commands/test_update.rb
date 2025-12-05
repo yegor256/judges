@@ -338,4 +338,19 @@ class TestUpdate < Minitest::Test
       assert_path_exists(file)
     end
   end
+
+  def test_churn_file_creation
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1; $fb.insert.bar = 2')
+      file = File.join(d, 'base.fb')
+      churn = File.join(d, 'churn.txt')
+      Judges::Update.new(Loog::NULL).run(
+        { 'churn' => churn, 'max-cycles' => 1 },
+        [d, file]
+      )
+      assert_path_exists(churn)
+      content = File.read(churn)
+      assert_match(/\d+i\/\d+d\/\d+a/, content)
+    end
+  end
 end
