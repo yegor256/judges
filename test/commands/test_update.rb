@@ -344,13 +344,24 @@ class TestUpdate < Minitest::Test
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1; $fb.insert.bar = 2')
       file = File.join(d, 'base.fb')
       churn = File.join(d, 'churn.txt')
-      Judges::Update.new(Loog::NULL).run(
-        { 'churn' => churn, 'max-cycles' => 1 },
-        [d, file]
-      )
+      Judges::Update.new(Loog::NULL).run({ 'churn' => churn, 'max-cycles' => 1 }, [d, file])
       assert_path_exists(churn)
       content = File.read(churn)
       assert_match(/\d+i\/\d+d\/\d+a/, content)
     end
   end
 end
+
+def test_exports_churn_to_file_despite_error
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'sleep 999')
+      file = File.join(d, 'base.fb')
+      churn = File.join(d, 'churn.txt')
+      assert_raises(StandardError) do
+        Judges::Update.new(Loog::NULL).run({ 'lifetime' => 0.1, 'churn' => churn }, [d, file])
+      end
+      assert_path_exists(churn)
+      content = File.read(churn)
+      assert_includes(content, '1i/0d/1a')
+    end
+  end
