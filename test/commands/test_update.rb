@@ -129,7 +129,7 @@ class TestUpdate < Minitest::Test
     end
   end
 
-  # @todo #338:30min This test is flaky on macOS in GitHub Actions.
+  # @todo #341:30min This test is flaky on macOS in GitHub Actions.
   #  If the 'lifetime' is less than 15 seconds, the second cycle doesn't start due to insufficient time.
   #  If it's more than 15 seconds, the bar judge gets skipped in the second cycle (no time left).
   #  To enable this test for macOS, we need to devise a different way to trigger an exception during judge processing.
