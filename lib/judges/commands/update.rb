@@ -81,7 +81,10 @@ class Judges::Update
       @loog.info("Had to stop due to the --lifetime=#{opts['lifetime']}")
     ensure
       impex.export(fb)
-      churn_export(opts['churn'], churn) if opts['churn'] && churn
+      if opts['churn'] && churn
+        File.write(opts['churn'], churn.to_s)
+        @loog.info("Churn written to #{opts['churn']}: #{churn}")
+      end
     end
   end
 
@@ -263,15 +266,5 @@ class Judges::Update
     judges = opts['judge'] || []
     return true if judges.empty?
     judges.any?(name)
-  end
-
-  # Export churn to a file.
-  # @param [String] file The file path to write to
-  # @param [Factbase::Churn] churn The churn object
-  def churn_export(file, churn)
-    File.write(file, churn.to_s)
-    @loog.info("Churn written to #{file}: #{churn}")
-  rescue StandardError => e
-    @loog.error("Failed to write churn to #{file}: #{e.message}")
   end
 end
