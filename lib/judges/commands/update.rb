@@ -134,9 +134,7 @@ class Judges::Update
       throw :"👍 Update completed in #{c} cycle(s), did #{churn}"
     end
     statistics&.report(@loog)
-    if %w[add append].include?(opts['summary'])
-      summarize(fb, churn, errors, c)
-    end
+    summarize(fb, churn, errors, c) if %w[add append].include?(opts['summary'])
     churn
   end
 
