@@ -2,6 +2,7 @@
 
 # SPDX-FileCopyrightText: Copyright (c) 2024-2025 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
+require 'ellipsized'
 
 require 'nokogiri'
 require 'factbase'
@@ -106,7 +107,8 @@ class Judges::Test
             format(fmt, 'Script', 'Seconds', 'Result'),
             format(fmt, '---', '---', '---'),
             times.sort_by { |_, v| v }.reverse.map do |script, sec|
-              format(fmt, script, format('%.3f', sec), errors.include?(script) ? 'ERROR' : 'OK')
+short_script = script.ellipsized(40)
+format(fmt, short_script, format('%.3f', sec), errors.include?(script) ? 'ERROR' : 'OK')
             end.join("\n  ")
           ].join("\n  ")
         )
