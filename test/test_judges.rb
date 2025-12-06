@@ -177,4 +177,52 @@ class TestJudges < Minitest::Test
       assert_includes(demoted, 'four')
     end
   end
+
+  def test_boost_with_wildcard_patterns
+    Dir.mktmpdir do |d|
+      names = %w[test_alpha test_beta production_gamma production_delta other].sort
+      names.each do |n|
+        dir = File.join(d, n)
+        save_it(File.join(dir, "#{n}.rb"), 'puts 1')
+      end
+      list = Judges::Judges.new(d, nil, Loog::NULL, boost: ['test_*']).each.to_a
+      result = list.map(&:name)
+      boosted = result[0..1]
+      assert_includes(boosted, 'test_alpha')
+      assert_includes(boosted, 'test_beta')
+    end
+  end
+
+  def test_demote_with_wildcard_patterns
+    Dir.mktmpdir do |d|
+      names = %w[alpha beta zzz_gamma zzz_delta epsilon].sort
+      names.each do |n|
+        dir = File.join(d, n)
+        save_it(File.join(dir, "#{n}.rb"), 'puts 1')
+      end
+      list = Judges::Judges.new(d, nil, Loog::NULL, demote: ['zzz*']).each.to_a
+      result = list.map(&:name)
+      demoted = result[-2..]
+      assert_includes(demoted, 'zzz_gamma')
+      assert_includes(demoted, 'zzz_delta')
+    end
+  end
+
+  def test_boost_and_demote_with_wildcards_together
+    Dir.mktmpdir do |d|
+      names = %w[priority_one priority_two normal_alpha normal_beta slow_gamma slow_delta].sort
+      names.each do |n|
+        dir = File.join(d, n)
+        save_it(File.join(dir, "#{n}.rb"), 'puts 1')
+      end
+      list = Judges::Judges.new(d, nil, Loog::NULL, boost: ['priority*'], demote: ['slow*']).each.to_a
+      result = list.map(&:name)
+      boosted = result[0..1]
+      assert_includes(boosted, 'priority_one')
+      assert_includes(boosted, 'priority_two')
+      demoted = result[-2..]
+      assert_includes(demoted, 'slow_gamma')
+      assert_includes(demoted, 'slow_delta')
+    end
+  end
 end

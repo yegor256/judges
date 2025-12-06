@@ -120,9 +120,9 @@ class JudgesGLI extend GLI::App
     c.flag([:shuffle], default_value: '')
     c.desc 'Random seed for judge ordering'
     c.flag([:seed], default_value: 0, type: Integer)
-    c.desc 'Prioritize a judge to run before all others'
+    c.desc 'Prioritize a judge to run before all others (supports wildcards with *)'
     c.flag([:boost], multiple: true)
-    c.desc 'Demote a judge to run after all others'
+    c.desc 'Demote a judge to run after all others (supports wildcards with *)'
     c.flag([:demote], multiple: true)
     c.desc 'Maximum time in seconds for the entire update cycle'
     c.flag([:lifetime], default_value: 300, type: Integer)

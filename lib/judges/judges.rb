@@ -32,8 +32,8 @@ class Judges::Judges
   # @param [Loog] loog Logging facility
   # @param [Time] epoch Start time
   # @param [String] shuffle Prefix for names of judges to shuffle
-  # @param [Array<String>] boost Names of judges to boost in priority
-  # @param [Array<String>] demote Names of judges to demote in priority
+  # @param [Array<String>] boost Names/patterns of judges to boost in priority (supports '*' wildcards)
+  # @param [Array<String>] demote Names/patterns of judges to demote in priority (supports '*' wildcards)
   # @param [Integer] seed Random seed for judge ordering (default: 0)
   def initialize(dir, lib, loog, epoch: Time.now, shuffle: '', boost: [], demote: [], seed: 0)
     @dir = dir
@@ -66,8 +66,8 @@ class Judges::Judges
   # determined by:
   # 1. Randomly reorder judges (if shuffle prefix is empty, shuffle all judges;
   #    if prefix is not empty, shuffle only those NOT starting with the prefix)
-  # 2. Judges whose names match the boost list are placed first
-  # 3. Judges whose names match the demote list are placed last
+  # 2. Judges whose names match the boost patterns are placed first (supports '*' wildcards)
+  # 3. Judges whose names match the demote patterns are placed last (supports '*' wildcards)
   #
   # @yield [Judges::Judge] Yields each valid judge object
   # @return [Enumerator] Returns an enumerator if no block is given
@@ -96,9 +96,9 @@ class Judges::Judges
     demoted = []
     normal = []
     good.map { |a| a[0] }.each do |j|
-      if @boost&.include?(j.name)
+      if fits?(j.name, @boost)
         boosted.append(j)
-      elsif @demote&.include?(j.name)
+      elsif fits?(j.name, @demote)
         demoted.append(j)
       else
         normal.append(j)
@@ -123,5 +123,20 @@ class Judges::Judges
       idx += 1
     end
     idx
+  end
+
+  private
+
+  # Checks if a judge name matches any of the given patterns.
+  # Patterns can contain '*' wildcards which are converted to '.*' regex patterns.
+  #
+  # @param [String] name The judge name to check
+  # @param [Array<String>, String, nil] patterns Array of patterns, or single pattern string, may contain '*' wildcards
+  # @return [Boolean] true if name matches any pattern, false otherwise
+  def fits?(name, patterns)
+    return false if patterns.nil? || patterns.empty?
+    Array(patterns).any? do |pattern|
+      name.match?("\\A#{pattern.gsub('*', '.*')}\\z")
+    end
   end
 end
