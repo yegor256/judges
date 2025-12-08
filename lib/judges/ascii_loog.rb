@@ -39,6 +39,13 @@ class Judges::AsciiLoog
   # @return [String] The converted message with ASCII symbols
   def to_ascii(message)
     result = message.to_s
+    if result.encoding != Encoding::UTF_8
+      begin
+        result = result.encode(Encoding::UTF_8, invalid: :replace, undef: :replace)
+      rescue Encoding::UndefinedConversionError, Encoding::InvalidByteSequenceError
+        result = result.force_encoding(Encoding::UTF_8).encode(Encoding::UTF_8, invalid: :replace, undef: :replace)
+      end
+    end
     UNICODE_TO_ASCII.each do |unicode, ascii|
       result = result.gsub(unicode, ascii)
     end
