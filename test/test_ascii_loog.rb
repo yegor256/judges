@@ -86,4 +86,25 @@ class TestAsciiLoog < Minitest::Test
     output = buf.to_s
     refute_includes(output, '👍')
   end
+
+  def test_handles_binary_encoding
+    buf = Loog::Buffer.new
+    loog = Judges::AsciiLoog.new(buf)
+    loog.info((+'👍 Success message').force_encoding('ASCII-8BIT'))
+    output = buf.to_s
+    refute_includes(output, '👍')
+  end
+
+  def test_handles_mixed_encodings
+    buf = Loog::Buffer.new
+    loog = Judges::AsciiLoog.new(buf)
+    messages = [
+      (+'GET https://example.org:443/test -> 503 (0.00s)').force_encoding('ASCII-8BIT'),
+      (+'X-Zerocracy-Failure: Service unavailable').force_encoding('BINARY'),
+      (+'Unicode: ❌ in binary').force_encoding('ASCII-8BIT')
+    ]
+    messages.each do |msg|
+      loog.error(msg)
+    end
+  end
 end
