@@ -125,7 +125,8 @@ GEM
       logger (~> 1.0)
     memoist3 (1.0.0)
     mini_mime (1.1.5)
-    minitest (5.27.0)
+    minitest (6.0.0)
+      prism (~> 1.5)
     minitest-reporters (1.7.1)
       ansi
       builder
@@ -254,7 +255,7 @@ DEPENDENCIES
   cucumber (~> 10.0)
   diff-lcs (= 1.6.2)
   judges!
-  minitest (~> 5.25)
+  minitest (~> 6.0)
   minitest-reporters (~> 1.7)
   minitest-retry (~> 0.2)
   online (~> 0.0)
