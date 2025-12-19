@@ -131,7 +131,7 @@ GEM
       builder
       minitest (>= 5.0)
       ruby-progressbar
-    minitest-retry (0.2.5)
+    minitest-retry (0.3.0)
       minitest (>= 5.0)
     moments (0.3.0)
     multi_test (1.1.0)
