@@ -9,7 +9,8 @@ gemspec
 gem 'base64', '~>0.3'
 gem 'cucumber', '~>10.0', require: false
 gem 'diff-lcs', '1.6.2', require: false # GPL
-gem 'minitest', '~>5.25', require: false
+gem 'minitest', '~>6.0', require: false
+gem 'minitest-mock', '~>5.27', require: false
 gem 'minitest-reporters', '~>1.7', require: false
 gem 'minitest-retry', '~>0.2', require: false
 gem 'online', '~>0.0', require: false
