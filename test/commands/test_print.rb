@@ -48,6 +48,8 @@ class TestPrint < Minitest::Test
       f.details = 'hey, друг'
       f.ticket = 42
       f.ticket = 55
+      f.stale = 'branch'
+      f.tombstone = Time.new(2020, 4, 1, 0, 0, 0, '+03:00')
       f.pi = 3.1416
       f.long_property = 'test_' * 100
     end
