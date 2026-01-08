@@ -9,6 +9,7 @@
   <xsl:param name="date"/>
   <xsl:param name="version"/>
   <xsl:param name="columns"/>
+  <xsl:param name="highlighted"/>
   <xsl:param name="hidden"/>
   <xsl:param name="js_hash"/>
   <xsl:param name="css_hash"/>
@@ -212,10 +213,17 @@
           <xsl:for-each select="$f/*">
             <xsl:text> </xsl:text>
             <xsl:variable name="visible" select="string-length(substring-before(concat(' ,', $hidden, ','), concat(',', name(), ','))) = 0"/>
+            <xsl:variable name="is-highlighted" select="contains(concat(',', $highlighted, ','),
+            concat(',', name(), ','))"/>
             <xsl:if test="string-length(substring-before(concat(' ,', $columns, ','), concat(',', name(), ','))) = 0">
               <xsl:choose>
                 <xsl:when test="$visible">
-                  <xsl:value-of select="name()"/>
+                  <span>
+                    <xsl:if test="$is-highlighted">
+                        <xsl:attribute name="class">highlighted</xsl:attribute>
+                    </xsl:if>
+                    <xsl:value-of select="name()"/>
+                  </span>
                 </xsl:when>
                 <xsl:otherwise>
                   <span class="hidden" title="{.}">
@@ -224,10 +232,15 @@
                 </xsl:otherwise>
               </xsl:choose>
               <xsl:if test="$visible">
-                <xsl:text>:</xsl:text>
-                <xsl:call-template name="value">
-                  <xsl:with-param name="v" select="."/>
-                </xsl:call-template>
+                <span>
+                  <xsl:if test="$is-highlighted">
+                      <xsl:attribute name="class">highlighted</xsl:attribute>
+                  </xsl:if>
+                  <xsl:text>:</xsl:text>
+                  <xsl:call-template name="value">
+                    <xsl:with-param name="v" select="."/>
+                  </xsl:call-template>
+                </span>
               </xsl:if>
             </xsl:if>
           </xsl:for-each>

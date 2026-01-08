@@ -88,6 +88,7 @@ class Judges::Print
         'date' => Time.now.utc.iso8601,
         'columns' => opts['columns'] || 'when,what,who',
         'hidden' => opts['hidden'] || '_id,_version,_time,_job',
+        'highlighted' => opts['highlighted'] || 'stale,tombstone',
         'version' => Judges::VERSION,
         'css_hash' => sha384(opts, 'index.css'),
         'js_hash' => sha384(opts, 'index.js')
