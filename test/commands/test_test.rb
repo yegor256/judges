@@ -214,4 +214,21 @@ class TestTest < Minitest::Test
       end
     end
   end
+
+  def test_ellipsized_long_script_name
+    Dir.mktmpdir do |d|
+      save_it(
+        File.join(d, 'code-contribution-was-rewarded/code-contribution-was-rewarded.rb'),
+        '$fb.query("(always)")'
+      )
+      save_it(File.join(d, 'code-contribution-was-rewarded/contributed-many.yml'), 'input:')
+      save_it(File.join(d, 'code-contribution-was-rewarded/reward-contribution-with-review.yml'), 'input:')
+      loog = Loog::Buffer.new
+      Judges::Test.new(loog).run({}, [d])
+      loog.to_s.then do |o|
+        assert_match('code-contribution-was-rewarded/contributed-many', o)
+        assert_match('code-contribution-was-re...ontribution-with-review', o)
+      end
+    end
+  end
 end

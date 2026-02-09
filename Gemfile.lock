@@ -6,6 +6,7 @@ PATH
       baza.rb (~> 0.10)
       concurrent-ruby (~> 1.2)
       elapsed (~> 0.2)
+      ellipsized (~> 0.3)
       factbase (~> 0.16)
       gli (~> 2.21)
       iri (~> 0.11)
