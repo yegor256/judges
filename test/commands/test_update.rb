@@ -355,6 +355,21 @@ class TestUpdate < Minitest::Test
       assert_match(%r{\d+i/\d+d/\d+a}, content)
     end
   end
+
+  def test_skipped_judge
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      save_it(File.join(d, 'bar/bar.rb'), "raise 'Skipped'\n$fb.insert.foo = 2")
+      save_it(File.join(d, 'qwe/qwe.rb'), '$fb.insert.foo = 3')
+      file = File.join(d, 'base.fb')
+      loog = Loog::Buffer.new
+      Judges::Update.new(loog).run({ 'statistics' => true, 'max-cycles' => 1, 'quiet' => true }, [d, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_equal(2, fb.query('(always)').to_a.size)
+      assert_match(%r{bar\s+\d\.\d{3}\s+\d\s+N/A\s+SKIPPED}, loog.to_s)
+    end
+  end
 end
 
 def test_exports_churn_to_file_despite_error
