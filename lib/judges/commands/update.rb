@@ -213,7 +213,7 @@ class Judges::Update
             throw :"👍 The '#{judge.name}' judge #{impact} out of #{fb.size} facts"
           end
         rescue StandardError, SyntaxError => e
-          if e.is_a?(RuntimeError) && e.message.match?(/skipped/i)
+          if e.is_a?(RuntimeError) && e.message == 'skip'
             result = 'SKIPPED'
           else
             @loog.warn(Backtrace.new(e))

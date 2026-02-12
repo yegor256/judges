@@ -81,7 +81,7 @@ class Judges::Judge
       # rubocop:disable Lint/RescueException
     rescue Exception => e
       # rubocop:enable Lint/RescueException
-      raise e if e.is_a?(RuntimeError) && e.message.match?(/skipped/i)
+      raise e if e.is_a?(RuntimeError) && e.message == 'skip'
       @loog.error(Backtrace.new(e))
       raise e if e.is_a?(StandardError)
       raise e if e.is_a?(Timeout::ExitException)

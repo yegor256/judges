@@ -359,7 +359,7 @@ class TestUpdate < Minitest::Test
   def test_skipped_judge
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
-      save_it(File.join(d, 'bar/bar.rb'), "raise 'Skipped'\n$fb.insert.foo = 2")
+      save_it(File.join(d, 'bar/bar.rb'), "raise 'skip'\n$fb.insert.foo = 2")
       save_it(File.join(d, 'qwe/qwe.rb'), '$fb.insert.foo = 3')
       file = File.join(d, 'base.fb')
       loog = Loog::Buffer.new
