@@ -213,9 +213,13 @@ class Judges::Update
             throw :"👍 The '#{judge.name}' judge #{impact} out of #{fb.size} facts"
           end
         rescue StandardError, SyntaxError => e
-          @loog.warn(Backtrace.new(e))
-          errors << e.message
-          result = 'ERROR'
+          if e.is_a?(RuntimeError) && e.message == 'skip'
+            result = 'SKIPPED'
+          else
+            @loog.warn(Backtrace.new(e))
+            errors << e.message
+            result = 'ERROR'
+          end
         ensure
           statistics&.record(judge.name, Time.now - start_time, result, impact) if start_time
         end
