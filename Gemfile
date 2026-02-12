@@ -8,7 +8,7 @@ gemspec
 
 gem 'base64', '~>0.3'
 gem 'cucumber', '~>10.0', require: false
-gem 'diff-lcs', '1.6.2', require: false # GPL
+gem 'diff-lcs', '2.0.0', require: false # GPL
 gem 'minitest', '~>6.0', require: false
 gem 'minitest-mock', '~>5.27', require: false
 gem 'minitest-reporters', '~>1.7', require: false
