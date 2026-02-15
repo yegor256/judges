@@ -17,7 +17,7 @@ class TestDownload < Minitest::Test
   def test_download_simple_durable
     WebMock.disable_net_connect!
     content = 'Hello, World!'
-    stub_request(:get, 'https://example.org/durables/find?file=downloaded.txt&jname=myjudge&pname=myjudge').to_return(
+    stub_request(:get, 'https://example.org/durable-find?file=downloaded.txt&pname=myjudge').to_return(
       status: 200, body: '42'
     )
     stub_request(:get, 'https://example.org/csrf').to_return(body: 'test-csrf-token')
@@ -45,7 +45,7 @@ class TestDownload < Minitest::Test
   def test_download_with_custom_owner
     WebMock.disable_net_connect!
     content = 'Custom content'
-    stub_request(:get, %r{http://example.org/durables/find}).to_return(
+    stub_request(:get, %r{http://example.org/durable-find}).to_return(
       status: 200, body: '123'
     )
     stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
@@ -72,7 +72,7 @@ class TestDownload < Minitest::Test
 
   def test_fails_on_http_error
     WebMock.disable_net_connect!
-    stub_request(:get, 'http://example.org/durables/find?file=test.txt&jname=somejudge&pname=somejudge').to_return(
+    stub_request(:get, 'http://example.org/durable-find?file=test.txt&pname=somejudge').to_return(
       status: 200, body: '99'
     )
     stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
@@ -107,7 +107,7 @@ class TestDownload < Minitest::Test
 
   def test_handles_not_found_durable
     WebMock.disable_net_connect!
-    stub_request(:get, 'http://example.org/durables/find?file=missing.txt&jname=notfound&pname=notfound').to_return(
+    stub_request(:get, 'http://example.org/durable-find?file=missing.txt&pname=notfound').to_return(
       status: 404
     )
     Dir.mktmpdir do |d|
