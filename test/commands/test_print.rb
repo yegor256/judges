@@ -75,6 +75,8 @@ class TestPrint < Minitest::Test
       end
     assert_empty(xml.errors, xml)
     refute_empty(xml.xpath('/html'), xml)
+    output = `tidy -e #{html} 2>&1`
+    refute_equal(2, $?.exitstatus, "tidy failed:\n#{output}")
     WebMock.enable_net_connect!
     skip('We are offline') unless online?
     begin

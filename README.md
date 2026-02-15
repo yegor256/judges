@@ -90,8 +90,9 @@ Read
 [these guidelines](https://www.yegor256.com/2014/04/15/github-guidelines.html).
 Make sure your build is green before you contribute
 your pull request. You will need to have
-[Ruby](https://www.ruby-lang.org/en/) 3.0+ and
-[Bundler](https://bundler.io/) installed. Then:
+[Ruby](https://www.ruby-lang.org/en/) 3.0+,
+[Bundler](https://bundler.io/), and
+[Tidy](https://www.html-tidy.org/) installed. Then:
 
 ```bash
 bundle update
