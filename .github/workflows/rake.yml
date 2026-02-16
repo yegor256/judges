@@ -23,9 +23,15 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
-      - name: Install tidy
+      - name: Install tidy on Ubuntu
         if: matrix.os == 'ubuntu-24.04'
         run: sudo apt-get install -y tidy
+      - name: Install tidy on macOS
+        if: matrix.os == 'macos-15'
+        run: brew install tidy-html5
+      - name: Install tidy on Windows
+        if: matrix.os == 'windows-2022'
+        run: choco install html-tidy -y
       - name: Install libcurl on Windows (using Ruby's MSYS2)
         if: matrix.os == 'windows-2022'
         run: |
