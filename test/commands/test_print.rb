@@ -8,6 +8,8 @@ require 'fileutils'
 require 'loog'
 require 'nokogiri'
 require 'online'
+require 'os'
+require 'qbash'
 require 'securerandom'
 require 'w3c_validators'
 require 'webmock/minitest'
@@ -75,6 +77,7 @@ class TestPrint < Minitest::Test
       end
     assert_empty(xml.errors, xml)
     refute_empty(xml.xpath('/html'), xml)
+    qbash("tidy -e #{html}", accept: [0, 1], raw: OS.windows?)
     WebMock.enable_net_connect!
     skip('We are offline') unless online?
     begin
