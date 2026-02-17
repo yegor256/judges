@@ -3,12 +3,13 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
-require 'English'
 require 'factbase'
 require 'fileutils'
 require 'loog'
 require 'nokogiri'
 require 'online'
+require 'os'
+require 'qbash'
 require 'securerandom'
 require 'w3c_validators'
 require 'webmock/minitest'
@@ -76,8 +77,7 @@ class TestPrint < Minitest::Test
       end
     assert_empty(xml.errors, xml)
     refute_empty(xml.xpath('/html'), xml)
-    output = `tidy -e "#{html}" 2>&1`
-    refute_equal(2, $CHILD_STATUS.exitstatus, "tidy failed:\n#{output}")
+    qbash("tidy -e #{html}", accept: [0, 1], raw: OS.windows?)
     WebMock.enable_net_connect!
     skip('We are offline') unless online?
     begin
