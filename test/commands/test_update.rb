@@ -370,18 +370,18 @@ class TestUpdate < Minitest::Test
       assert_match(%r{bar\s+\d\.\d{3}\s+\d\s+N/A\s+SKIPPED}, loog.to_s)
     end
   end
-end
 
-def test_exports_churn_to_file_despite_error
-  Dir.mktmpdir do |d|
-    save_it(File.join(d, 'foo/foo.rb'), 'sleep 999')
-    file = File.join(d, 'base.fb')
-    churn = File.join(d, 'churn.txt')
-    assert_raises(StandardError) do
-      Judges::Update.new(Loog::NULL).run({ 'lifetime' => 0.1, 'churn' => churn }, [d, file])
+  def test_exports_churn_to_file_despite_error
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1; sleep 999')
+      file = File.join(d, 'base.fb')
+      churn = File.join(d, 'churn.txt')
+      assert_raises(StandardError) do
+        Judges::Update.new(Loog::NULL).run({ 'lifetime' => 0.1, 'churn' => churn }, [d, file])
+      end
+      assert_path_exists(churn)
+      content = File.read(churn)
+      assert_includes(content, '1i/0d/1a')
     end
-    assert_path_exists(churn)
-    content = File.read(churn)
-    assert_includes(content, '1i/0d/1a')
   end
 end
