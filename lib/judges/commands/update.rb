@@ -70,10 +70,10 @@ class Judges::Update
       epoch: @epoch, shuffle: opts['shuffle'], boost: opts['boost'],
       demote: opts['demote'], seed: opts['seed']
     )
-    churn = nil
+    churn = Factbase::Churn.new
     begin
       Timeout.timeout(opts['lifetime']) do
-        churn = loop_them(judges, fb, opts, options)
+        loop_them(judges, fb, churn, opts, options)
       end
     rescue Timeout::Error, Timeout::ExitException => e
       @loog.error("Terminated due to --lifetime=#{opts['lifetime']}")
@@ -90,9 +90,9 @@ class Judges::Update
 
   private
 
-  def loop_them(judges, fb, opts, options)
+  def loop_them(judges, fb, churn, opts, options)
     c = 0
-    churn = Factbase::Churn.new
+    ch = Factbase::Churn.new
     errors = []
     statistics = opts['statistics'] ? Judges::Statistics.new : nil
     sum = fb.query('(eq what "judges-summary")').each.to_a
@@ -115,8 +115,8 @@ class Judges::Update
           end
           @loog.info("\nStarting cycle ##{c}#{" (out of #{opts['max-cycles']})" if opts['max-cycles']}...")
         end
-        delta = cycle(opts, judges, fb, options, errors, statistics)
-        churn += delta
+        delta = cycle(opts, judges, fb, churn, options, errors, statistics)
+        ch += delta
         if delta.zero?
           @loog.info("The update cycle ##{c} has made no changes to the factbase, let's stop")
           break
@@ -131,16 +131,15 @@ class Judges::Update
         end
         @loog.info("The cycle #{c} did #{delta}")
       end
-      throw :"👍 Update completed in #{c} cycle(s), did #{churn}"
+      throw :"👍 Update completed in #{c} cycle(s), did #{ch}"
     end
     statistics&.report(@loog)
-    summarize(fb, churn, errors, c) if %w[add append].include?(opts['summary'])
-    churn
+    summarize(fb, ch, errors, c) if %w[add append].include?(opts['summary'])
   end
 
   # Update the summary.
   # @param [Factbase] fb The factbase
-  # @param [Churn] churn The churn
+  # @param [Factbase::Churn] churn The churn
   # @param [Array<String>] errors List of errors
   # @param [Integer] cycles How many cycles
   def summarize(fb, churn, errors, cycles)
@@ -176,11 +175,12 @@ class Judges::Update
   # @param [Hash] opts The command line options
   # @param [Judges::Judges] judges The judges
   # @param [Factbase] fb The factbase
+  # @param [Factbase::Churn] churn All modifications
   # @param [Judges::Options] options The options
   # @param [Array<String>] errors List of errors
   # @param [Judges::Statistics] statistics Statistics tracking object (optional)
-  # @return [Factbase::Churn] How many modifications have been made
-  def cycle(opts, judges, fb, options, errors, statistics = nil)
+  # @return [Factbase::Churn] How many modifications have been made in current cycle
+  def cycle(opts, judges, fb, churn, options, errors, statistics = nil)
     delta = Factbase::Churn.new
     global = {}
     used = 0
@@ -209,6 +209,7 @@ class Judges::Update
           elapsed(@loog, level: Logger::INFO) do
             impact = one_judge(opts, fb, judge, global, options, errors)
             delta += impact
+            churn.append(impact.inserted, impact.deleted, impact.added)
             throw :"👍 The '#{judge.name}' judge made zero changes to #{fb.size} facts" if impact.zero?
             throw :"👍 The '#{judge.name}' judge #{impact} out of #{fb.size} facts"
           end
