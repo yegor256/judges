@@ -84,10 +84,11 @@ class Judges::Judges
     list.sort_by!(&:name)
     all = list.each_with_index.to_a
     good = all.dup
-    mapping = all
-      .map { |a| [a[0].name, a[1], a[1]] }
-      .reject { |a| !@shuffle.empty? && a[0].start_with?(@shuffle) }
-      .to_h { |a| [a[1], a[2]] }
+    mapping =
+      all
+           .map { |a| [a[0].name, a[1], a[1]] }
+           .reject { |a| !@shuffle.empty? && a[0].start_with?(@shuffle) }
+           .to_h { |a| [a[1], a[2]] }
     positions = mapping.values.shuffle(random: Random.new(@seed))
     mapping.keys.zip(positions).to_h.each do |before, after|
       good[after] = all[before]

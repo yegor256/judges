@@ -76,7 +76,7 @@ class Judges::Statistics
   # @return [String] Compact summary of results
   def summarize(results)
     return 'N/A' if results.empty?
-    counts = results.each_with_object(Hash.new(0)) { |result, hash| hash[result] += 1 }
+    counts = results.tally
     return results.first if counts.size == 1
     counts.sort_by { |_, count| -count }.map { |result, count| "#{count}x#{result}" }.join(', ')
   end
