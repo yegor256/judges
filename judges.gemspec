@@ -36,6 +36,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'loog', '~>0.6'
   s.add_dependency 'moments', '~>0.3'
   s.add_dependency 'nokogiri', '~>1.10'
+  s.add_dependency 'octokit', '~>10.0'
   s.add_dependency 'others', '~>0.1'
   s.add_dependency 'retries', '~>0.0'
   s.add_dependency 'tago', '~>0.2'

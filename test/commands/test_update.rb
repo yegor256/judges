@@ -7,6 +7,7 @@ require 'loog'
 require 'loog/tee'
 require 'nokogiri'
 require 'factbase/to_xml'
+require 'webmock/minitest'
 require_relative '../test__helper'
 require_relative '../../lib/judges'
 require_relative '../../lib/judges/commands/update'
@@ -382,6 +383,78 @@ class TestUpdate < Minitest::Test
       assert_path_exists(churn)
       content = File.read(churn)
       assert_includes(content, '1i/0d/1a')
+    end
+  end
+
+  def test_log_pretty_github_exception
+    WebMock.disable_net_connect!
+    text = 'very long body ' * 1000
+    stub_request(:get, 'https://api.github.com/rate_limit')
+    .with(
+      headers: {
+        'Accept' => 'application/vnd.github.v3+json',
+        'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+        'Content-Type' => 'application/json',
+        'User-Agent' => 'Octokit Ruby Gem 10.0.0'
+      }
+    )
+    .to_return(
+      status: 200,
+      body: { rate: { remaining: 1000, limit: 1000 } }.to_json,
+      headers: { 'X-RateLimit-Remaining' => '999' }
+    )
+    stub_request(:get, 'https://api.github.com/repos/test/test/pulls/42')
+    .with(
+      headers: {
+        'Accept' => 'application/vnd.github.v3+json',
+        'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+        'Content-Type' => 'application/json',
+        'User-Agent' => 'Octokit Ruby Gem 10.0.0'
+      }
+    )
+    .to_return(
+      status: 504,
+      body: text,
+      headers: { 'Content-Type' => 'text/html; charset=utf-8' }
+    )
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), <<~RUBY)
+        require 'octokit'
+        require 'faraday'
+
+        o = Octokit::Client.new
+        o.auto_paginate = true
+        o.per_page = 100
+        o.connection_options = {
+          request: {
+            open_timeout: 15,
+            timeout: 15
+          }
+        }
+        o.middleware =
+          Faraday::RackBuilder.new do |builder|
+            builder.use(Octokit::Response::RaiseError)
+            builder.adapter(Faraday.default_adapter)
+          end
+        o.pull_request('test/test', 42)
+      RUBY
+      file = File.join(d, 'base.fb')
+      loog = Loog::Buffer.new
+      assert_raises(RuntimeError) do
+        Judges::Update.new(loog).run({}, [d, file])
+      end
+      out = loog.to_s
+      assert_match(
+        [
+          'Octokit::ServerError: ',
+          [
+            'GET https://api.github.com/repos/test/test/pulls/42: 504 - ',
+            text
+          ].join.ellipsized(100, :right)
+        ].join,
+        out
+      )
+      refute_match('PrettyException', out)
     end
   end
 end

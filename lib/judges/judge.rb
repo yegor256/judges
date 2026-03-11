@@ -7,8 +7,10 @@ require 'elapsed'
 require 'tago'
 require 'timeout'
 require 'factbase/tallied'
+require 'octokit'
 require_relative '../judges'
 require_relative '../judges/to_rel'
+require_relative '../judges/pretty_exception'
 
 # A single judge.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -82,6 +84,7 @@ class Judges::Judge
     rescue Exception => e
       # rubocop:enable Lint/RescueException
       raise e if e.is_a?(RuntimeError) && e.message == 'skip'
+      e = Judges::PrettyException.new(e) if e.is_a?(Octokit::ServerError)
       @loog.error(Backtrace.new(e))
       raise e if e.is_a?(StandardError)
       raise e if e.is_a?(Timeout::ExitException)
