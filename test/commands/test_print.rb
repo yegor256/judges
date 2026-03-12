@@ -77,7 +77,7 @@ class TestPrint < Minitest::Test
       end
     assert_empty(xml.errors, xml)
     refute_empty(xml.xpath('/html'), xml)
-    skip('No tidy') unless qbash('tidy -v', accept: nil, both: true)[1].zero?
+    skip('No tidy') unless qbash('tidy -v', accept: nil, both: true, raw: OS.windows?)[1].zero?
     qbash("tidy -e #{html}", accept: [0, 1], raw: OS.windows?)
     WebMock.enable_net_connect!
     skip('We are offline') unless online?
