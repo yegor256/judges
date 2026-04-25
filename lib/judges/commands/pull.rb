@@ -51,9 +51,8 @@ class Judges::Pull
           end
           fb.import(baza.pull(wait(name, baza, jid, opts['wait'])))
           Judges::Impex.new(@loog, args[1]).export(fb)
-        rescue StandardError => e
+        ensure
           baza.unlock(name, opts['owner'])
-          raise e
         end
         throw :"👍 Pulled #{fb.size} facts by name '#{name}'"
       else
