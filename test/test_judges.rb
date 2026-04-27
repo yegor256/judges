@@ -208,6 +208,17 @@ class TestJudges < Minitest::Test
     end
   end
 
+  def test_each_forwards_epoch_to_judge
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'puts 1')
+      epoch = Time.utc(2020, 1, 2, 3, 4, 5)
+      judges = Judges::Judges.new(d, nil, Loog::NULL, epoch:)
+      yielded = judges.each.to_a
+      assert_equal(1, yielded.size)
+      assert_equal(epoch, yielded.first.instance_variable_get(:@epoch))
+    end
+  end
+
   def test_boost_and_demote_with_wildcards_together
     Dir.mktmpdir do |d|
       names = %w[priority_one priority_two normal_alpha normal_beta slow_gamma slow_delta].sort
