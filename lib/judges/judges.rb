@@ -78,7 +78,7 @@ class Judges::Judges
         next unless File.directory?(d)
         b = File.basename(d)
         next unless File.exist?(File.join(d, "#{b}.rb"))
-        Judges::Judge.new(File.absolute_path(d), @lib, @loog)
+        Judges::Judge.new(File.absolute_path(d), @lib, @loog, epoch: @epoch)
       end
     list.compact!
     list.sort_by!(&:name)
