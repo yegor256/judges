@@ -130,19 +130,17 @@ class TestUpdate < Minitest::Test
     end
   end
 
-  # @todo #341:30min This test is flaky on macOS in GitHub Actions.
-  #  If the 'lifetime' is less than 15 seconds, the second cycle doesn't start due to insufficient time.
-  #  If it's more than 15 seconds, the bar judge gets skipped in the second cycle (no time left).
-  #  To enable this test for macOS, we need to devise a different way to trigger an exception during judge processing.
   def test_exports_all_judges_despite_lifetime_timeout
-    skip 'Flaky on macOS in GitHub Actions' if RUBY_PLATFORM.include?('darwin')
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
-      save_it(File.join(d, 'bar/bar.rb'), '$fb.insert.bar = 2; sleep 1')
+      save_it(
+        File.join(d, 'bar/bar.rb'),
+        '$fb.insert.bar = 2; raise "boom" if $fb.query("(eq bar 2)").each.to_a.size >= 2'
+      )
       file = File.join(d, 'base.fb')
       assert_raises(StandardError) do
         Judges::Update.new(Loog::NULL).run(
-          { 'quiet' => false, 'max-cycles' => 2, 'lifetime' => 2 },
+          { 'quiet' => false, 'max-cycles' => 2 },
           [d, file]
         )
       end
