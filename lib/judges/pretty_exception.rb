@@ -7,7 +7,7 @@ require 'delegate'
 require 'ellipsized'
 require_relative '../judges'
 
-# Decorates the exception for show ellipsed message.
+# Decorates the exception to show an ellipsized message.
 class Judges::PrettyException < SimpleDelegator
   undef_method :class
   undef_method :instance_of?

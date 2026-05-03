@@ -17,7 +17,7 @@ require_relative '../../judges/categories'
 
 # The +test+ command.
 #
-# This class is instantiated by the +bin/judge+ command line interface. You
+# This class is instantiated by the +bin/judges+ command line interface. You
 # are not supposed to instantiate it yourself.
 #
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -118,14 +118,14 @@ class Judges::Test
     end
     unless errors.empty?
       raise "#{errors.size} tests failed" unless opts['quiet']
-      @loog.debug('Not failing the build with tests failures, due to the --quiet option')
+      @loog.debug('Not failing the build with test failures, due to the --quiet option')
     end
     return unless tested.zero? || tests.zero?
     if opts['judge'].nil?
-      raise 'There are seems to be no judges' unless opts['quiet']
+      raise 'There seem to be no judges' unless opts['quiet']
       @loog.debug('Not failing the build with no judges tested, due to the --quiet option')
     else
-      raise 'There are seems to be no judges' if visible.empty?
+      raise 'There seem to be no judges' if visible.empty?
       @loog.info("The following judges are available to use with the --judge option:\n  #{visible.join("\n  ")}")
     end
   end
