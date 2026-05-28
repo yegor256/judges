@@ -3,10 +3,10 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
-require 'typhoeus'
-require 'iri'
 require 'baza-rb'
 require 'elapsed'
+require 'iri'
+require 'typhoeus'
 require_relative '../../judges'
 require_relative '../../judges/impex'
 
@@ -30,7 +30,7 @@ class Judges::Push
   # @param [Array] args List of command line arguments
   # @raise [RuntimeError] If not exactly two arguments provided
   def run(opts, args)
-    raise 'Exactly two arguments required: <name> and <path>' unless args.size == 2
+    raise(ArgumentError, 'Exactly two arguments required: <name> and <path>') unless args.size == 2
     name = args[0]
     fb = Judges::Impex.new(@loog, args[1]).import
     baza = BazaRb.new(
@@ -45,7 +45,7 @@ class Judges::Push
       baza.lock(name, opts['owner'])
       begin
         baza.push(name, fb.export, opts['meta'] || [])
-        throw :"👍 Pushed #{fb.size} facts to baza"
+        throw(:"👍 Pushed #{fb.size} facts to baza")
       ensure
         baza.unlock(name, opts['owner'])
       end

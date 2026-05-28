@@ -27,7 +27,7 @@ class Judges::Inspect
   # @param [Array] args List of command line arguments
   # @raise [RuntimeError] If no arguments provided
   def run(_opts, args)
-    raise 'At least one argument required' if args.empty?
+    raise(ArgumentError, 'At least one argument required') if args.empty?
     fb = Judges::Impex.new(@loog, args[0]).import
     @loog.info("Facts: #{fb.size}")
     sum = fb.query('(eq what "judges-summary")').each.to_a

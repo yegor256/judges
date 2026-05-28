@@ -3,10 +3,10 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
-require 'typhoeus'
-require 'iri'
 require 'baza-rb'
 require 'elapsed'
+require 'iri'
+require 'typhoeus'
 require_relative '../../judges'
 
 # The +download+ command.
@@ -29,7 +29,7 @@ class Judges::Download
   # @param [Array] args List of command line arguments
   # @raise [RuntimeError] If not exactly two arguments provided
   def run(opts, args)
-    raise 'Exactly two arguments required' unless args.size == 2
+    raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     jname = args[0]
     path = args[1]
     name = File.basename(path)
@@ -50,8 +50,7 @@ class Judges::Download
       baza.durable_lock(id, opts['owner'] || 'default')
       begin
         baza.durable_load(id, path)
-        size = File.size(path)
-        throw :"👍 Downloaded durable ##{id} to #{path} (#{size} bytes)"
+        throw(:"👍 Downloaded durable ##{id} to #{path} (#{File.size(path)} bytes)")
       ensure
         baza.durable_unlock(id, opts['owner'] || 'default')
       end

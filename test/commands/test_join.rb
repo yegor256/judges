@@ -18,13 +18,13 @@ class TestJoin < Minitest::Test
   def test_simple_join
     Dir.mktmpdir do |d|
       master = File.join(d, 'master.fb')
-      fb1 = Factbase.new
-      fb1.insert.zz = 5
-      File.binwrite(master, fb1.export)
+      one = Factbase.new
+      one.insert.zz = 5
+      File.binwrite(master, one.export)
       slave = File.join(d, 'slave.fb')
-      fb2 = Factbase.new
-      fb2.insert.foo_bar = 42
-      File.binwrite(slave, fb2.export)
+      two = Factbase.new
+      two.insert.foo_bar = 42
+      File.binwrite(slave, two.export)
       loog = Loog::Buffer.new
       Judges::Join.new(loog).run({}, [master, slave])
       fb = Factbase.new

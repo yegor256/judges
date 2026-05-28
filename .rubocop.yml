@@ -14,6 +14,7 @@ plugins:
   - rubocop-minitest
   - rubocop-performance
   - rubocop-rake
+  - rubocop-elegant
 Minitest/EmptyLineBeforeAssertionMethods:
   Enabled: false
 Metrics/ParameterLists:
@@ -50,4 +51,30 @@ Layout/MultilineAssignmentLayout:
   Enabled: true
 Layout/FirstHashElementIndentation:
   EnforcedStyle: consistent
-require: []
+Elegant/NoRedundantVariable:
+  Exclude:
+    - 'lib/judges/commands/test.rb'
+    - 'test/commands/test_pull.rb'
+Lint/NumberConversion:
+  Enabled: false
+Performance/ChainArrayAllocation:
+  Enabled: false
+Elegant/GoodMethodName:
+  AllowedNames:
+    - method_missing
+    - respond_to_missing?
+    - each_with_index
+    - import_to
+    - loop_them
+    - one_judge
+    - sha384
+    - save_it
+    - '+'
+Elegant/GoodVariableName:
+  AllowedNames:
+    - '@to_h'
+Elegant/ClassInModule:
+  Exclude:
+    - 'lib/**/*'
+    - '**/test_*.rb'
+    - '**/*Test.rb'

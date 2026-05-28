@@ -27,14 +27,14 @@ class Judges::Join
   # @param [Array] args List of command line arguments
   # @raise [RuntimeError] If not exactly two arguments provided
   def run(_opts, args)
-    raise 'Exactly two arguments required' unless args.size == 2
+    raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     master = Judges::Impex.new(@loog, args[0])
     slave = Judges::Impex.new(@loog, args[1])
     elapsed(@loog, level: Logger::INFO) do
       fb = master.import
       slave.import_to(fb)
       master.export(fb)
-      throw :'👍 Two factbases joined successfully'
+      throw(:'👍 Two factbases joined successfully')
     end
   end
 end

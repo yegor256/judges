@@ -16,8 +16,7 @@ require_relative 'test__helper'
 class TestImpex < Minitest::Test
   def test_basic
     Dir.mktmpdir do |d|
-      f = File.join(d, 'foo.rb')
-      impex = Judges::Impex.new(Loog::NULL, f)
+      impex = Judges::Impex.new(Loog::NULL, File.join(d, 'foo.rb'))
       impex.import(strict: false)
       impex.export(Factbase.new)
     end
@@ -25,8 +24,7 @@ class TestImpex < Minitest::Test
 
   def test_strict_import
     Dir.mktmpdir do |d|
-      f = File.join(d, 'x.rb')
-      impex = Judges::Impex.new(Loog::NULL, f)
+      impex = Judges::Impex.new(Loog::NULL, File.join(d, 'x.rb'))
       impex.import(strict: false)
       impex.export(Factbase.new)
       impex.import

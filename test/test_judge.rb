@@ -18,9 +18,8 @@ class TestJudge < Minitest::Test
   def test_basic_run
     Dir.mktmpdir do |d|
       save_it(File.join(d, "#{File.basename(d)}.rb"), '$fb.insert')
-      judge = Judges::Judge.new(d, nil, Loog::NULL)
       fb = Factbase.new
-      judge.run(fb, {}, {}, {})
+      Judges::Judge.new(d, nil, Loog::NULL).run(fb, {}, {}, {})
       assert_equal(1, fb.size)
     end
   end
@@ -29,12 +28,12 @@ class TestJudge < Minitest::Test
     Dir.mktmpdir do |d|
       save_it(File.join(d, "#{File.basename(d)}.rb"), '$fb.insert')
       judge = Judges::Judge.new(d, nil, Loog::NULL)
-      fb1 = Factbase.new
-      judge.run(fb1, {}, {}, {})
-      assert_equal(1, fb1.size)
-      fb2 = Factbase.new
-      judge.run(fb2, {}, {}, {})
-      assert_equal(1, fb2.size)
+      one = Factbase.new
+      judge.run(one, {}, {}, {})
+      assert_equal(1, one.size)
+      two = Factbase.new
+      judge.run(two, {}, {}, {})
+      assert_equal(1, two.size)
     end
   end
 
@@ -84,8 +83,7 @@ class TestJudge < Minitest::Test
       Dir.mktmpdir do |d|
         dir = File.join(d, 'judges')
         save_it(File.join(dir, "#{File.basename(d)}.rb"), 'this$is$broken$syntax')
-        judge = Judges::Judge.new(dir, lib, Loog::NULL)
-        judge.run(Factbase.new, {}, {}, {})
+        Judges::Judge.new(dir, lib, Loog::NULL).run(Factbase.new, {}, {}, {})
       end
     end
   end
@@ -95,8 +93,7 @@ class TestJudge < Minitest::Test
       Dir.mktmpdir do |d|
         dir = File.join(d, 'judges')
         save_it(File.join(dir, "#{File.basename(d)}.rb"), 'a < 1')
-        judge = Judges::Judge.new(dir, lib, Loog::NULL)
-        judge.run(Factbase.new, {}, {}, {})
+        Judges::Judge.new(dir, lib, Loog::NULL).run(Factbase.new, {}, {}, {})
       end
     end
   end
@@ -106,8 +103,7 @@ class TestJudge < Minitest::Test
       Dir.mktmpdir do |d|
         dir = File.join(d, 'judges')
         save_it(File.join(dir, "#{File.basename(d)}.rb"), 'raise "intentional"')
-        judge = Judges::Judge.new(dir, lib, Loog::NULL)
-        judge.run(Factbase.new, {}, {}, {})
+        Judges::Judge.new(dir, lib, Loog::NULL).run(Factbase.new, {}, {}, {})
       end
     end
   end

@@ -3,10 +3,10 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
-require 'typhoeus'
-require 'iri'
 require 'baza-rb'
 require 'elapsed'
+require 'iri'
+require 'typhoeus'
 require_relative '../../judges'
 
 # The +upload+ command, to send a durable to Zerocracy.
@@ -29,10 +29,10 @@ class Judges::Upload
   # @param [Array] args List of command line arguments
   # @raise [RuntimeError] If not exactly two arguments provided
   def run(opts, args)
-    raise 'Exactly two arguments required' unless args.size == 2
+    raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     jname = args[0]
     path = args[1]
-    raise "File not found: #{path}" unless File.exist?(path)
+    raise(StandardError, "File not found: #{path}") unless File.exist?(path)
     name = File.basename(path)
     baza = BazaRb.new(
       opts['host'], opts['port'].to_i, opts['token'],
@@ -44,8 +44,6 @@ class Judges::Upload
     elapsed(@loog, level: Logger::INFO) do
       id = baza.durable_find(jname, name)
       if id.nil? || id.to_s.strip.empty?
-        # Block form of Dir.mkdir causes error Errno::EACCESS on windows
-        # so we use non-block form
         tmp = Dir.mktmpdir
         begin
           f = File.join(tmp, name)
@@ -61,7 +59,7 @@ class Judges::Upload
       baza.durable_lock(id, opts['owner'] || 'default')
       begin
         baza.durable_save(id, path)
-        throw :"👍 Uploaded #{path} to existing durable '#{name}' in '#{jname}' (ID: #{id}, #{size} bytes)"
+        throw(:"👍 Uploaded #{path} to existing durable '#{name}' in '#{jname}' (ID: #{id}, #{size} bytes)")
       ensure
         baza.durable_unlock(id, opts['owner'] || 'default')
       end

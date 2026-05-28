@@ -13,18 +13,12 @@ require_relative 'test__helper'
 class TestPrettyException < Minitest::Test
   def test_long_message
     txt = 'test ' * 50
-    assert_equal(
-      txt.ellipsized(100, :right),
-      Judges::PrettyException.new(RuntimeError.new(txt)).message
-    )
+    assert_equal(txt.ellipsized(100, :right), Judges::PrettyException.new(RuntimeError.new(txt)).message)
   end
 
   def test_short_message
     txt = 'test ' * 15
-    assert_equal(
-      txt,
-      Judges::PrettyException.new(RuntimeError.new(txt)).message
-    )
+    assert_equal(txt, Judges::PrettyException.new(RuntimeError.new(txt)).message)
   end
 
   def test_hide_class

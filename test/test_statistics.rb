@@ -6,9 +6,9 @@
 require_relative '../lib/judges'
 require_relative '../lib/judges/statistics'
 require_relative 'test__helper'
-require 'loog'
 require 'factbase'
 require 'factbase/churn'
+require 'loog'
 
 # Test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -16,8 +16,7 @@ require 'factbase/churn'
 # License:: MIT
 class TestStatistics < Minitest::Test
   def test_empty_statistics
-    stats = Judges::Statistics.new
-    assert_empty(stats)
+    assert_empty(Judges::Statistics.new)
   end
 
   def test_not_empty_after_recording
@@ -29,8 +28,7 @@ class TestStatistics < Minitest::Test
   def test_record_basic_statistics
     stats = Judges::Statistics.new
     stats.record('test-judge', 1.5, 'OK')
-    loog = Loog::NULL
-    stats.report(loog)
+    stats.report(Loog::NULL)
   end
 
   def test_record_multiple_cycles_same_judge
@@ -77,8 +75,7 @@ class TestStatistics < Minitest::Test
     stats.record('test-judge', 1.0, 'OK')
     buffer = Loog::Buffer.new
     stats.report(buffer)
-    output = buffer.to_s
-    assert_includes(output, 'N/A')
+    assert_includes(buffer.to_s, 'N/A')
   end
 
   def test_skipped_results
@@ -114,8 +111,7 @@ class TestStatistics < Minitest::Test
     stats.record('mixed-judge', 1.0, 'SKIPPED (timeout)')
     buffer = Loog::Buffer.new
     stats.report(buffer)
-    output = buffer.to_s
-    assert_includes(output, '2xOK, 1xERROR, 1xSKIPPED (timeout)')
+    assert_includes(buffer.to_s, '2xOK, 1xERROR, 1xSKIPPED (timeout)')
   end
 
   def test_judges_sorted_by_total_time
@@ -147,9 +143,8 @@ class TestStatistics < Minitest::Test
   end
 
   def test_empty_report
-    stats = Judges::Statistics.new
     buffer = Loog::Buffer.new
-    stats.report(buffer)
+    Judges::Statistics.new.report(buffer)
     assert_equal('', buffer.to_s)
   end
 
@@ -158,17 +153,15 @@ class TestStatistics < Minitest::Test
     stats.record('precise-judge', 1.23456789, 'OK')
     buffer = Loog::Buffer.new
     stats.report(buffer)
-    output = buffer.to_s
-    assert_includes(output, '1.235')
+    assert_includes(buffer.to_s, '1.235')
   end
 
   def test_very_long_judge_names
     stats = Judges::Statistics.new
-    long_name = 'very-long-judge-name-that-exceeds-normal-length-limits'
-    stats.record(long_name, 1.0, 'OK')
+    lengthy = 'very-long-judge-name-that-exceeds-normal-length-limits'
+    stats.record(lengthy, 1.0, 'OK')
     buffer = Loog::Buffer.new
     stats.report(buffer)
-    output = buffer.to_s
-    assert_includes(output, long_name)
+    assert_includes(buffer.to_s, lengthy)
   end
 end

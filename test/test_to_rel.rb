@@ -13,12 +13,10 @@ require_relative 'test__helper'
 # License:: MIT
 class TestToRel < Minitest::Test
   def test_simple_mapping
-    n = File.absolute_path(File.join('.', 'lib/../lib/commands/update.rb'))
-    assert_equal('lib/commands/update.rb', n.to_rel)
+    assert_equal('lib/commands/update.rb', File.absolute_path(File.join('.', 'lib/../lib/commands/update.rb')).to_rel)
   end
 
   def test_maps_dir_name
-    n = File.absolute_path(File.join('.', 'lib/../lib/judges/commands'))
-    assert_equal('lib/judges/commands/', n.to_rel)
+    assert_equal('lib/judges/commands/', File.absolute_path(File.join('.', 'lib/../lib/judges/commands')).to_rel)
   end
 end

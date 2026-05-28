@@ -25,8 +25,7 @@ class TestOptions < Minitest::Test
   end
 
   def test_case_insensitive
-    opts = Judges::Options.new(['aBcDeF=1', 'aBCDEf=2'])
-    assert_equal(2, opts.abcdef)
+    assert_equal(2, Judges::Options.new(['aBcDeF=1', 'aBCDEf=2']).abcdef)
   end
 
   def test_with_nil
@@ -61,21 +60,17 @@ class TestOptions < Minitest::Test
   end
 
   def test_with_nil_values
-    opts = Judges::Options.new('foo' => nil)
-    assert_nil(opts.foo)
+    assert_nil(Judges::Options.new('foo' => nil).foo)
   end
 
   def test_converts_to_string
-    opts = Judges::Options.new('foo' => 44, 'bar' => 'long-string-maybe-secret')
-    s = opts.to_s
+    s = Judges::Options.new('foo' => 44, 'bar' => 'long-string-maybe-secret').to_s
     assert_includes(s, 'FOO → 44 (Integer)', s)
     assert_includes(s, '"long****************cret"', s)
   end
 
   def test_merge
-    left = Judges::Options.new(['a = 1', 'b = 4'])
-    right = Judges::Options.new(['a = 44', 'c = 3'])
-    opts = left + right
+    opts = Judges::Options.new(['a = 1', 'b = 4']) + Judges::Options.new(['a = 44', 'c = 3'])
     assert_equal(44, opts.a)
     assert_equal(3, opts.c)
   end

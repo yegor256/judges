@@ -34,14 +34,14 @@ class Judges::Print
   # @param [Array] args List of command line arguments
   # @raise [RuntimeError] If no arguments provided
   def run(opts, args)
-    raise 'At least one argument required' if args.empty?
+    raise(ArgumentError, 'At least one argument required') if args.empty?
     f = args[0]
     fb = Judges::Impex.new(@loog, f).import
     fb.query("(not #{opts['query']})").delete! unless opts['query'].nil?
     o = args[1]
     fmt = opts['format']&.downcase
     if o.nil?
-      raise 'Either provide output file name or use --auto' unless opts['auto']
+      raise(ArgumentError, 'Either provide output file name or use --auto') unless opts['auto']
       o = File.join(File.dirname(f), File.basename(f).gsub(/\.[^.]*$/, ''))
       o = "#{o}.#{fmt}"
     end
@@ -54,35 +54,34 @@ class Judges::Print
       @loog.debug("The factbase #{f.to_rel} is younger than the target #{o.to_rel}, need to print")
     end
     elapsed(@loog, level: Logger::INFO) do
-      output =
+      File.binwrite(
+        o,
         case fmt
           when 'yaml'
-            require 'factbase/to_yaml'
+            require('factbase/to_yaml')
             Factbase::ToYAML.new(fb).yaml
           when 'json'
-            require 'factbase/to_json'
+            require('factbase/to_json')
             Factbase::ToJSON.new(fb).json
           when 'xml'
-            require 'factbase/to_xml'
+            require('factbase/to_xml')
             Factbase::ToXML.new(fb).xml
           when 'html'
             to_html(opts, fb)
           else
-            raise "Unknown format '#{fmt}'"
+            raise(StandardError, "Unknown format '#{fmt}'")
         end
-      File.binwrite(o, output)
-      throw :"👍 Factbase printed to #{o.to_rel} (#{File.size(o)} bytes)"
+      )
+      throw(:"👍 Factbase printed to #{o.to_rel} (#{File.size(o)} bytes)")
     end
   end
 
   private
 
   def to_html(opts, fb)
-    xslt = Nokogiri::XSLT(File.read(File.join(__dir__, '../../../assets/index.xsl')))
-    require 'factbase/to_xml'
-    xml = Factbase::ToXML.new(fb).xml
-    xslt.apply_to(
-      Nokogiri::XML(xml),
+    require('factbase/to_xml')
+    Nokogiri::XSLT(File.read(File.join(__dir__, '../../../assets/index.xsl'))).apply_to(
+      Nokogiri::XML(Factbase::ToXML.new(fb).xml),
       Nokogiri::XSLT.quote_params(
         'title' => opts['title'],
         'date' => Time.now.utc.iso8601,
@@ -102,10 +101,9 @@ class Judges::Print
       url = "https://yegor256.github.io/judges/assets/#{asset}"
       http = Typhoeus::Request.get(url)
       return "Timeout at #{url.inspect}" if http.timed_out?
-      raise "Failed to load #{url.inspect}" unless http.code == 200
-      sha = Base64.strict_encode64(Digest::SHA256.digest(http.body))
-      "sha256-#{sha}"
-    rescue RuntimeError => e
+      raise(StandardError, "Failed to load #{url.inspect}") unless http.code == 200
+      "sha256-#{Base64.strict_encode64(Digest::SHA256.digest(http.body))}"
+    rescue StandardError => e
       e.message
     end
   end

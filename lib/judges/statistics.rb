@@ -32,12 +32,7 @@ class Judges::Statistics
   # @param [Churn] churn The churn for this run (can be nil)
   def record(name, time, result, churn = nil)
     unless @data[name]
-      @data[name] = {
-        total_time: 0.0,
-        cycles: 0,
-        results: [],
-        total_churn: nil
-      }
+      @data[name] = { total_time: 0.0, cycles: 0, results: [], total_churn: nil }
     end
     stats = @data[name]
     stats[:total_time] += time
@@ -62,8 +57,10 @@ class Judges::Statistics
         format(fmt, 'Judge', 'Seconds', 'Cycles', 'Changes', 'Results'),
         format(fmt, '---', '---', '---', '---', '---'),
         @data.sort_by { |_, stats| stats[:total_time] }.reverse.map do |name, stats|
-          format(fmt, name, format('%.3f', stats[:total_time]), stats[:cycles],
-                 stats[:total_churn] ? stats[:total_churn].to_s : 'N/A', summarize(stats[:results]))
+          format(
+            fmt, name, format('%.3f', stats[:total_time]), stats[:cycles],
+            stats[:total_churn] ? stats[:total_churn].to_s : 'N/A', summarize(stats[:results])
+          )
         end.join("\n  ")
       ].join("\n  ")
     )

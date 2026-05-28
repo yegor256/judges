@@ -3,8 +3,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
-require 'time'
 require 'elapsed'
+require 'time'
 require_relative '../../judges'
 require_relative '../../judges/impex'
 
@@ -28,14 +28,14 @@ class Judges::Trim
   # @param [Array] args List of command line arguments
   # @raise [RuntimeError] If not exactly one argument provided
   def run(opts, args)
-    raise 'Exactly one argument required' unless args.size == 1
+    raise(ArgumentError, 'Exactly one argument required') unless args.size == 1
     impex = Judges::Impex.new(@loog, args[0])
     fb = impex.import
     elapsed(@loog, level: Logger::INFO) do
       deleted = fb.query(opts['query']).delete!
-      throw :'⚠️ No facts deleted' if deleted.zero?
+      throw(:'⚠️ No facts deleted') if deleted.zero?
       impex.export(fb)
-      throw :"👍 #{deleted} fact(s) deleted"
+      throw(:"👍 #{deleted} fact(s) deleted")
     end
   end
 end

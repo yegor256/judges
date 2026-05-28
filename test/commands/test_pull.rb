@@ -58,7 +58,6 @@ class TestPull < Minitest::Test
     fb.insert.foo = 42
     stub_request(:get, 'http://example.org/pull/42.fb').to_return(body: fb.export, headers: {})
     Dir.mktmpdir do |d|
-      file = File.join(d, 'base.fb')
       Judges::Pull.new(Loog::NULL).run(
         {
           'token' => '000',
@@ -68,7 +67,7 @@ class TestPull < Minitest::Test
           'wait' => 10,
           'owner' => 'none'
         },
-        ['foo', file]
+        ['foo', File.join(d, 'base.fb')]
       )
     end
     assert_requested(unlock)

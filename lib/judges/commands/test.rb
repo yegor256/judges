@@ -2,18 +2,19 @@
 
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
-require 'nokogiri'
-require 'factbase'
+
 require 'backtrace'
-require 'factbase/to_xml'
 require 'elapsed'
 require 'ellipsized'
+require 'factbase'
+require 'factbase/to_xml'
+require 'nokogiri'
 require 'timeout'
 require_relative '../../judges'
-require_relative '../../judges/to_rel'
+require_relative '../../judges/categories'
 require_relative '../../judges/judges'
 require_relative '../../judges/options'
-require_relative '../../judges/categories'
+require_relative '../../judges/to_rel'
 
 # The +test+ command.
 #
@@ -35,7 +36,7 @@ class Judges::Test
   # @param [Array] args List of command line arguments
   # @raise [RuntimeError] If not exactly one argument provided
   def run(opts, args)
-    raise 'Exactly one argument required' unless args.size == 1
+    raise(ArgumentError, 'Exactly one argument required') unless args.size == 1
     dir = args[0]
     @loog.info("Testing judges in #{dir.to_rel}...")
     errors = []
@@ -65,8 +66,8 @@ class Judges::Test
             next
           end
           buf.info("🛠️ Testing #{f.to_rel}:")
-          start = Time.now
           badge = "#{judge.name}/#{tname}"
+          start = Time.now
           begin
             fb = Factbase.new
             prepare(fb, yaml)
@@ -111,21 +112,21 @@ class Judges::Test
           ].join("\n  ")
         )
       end
-      throw :'👍 No judges tested' if tested.zero?
-      throw :"👍 All #{tested} judge(s) but no tests passed" if tests.zero?
-      throw :"👍 All #{tested} judge(s) and #{tests} tests passed" if errors.empty?
-      throw :"❌ #{tested} judge(s) tested, #{errors.size} of them failed"
+      throw(:'👍 No judges tested') if tested.zero?
+      throw(:"👍 All #{tested} judge(s) but no tests passed") if tests.zero?
+      throw(:"👍 All #{tested} judge(s) and #{tests} tests passed") if errors.empty?
+      throw(:"❌ #{tested} judge(s) tested, #{errors.size} of them failed")
     end
     unless errors.empty?
-      raise "#{errors.size} tests failed" unless opts['quiet']
+      raise(StandardError, "#{errors.size} tests failed") unless opts['quiet']
       @loog.debug('Not failing the build with test failures, due to the --quiet option')
     end
     return unless tested.zero? || tests.zero?
     if opts['judge'].nil?
-      raise 'There seem to be no judges' unless opts['quiet']
+      raise(StandardError, 'There seem to be no judges') unless opts['quiet']
       @loog.debug('Not failing the build with no judges tested, due to the --quiet option')
     else
-      raise 'There seem to be no judges' if visible.empty?
+      raise(StandardError, 'There seem to be no judges') if visible.empty?
       @loog.info("The following judges are available to use with the --judge option:\n  #{visible.join("\n  ")}")
     end
   end
@@ -148,14 +149,14 @@ class Judges::Test
         i.each do |k, vv|
           if vv.is_a?(Array)
             vv.each do |v|
-              f.send(:"#{k}=", v)
+              f.public_send(:"#{k}=", v)
             end
           else
             if k == '_id'
               vv = id
               id += 1
             end
-            f.send(:"#{k}=", vv)
+            f.public_send(:"#{k}=", vv)
           end
         end
       end
@@ -177,10 +178,10 @@ class Judges::Test
     (1..runs).each do |r|
       fbx = fb
       if opts['log']
-        require 'factbase/logged'
+        require('factbase/logged')
         fbx = Factbase::Logged.new(fb, @loog)
       end
-      expected_failure = yaml['expected_failure']
+      failure = yaml['expected_failure']
       begin
         if timeout
           Timeout.timeout(timeout) do
@@ -189,15 +190,18 @@ class Judges::Test
         else
           judge.run(fbx, {}, {}, options)
         end
-        raise 'Exception expected but not raised' if expected_failure
+        raise(StandardError, 'Exception expected but not raised') if failure
       rescue Timeout::Error => e
-        raise "Test timed out after #{timeout} seconds"
+        raise(StandardError, "Test timed out after #{timeout} seconds")
       # rubocop:disable Lint/RescueException
       rescue Exception => e
         # rubocop:enable Lint/RescueException
-        raise e unless expected_failure
-        if expected_failure.is_a?(Array) && expected_failure.none? { |s| e.message.include?(s) }
-          raise "Exception #{e.class} raised with #{e.message.inspect}, but this is not what was expected"
+        raise(e) unless failure
+        if failure.is_a?(Array) && failure.none? { |s| e.message.include?(s) }
+          raise(
+            StandardError,
+            "Exception #{e.class} raised with #{e.message.inspect}, but this is not what was expected"
+          )
         end
       end
       next unless assert
@@ -210,7 +214,7 @@ class Judges::Test
     return if xpaths.nil?
     xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
     xpaths.each do |xp|
-      raise "#{judge.name}/#{tname} doesn't match '#{xp}':\n#{xml}" if xml.xpath(xp).empty?
+      raise(StandardError, "#{judge.name}/#{tname} doesn't match '#{xp}':\n#{xml}") if xml.xpath(xp).empty?
     end
   end
 end

@@ -55,7 +55,7 @@ class Judges::Judges
   # @raise [RuntimeError] If no judge directory exists with the given name
   def get(name)
     d = File.absolute_path(File.join(@dir, name))
-    raise "Judge #{name} doesn't exist in #{@dir}" unless File.exist?(d)
+    raise(StandardError, "Judge #{name} doesn't exist in #{@dir}") unless File.exist?(d)
     Judges::Judge.new(d, @lib, @loog, epoch: @epoch)
   end
 
@@ -76,8 +76,7 @@ class Judges::Judges
     list =
       Dir.glob(File.join(@dir, '*')).each.to_a.map do |d|
         next unless File.directory?(d)
-        b = File.basename(d)
-        next unless File.exist?(File.join(d, "#{b}.rb"))
+        next unless File.exist?(File.join(d, "#{File.basename(d)}.rb"))
         Judges::Judge.new(File.absolute_path(d), @lib, @loog, epoch: @epoch)
       end
     list.compact!
@@ -86,9 +85,9 @@ class Judges::Judges
     good = all.dup
     mapping =
       all
-           .map { |a| [a[0].name, a[1], a[1]] }
-           .reject { |a| !@shuffle.empty? && a[0].start_with?(@shuffle) }
-           .to_h { |a| [a[1], a[2]] }
+        .map { |a| [a[0].name, a[1], a[1]] }
+        .reject { |a| !@shuffle.empty? && a[0].start_with?(@shuffle) }
+        .to_h { |a| [a[1], a[2]] }
     positions = mapping.values.shuffle(random: Random.new(@seed))
     mapping.keys.zip(positions).to_h.each do |before, after|
       good[after] = all[before]
@@ -105,8 +104,7 @@ class Judges::Judges
         normal.append(j)
       end
     end
-    ret = boosted + normal + demoted
-    ret.each(&)
+    (boosted + normal + demoted).each(&)
   end
 
   # Iterates over all judges while tracking their index position.
@@ -120,7 +118,7 @@ class Judges::Judges
   def each_with_index
     idx = 0
     each do |p|
-      yield [p, idx]
+      yield([p, idx])
       idx += 1
     end
     idx

@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
+require 'factbase/to_xml'
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
 require 'loog'
 require 'nokogiri'
-require 'factbase/to_xml'
-require_relative '../test__helper'
 require_relative '../../lib/judges'
 require_relative '../../lib/judges/commands/import'
+require_relative '../test__helper'
 
 # Test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)

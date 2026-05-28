@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
+require 'factbase/to_xml'
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
 require 'loog'
 require 'loog/tee'
 require 'nokogiri'
-require 'factbase/to_xml'
 require 'webmock/minitest'
-require_relative '../test__helper'
 require_relative '../../lib/judges'
 require_relative '../../lib/judges/commands/update'
+require_relative '../test__helper'
 
 # Test.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -70,10 +70,7 @@ class TestUpdate < Minitest::Test
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1; sleep 10')
       file = File.join(d, 'base.fb')
-      Judges::Update.new(Loog::NULL).run(
-        { 'timeout' => 0.1, 'quiet' => true, 'fail-fast' => true },
-        [d, file]
-      )
+      Judges::Update.new(Loog::NULL).run({ 'timeout' => 0.1, 'quiet' => true, 'fail-fast' => true }, [d, file])
       fb = Factbase.new
       fb.import(File.binread(file))
       xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
@@ -102,11 +99,10 @@ class TestUpdate < Minitest::Test
   def test_exports_fb_only_once
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1;')
-      file = File.join(d, 'base.fb')
       log = Loog::Buffer.new
       Judges::Update.new(Loog::Tee.new(log, Loog::NULL)).run(
         { 'quiet' => true, 'max-cycles' => 2 },
-        [d, file]
+        [d, File.join(d, 'base.fb')]
       )
       assert_equal(1, log.to_s.scan('Factbase exported to').count)
     end
@@ -118,10 +114,7 @@ class TestUpdate < Minitest::Test
       save_it(File.join(d, 'bar/bar.rb'), 'this$is$a$broken$Ruby$script')
       file = File.join(d, 'base.fb')
       assert_raises(StandardError) do
-        Judges::Update.new(Loog::NULL).run(
-          { 'quiet' => false, 'max-cycles' => 1 },
-          [d, file]
-        )
+        Judges::Update.new(Loog::NULL).run({ 'quiet' => false, 'max-cycles' => 1 }, [d, file])
       end
       fb = Factbase.new
       fb.import(File.binread(file))
@@ -139,10 +132,7 @@ class TestUpdate < Minitest::Test
       )
       file = File.join(d, 'base.fb')
       assert_raises(StandardError) do
-        Judges::Update.new(Loog::NULL).run(
-          { 'quiet' => false, 'max-cycles' => 2 },
-          [d, file]
-        )
+        Judges::Update.new(Loog::NULL).run({ 'quiet' => false, 'max-cycles' => 2 }, [d, file])
       end
       fb = Factbase.new
       fb.import(File.binread(file))
@@ -171,8 +161,7 @@ class TestUpdate < Minitest::Test
   def test_update_with_error
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), 'this$is$a$broken$Ruby$script')
-      file = File.join(d, 'base.fb')
-      Judges::Update.new(Loog::NULL).run({ 'quiet' => true, 'max-cycles' => 2 }, [d, file])
+      Judges::Update.new(Loog::NULL).run({ 'quiet' => true, 'max-cycles' => 2 }, [d, File.join(d, 'base.fb')])
     end
   end
 
@@ -206,9 +195,8 @@ class TestUpdate < Minitest::Test
     %w[lifetime timeout].each do |o|
       Dir.mktmpdir do |d|
         save_it(File.join(d, 'foo/foo.rb'), "$loog.info '#{o}=' + $options.#{o}.to_s")
-        file = File.join(d, 'base.fb')
         log = Loog::Buffer.new
-        Judges::Update.new(Loog::Tee.new(log, Loog::NULL)).run({ o => 666 }, [d, file])
+        Judges::Update.new(Loog::Tee.new(log, Loog::NULL)).run({ o => 666 }, [d, File.join(d, 'base.fb')])
         assert_includes(log.to_s, "#{o}=666")
       end
     end
@@ -218,8 +206,7 @@ class TestUpdate < Minitest::Test
     assert_raises(StandardError) do
       Dir.mktmpdir do |d|
         save_it(File.join(d, 'foo/foo.rb'), 'a < 1')
-        file = File.join(d, 'base.fb')
-        Judges::Update.new(Loog::NULL).run({ 'quiet' => false }, [d, file])
+        Judges::Update.new(Loog::NULL).run({ 'quiet' => false }, [d, File.join(d, 'base.fb')])
       end
     end
   end
@@ -229,10 +216,7 @@ class TestUpdate < Minitest::Test
       save_it(File.join(d, 'foo/foo.rb'), 'this$is$a$broken$Ruby$script')
       file = File.join(d, 'base.fb')
       2.times do
-        Judges::Update.new(Loog::NULL).run(
-          { 'quiet' => true, 'summary' => 'add', 'max-cycles' => 2 },
-          [d, file]
-        )
+        Judges::Update.new(Loog::NULL).run({ 'quiet' => true, 'summary' => 'add', 'max-cycles' => 2 }, [d, file])
       end
       fb = Factbase.new
       fb.import(File.binread(file))
@@ -255,16 +239,12 @@ class TestUpdate < Minitest::Test
         f.error = 'second'
       end
       File.binwrite(file, fb.export)
-      Judges::Update.new(Loog::NULL).run(
-        { 'quiet' => true, 'summary' => 'append', 'max-cycles' => 2 },
-        [d, file]
-      )
+      Judges::Update.new(Loog::NULL).run({ 'quiet' => true, 'summary' => 'append', 'max-cycles' => 2 }, [d, file])
       fb = Factbase.new
       fb.import(File.binread(file))
       sums = fb.query('(eq what "judges-summary")').each.to_a
       assert_equal(1, sums.size)
-      sum = sums.first
-      assert_equal(3, sum['error'].size)
+      assert_equal(3, sums.first['error'].size)
     end
   end
 
@@ -288,10 +268,7 @@ class TestUpdate < Minitest::Test
       save_it(File.join(d, 'first/first.rb'), '$global[:fb] ||= $fb; 2 + 2')
       save_it(File.join(d, 'second/second.rb'), '$global[:fb] ||= $fb; $global[:fb].insert')
       file = File.join(d, 'base.fb')
-      Judges::Update.new(Loog::NULL).run(
-        { 'max-cycles' => 3, 'boost' => 'first' },
-        [d, file]
-      )
+      Judges::Update.new(Loog::NULL).run({ 'max-cycles' => 3, 'boost' => 'first' }, [d, file])
       fb = Factbase.new
       fb.import(File.binread(file))
       assert_equal(3, fb.size)
@@ -302,8 +279,10 @@ class TestUpdate < Minitest::Test
     assert_raises(StandardError) do
       Dir.mktmpdir do |d|
         save_it(File.join(d, 'foo/foo.rb'), '$fb.insert')
-        file = File.join(d, 'base.fb')
-        Judges::Update.new(Loog::NULL).run({ 'judge' => ['nonexistent'], 'expect-judges' => true }, [d, file])
+        Judges::Update.new(Loog::NULL).run(
+          { 'judge' => ['nonexistent'], 'expect-judges' => true },
+          [d, File.join(d, 'base.fb')]
+        )
       end
     end
   end
@@ -311,8 +290,7 @@ class TestUpdate < Minitest::Test
   def test_fails_when_empty_directory
     assert_raises(StandardError) do
       Dir.mktmpdir do |d|
-        file = File.join(d, 'base.fb')
-        Judges::Update.new(Loog::NULL).run({ 'expect-judges' => true }, [d, file])
+        Judges::Update.new(Loog::NULL).run({ 'expect-judges' => true }, [d, File.join(d, 'base.fb')])
       end
     end
   end
@@ -325,7 +303,7 @@ class TestUpdate < Minitest::Test
     end
   end
 
-  def test_no_failure_with_nonexistent_judge_when_expect_judges_false
+  def test_no_failure_with_missing_judge_unexpected
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert')
       file = File.join(d, 'base.fb')
@@ -346,12 +324,10 @@ class TestUpdate < Minitest::Test
   def test_churn_file_creation
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1; $fb.insert.bar = 2')
-      file = File.join(d, 'base.fb')
       churn = File.join(d, 'churn.txt')
-      Judges::Update.new(Loog::NULL).run({ 'churn' => churn, 'max-cycles' => 1 }, [d, file])
+      Judges::Update.new(Loog::NULL).run({ 'churn' => churn, 'max-cycles' => 1 }, [d, File.join(d, 'base.fb')])
       assert_path_exists(churn)
-      content = File.read(churn)
-      assert_match(%r{\d+i/\d+d/\d+a}, content)
+      assert_match(%r{\d+i/\d+d/\d+a}, File.read(churn))
     end
   end
 
@@ -379,8 +355,7 @@ class TestUpdate < Minitest::Test
         Judges::Update.new(Loog::NULL).run({ 'lifetime' => 0.1, 'churn' => churn }, [d, file])
       end
       assert_path_exists(churn)
-      content = File.read(churn)
-      assert_includes(content, '1i/0d/1a')
+      assert_includes(File.read(churn), '1i/0d/1a')
     end
   end
 
@@ -419,7 +394,6 @@ class TestUpdate < Minitest::Test
       save_it(File.join(d, 'foo/foo.rb'), <<~RUBY)
         require 'octokit'
         require 'faraday'
-
         o = Octokit::Client.new
         o.auto_paginate = true
         o.per_page = 100
@@ -438,17 +412,14 @@ class TestUpdate < Minitest::Test
       RUBY
       file = File.join(d, 'base.fb')
       loog = Loog::Buffer.new
-      assert_raises(RuntimeError) do
+      assert_raises(StandardError) do
         Judges::Update.new(loog).run({}, [d, file])
       end
       out = loog.to_s
       assert_match(
         [
           'Octokit::ServerError: ',
-          [
-            'GET https://api.github.com/repos/test/test/pulls/42: 504 - ',
-            text
-          ].join.ellipsized(100, :right)
+          ['GET https://api.github.com/repos/test/test/pulls/42: 504 - ', text].join.ellipsized(100, :right)
         ].join,
         out
       )

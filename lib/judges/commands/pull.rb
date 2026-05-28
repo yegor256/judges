@@ -3,10 +3,10 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
-require 'typhoeus'
-require 'iri'
 require 'baza-rb'
 require 'elapsed'
+require 'iri'
+require 'typhoeus'
 require_relative '../../judges'
 require_relative '../../judges/impex'
 
@@ -30,7 +30,7 @@ class Judges::Pull
   # @param [Array] args List of command line arguments
   # @raise [RuntimeError] If not exactly two arguments provided
   def run(opts, args)
-    raise 'Exactly two arguments required' unless args.size == 2
+    raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     fb = Factbase.new
     baza = BazaRb.new(
       opts['host'], opts['port'].to_i, opts['token'],
@@ -47,16 +47,16 @@ class Judges::Pull
           jid = baza.recent(name)
           unless baza.exit_code(jid).zero?
             @loog.warn("STDOUT of the job ##{jid} (from the server):\n#{baza.stdout(jid)}")
-            raise "The job ##{jid} ('#{name}') is broken, maybe you should expire it"
+            raise(StandardError, "The job ##{jid} ('#{name}') is broken, maybe you should expire it")
           end
           fb.import(baza.pull(wait(name, baza, jid, opts['wait'])))
           Judges::Impex.new(@loog, args[1]).export(fb)
         ensure
           baza.unlock(name, opts['owner'])
         end
-        throw :"👍 Pulled #{fb.size} facts by name '#{name}'"
+        throw(:"👍 Pulled #{fb.size} facts by name '#{name}'")
       else
-        throw :"⚠️ Nothing to pull - name '#{name}' not found on server"
+        throw(:"⚠️ Nothing to pull - name '#{name}' not found on server")
       end
     end
   end
@@ -64,14 +64,17 @@ class Judges::Pull
   private
 
   def wait(name, baza, id, limit)
-    raise 'Waiting time is nil' if limit.nil?
+    raise(StandardError, 'Waiting time is nil') if limit.nil?
     start = Time.now
     loop do
       break if baza.finished?(id)
-      sleep 1
-      raise "Time is over, the job ##{id} ('#{name}') is still not completed" if Time.now - start > limit
-      lapsed = Time.now - start
-      @loog.debug("Still waiting for the job ##{id} ('#{name}') to finish... (#{format('%.2f', lapsed)}s already)")
+      sleep(1)
+      if Time.now - start > limit
+        raise(StandardError, "Time is over, the job ##{id} ('#{name}') is still not completed")
+      end
+      @loog.debug(
+        "Still waiting for the job ##{id} ('#{name}') to finish... (#{format('%.2f', Time.now - start)}s already)"
+      )
     end
     id
   end

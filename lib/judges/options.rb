@@ -137,23 +137,6 @@ class Judges::Options
       end
   end
 
-  # Get option by name.
-  #
-  # This method is implemented using the 'others' gem, which provides
-  # dynamic method handling. It allows accessing options as method calls.
-  # Method names are automatically converted to uppercase symbols to match
-  # the keys in the options hash.
-  #
-  # @!method method_missing(method_name, *args)
-  #   Dynamic method to access option values
-  #   @param [Symbol] method_name The name of the option to retrieve
-  #   @param [Array] args Additional arguments (unused)
-  #   @return [Object, nil] The value of the option, or nil if not found
-  # @example Access options as methods
-  #   options = Judges::Options.new(["token=abc123", "max_speed=100"])
-  #   options.token # => "abc123"
-  #   options.max_speed # => 100
-  #   options.missing_option # => nil
   others do |*args|
     to_h[args[0].upcase.to_sym]
   end

@@ -4,13 +4,13 @@
 # SPDX-License-Identifier: MIT
 
 require 'elapsed'
-require 'tago'
-require 'timeout'
 require 'factbase/tallied'
 require 'octokit'
+require 'tago'
+require 'timeout'
 require_relative '../judges'
-require_relative '../judges/to_rel'
 require_relative '../judges/pretty_exception'
+require_relative '../judges/to_rel'
 
 # A single judge.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
@@ -63,32 +63,32 @@ class Judges::Judge
     $options = options
     $loog = @loog
     $global = global
-    $global.delete(:fb) # to make sure Tallied is always actual
+    $global.delete(:fb)
     $local = local
     $epoch = @epoch
     $kickoff = Time.now
     options.to_h.each { |k, v| ENV.store(k.to_s, v.to_s) }
     unless @lib.nil?
-      raise "Lib dir #{@lib.to_rel} is absent" unless File.exist?(@lib)
-      raise "Lib #{@lib.to_rel} is not a directory" unless File.directory?(@lib)
+      raise(StandardError, "Lib dir #{@lib.to_rel} is absent") unless File.exist?(@lib)
+      raise(StandardError, "Lib #{@lib.to_rel} is not a directory") unless File.directory?(@lib)
       Dir.glob(File.join(@lib, '*.rb')).each do |f|
         require_relative(File.absolute_path(f))
       end
     end
     s = File.join(@dir, script)
-    raise "Can't load '#{s}'" unless File.exist?(s)
+    raise(StandardError, "Can't load '#{s}'") unless File.exist?(s)
     elapsed(@loog, good: "#{$judge} completed", level: Logger::INFO) do
       load(s, true)
       nil
       # rubocop:disable Lint/RescueException
     rescue Exception => e
       # rubocop:enable Lint/RescueException
-      raise e if e.is_a?(RuntimeError) && e.message == 'skip'
+      raise(e) if e.is_a?(RuntimeError) && e.message == 'skip'
       e = Judges::PrettyException.new(e) if e.is_a?(Octokit::ServerError)
       @loog.error(Backtrace.new(e))
-      raise e if e.is_a?(StandardError)
-      raise e if e.is_a?(Timeout::ExitException)
-      raise "#{e.message} (#{e.class.name})"
+      raise(e) if e.is_a?(StandardError)
+      raise(e) if e.is_a?(Timeout::ExitException)
+      raise(StandardError, "#{e.message} (#{e.class.name})")
     ensure
       $fb = $judge = $options = $loog = $epoch = $kickoff = nil
     end
@@ -113,7 +113,7 @@ class Judges::Judge
   def script
     b = "#{File.basename(@dir)}.rb"
     files = Dir.glob(File.join(@dir, '*.rb')).map { |f| File.basename(f) }
-    raise "No #{b} script in #{@dir.to_rel} among #{files}" unless files.include?(b)
+    raise(StandardError, "No #{b} script in #{@dir.to_rel} among #{files}") unless files.include?(b)
     b
   end
 

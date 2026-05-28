@@ -12,7 +12,7 @@ require_relative 'test__helper'
 class TestBin < Minitest::Test
   def test_simple_run
     ENV.store('GLI_TESTING', 'yes')
-    load File.join(__dir__, '../bin/judges')
+    load(File.join(__dir__, '../bin/judges'))
     before = $stdout
     begin
       $stdout = StringIO.new

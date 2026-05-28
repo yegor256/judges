@@ -14,7 +14,6 @@ require_relative '../judges'
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
 class Judges::AsciiLoog
-  # Unicode to ASCII symbol mapping
   UNICODE_TO_ASCII = {
     '👍' => '+',
     '👎' => '-',
@@ -78,7 +77,7 @@ class Judges::AsciiLoog
 
   # Delegate all other methods to the original logger.
   def method_missing(method, *, &)
-    @loog.send(method, *, &)
+    @loog.public_send(method, *, &)
   end
 
   # Check if the original logger responds to a method.

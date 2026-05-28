@@ -15,8 +15,8 @@ unless SimpleCov.running || ENV['PICKS']
       SimpleCov::Formatter::CoberturaFormatter
     ]
   )
-  SimpleCov.minimum_coverage 90
-  SimpleCov.minimum_coverage_by_file 80
+  SimpleCov.minimum_coverage(90)
+  SimpleCov.minimum_coverage_by_file(80)
   SimpleCov.start do
     add_filter 'test/'
     add_filter 'vendor/'
@@ -29,10 +29,9 @@ end
 require 'minitest/autorun'
 require 'minitest/mock'
 require 'minitest/reporters'
-Minitest::Reporters.use! [Minitest::Reporters::SpecReporter.new]
-Minitest.load :minitest_reporter
+Minitest::Reporters.use!([Minitest::Reporters::SpecReporter.new])
+Minitest.load(:minitest_reporter)
 
-# To make tests retry on failure:
 if ENV['RACK_RUN']
   require 'minitest/retry'
   Minitest::Retry.use!
@@ -40,7 +39,7 @@ end
 
 class Minitest::Test
   def save_it(file, content)
-    require 'fileutils'
+    require('fileutils')
     FileUtils.mkdir_p(File.dirname(file))
     File.binwrite(file, content)
   end

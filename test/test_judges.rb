@@ -33,8 +33,7 @@ class TestJudges < Minitest::Test
     Dir.mktmpdir do |d|
       names = %w[apple banana blueberry mellon orange papaya pear strawberry grapes pineapple grapefruit].sort
       names.each do |n|
-        dir = File.join(d, n)
-        save_it(File.join(dir, "#{n}.rb"), 'puts 1')
+        save_it(File.join(File.join(d, n), "#{n}.rb"), 'puts 1')
       end
       list = Judges::Judges.new(d, nil, Loog::NULL, shuffle: 'b').each.to_a
       assert_equal('banana', list[1].name)
@@ -49,8 +48,7 @@ class TestJudges < Minitest::Test
     Dir.mktmpdir do |d|
       names = %w[red blue green black orange pink yellow].sort
       names.each do |n|
-        dir = File.join(d, n)
-        save_it(File.join(dir, "#{n}.rb"), 'puts 1')
+        save_it(File.join(File.join(d, n), "#{n}.rb"), 'puts 1')
       end
       list = Judges::Judges.new(d, nil, Loog::NULL, shuffle: '', boost: ['yellow']).each.to_a
       assert_equal('yellow', list[0].name)
@@ -64,8 +62,7 @@ class TestJudges < Minitest::Test
       Dir.mktmpdir do |d|
         names = colors.sort
         names.each do |n|
-          dir = File.join(d, n)
-          save_it(File.join(dir, "#{n}.rb"), 'puts 1')
+          save_it(File.join(File.join(d, n), "#{n}.rb"), 'puts 1')
         end
         after = Judges::Judges.new(d, nil, Loog::NULL, shuffle: pfx).each.to_a.map(&:name)
         assert_equal(names.size, after.size)
@@ -78,8 +75,7 @@ class TestJudges < Minitest::Test
   def test_get_one
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'boo/boo.rb'), 'hey')
-      j = Judges::Judges.new(d, nil, Loog::NULL).get('boo')
-      assert_equal('boo.rb', j.script)
+      assert_equal('boo.rb', Judges::Judges.new(d, nil, Loog::NULL).get('boo').script)
     end
   end
 
@@ -91,8 +87,7 @@ class TestJudges < Minitest::Test
       save_it(File.join(d, 'wrong.rb'), '')
       save_it(File.join(d, 'another/wrong/wrong.rb'), '')
       save_it(File.join(d, 'bad/hello.rb'), '')
-      list = Judges::Judges.new(d, nil, Loog::NULL).each.to_a
-      assert_equal(2, list.size)
+      assert_equal(2, Judges::Judges.new(d, nil, Loog::NULL).each.to_a.size)
     end
   end
 
@@ -101,8 +96,7 @@ class TestJudges < Minitest::Test
       save_it(File.join(d, 'wrong.rb'), '')
       save_it(File.join(d, 'another/wrong/wrong.rb'), '')
       save_it(File.join(d, 'bad/hello.rb'), '')
-      list = Judges::Judges.new(d, nil, Loog::NULL).each.to_a
-      assert_empty(list)
+      assert_empty(Judges::Judges.new(d, nil, Loog::NULL).each.to_a)
     end
   end
 
@@ -110,12 +104,9 @@ class TestJudges < Minitest::Test
     Dir.mktmpdir do |d|
       names = %w[alpha beta gamma delta epsilon].sort
       names.each do |n|
-        dir = File.join(d, n)
-        save_it(File.join(dir, "#{n}.rb"), 'puts 1')
+        save_it(File.join(File.join(d, n), "#{n}.rb"), 'puts 1')
       end
-      list = Judges::Judges.new(d, nil, Loog::NULL, demote: %w[beta delta]).each.to_a
-      result = list.map(&:name)
-      demoted = result[-2..]
+      demoted = Judges::Judges.new(d, nil, Loog::NULL, demote: %w[beta delta]).each.to_a.map(&:name)[-2..]
       assert_includes(demoted, 'beta')
       assert_includes(demoted, 'delta')
     end
@@ -125,12 +116,12 @@ class TestJudges < Minitest::Test
     Dir.mktmpdir do |d|
       names = %w[alpha beta gamma delta epsilon zeta eta theta].sort
       names.each do |n|
-        dir = File.join(d, n)
-        save_it(File.join(dir, "#{n}.rb"), 'puts 1')
+        save_it(File.join(File.join(d, n), "#{n}.rb"), 'puts 1')
       end
-      first = Judges::Judges.new(d, nil, Loog::NULL, seed: 42).each.to_a
-      second = Judges::Judges.new(d, nil, Loog::NULL, seed: 42).each.to_a
-      assert_equal(first.map(&:name), second.map(&:name), 'Same seed should produce same order')
+      assert_equal(
+        Judges::Judges.new(d, nil, Loog::NULL, seed: 42).each.to_a.map(&:name),
+        Judges::Judges.new(d, nil, Loog::NULL, seed: 42).each.to_a.map(&:name), 'Same seed should produce same order'
+      )
     end
   end
 
@@ -138,12 +129,13 @@ class TestJudges < Minitest::Test
     Dir.mktmpdir do |d|
       names = %w[alpha beta gamma delta epsilon zeta eta theta].sort
       names.each do |n|
-        dir = File.join(d, n)
-        save_it(File.join(dir, "#{n}.rb"), 'puts 1')
+        save_it(File.join(File.join(d, n), "#{n}.rb"), 'puts 1')
       end
-      first = Judges::Judges.new(d, nil, Loog::NULL, seed: 42).each.to_a
-      second = Judges::Judges.new(d, nil, Loog::NULL, seed: 99).each.to_a
-      refute_equal(first.map(&:name), second.map(&:name), 'Different seeds should produce different orders')
+      refute_equal(
+        Judges::Judges.new(d, nil, Loog::NULL, seed: 42).each.to_a.map(&:name),
+        Judges::Judges.new(d, nil, Loog::NULL, seed: 99).each.to_a.map(&:name),
+        'Different seeds should produce different orders'
+      )
     end
   end
 
@@ -151,12 +143,12 @@ class TestJudges < Minitest::Test
     Dir.mktmpdir do |d|
       names = %w[alpha beta gamma delta epsilon zeta eta theta].sort
       names.each do |n|
-        dir = File.join(d, n)
-        save_it(File.join(dir, "#{n}.rb"), 'puts 1')
+        save_it(File.join(File.join(d, n), "#{n}.rb"), 'puts 1')
       end
-      first = Judges::Judges.new(d, nil, Loog::NULL, seed: 0).each.to_a
-      second = Judges::Judges.new(d, nil, Loog::NULL).each.to_a
-      assert_equal(first.map(&:name), second.map(&:name), 'Default seed should be 0')
+      assert_equal(
+        Judges::Judges.new(d, nil, Loog::NULL, seed: 0).each.to_a.map(&:name),
+        Judges::Judges.new(d, nil, Loog::NULL).each.to_a.map(&:name), 'Default seed should be 0'
+      )
     end
   end
 
@@ -164,11 +156,12 @@ class TestJudges < Minitest::Test
     Dir.mktmpdir do |d|
       names = %w[one two three four five six].sort
       names.each do |n|
-        dir = File.join(d, n)
-        save_it(File.join(dir, "#{n}.rb"), 'puts 1')
+        save_it(File.join(File.join(d, n), "#{n}.rb"), 'puts 1')
       end
-      list = Judges::Judges.new(d, nil, Loog::NULL, boost: %w[six two], demote: %w[one four], shuffle: 'xyz').each.to_a
-      result = list.map(&:name)
+      result = Judges::Judges.new(
+        d, nil, Loog::NULL,
+        boost: %w[six two], demote: %w[one four], shuffle: 'xyz'
+      ).each.to_a.map(&:name)
       boosted = result[0..1]
       assert_includes(boosted, 'six')
       assert_includes(boosted, 'two')
@@ -182,12 +175,9 @@ class TestJudges < Minitest::Test
     Dir.mktmpdir do |d|
       names = %w[test_alpha test_beta production_gamma production_delta other].sort
       names.each do |n|
-        dir = File.join(d, n)
-        save_it(File.join(dir, "#{n}.rb"), 'puts 1')
+        save_it(File.join(File.join(d, n), "#{n}.rb"), 'puts 1')
       end
-      list = Judges::Judges.new(d, nil, Loog::NULL, boost: ['test_*']).each.to_a
-      result = list.map(&:name)
-      boosted = result[0..1]
+      boosted = Judges::Judges.new(d, nil, Loog::NULL, boost: ['test_*']).each.to_a.map(&:name)[0..1]
       assert_includes(boosted, 'test_alpha')
       assert_includes(boosted, 'test_beta')
     end
@@ -197,12 +187,9 @@ class TestJudges < Minitest::Test
     Dir.mktmpdir do |d|
       names = %w[alpha beta zzz_gamma zzz_delta epsilon].sort
       names.each do |n|
-        dir = File.join(d, n)
-        save_it(File.join(dir, "#{n}.rb"), 'puts 1')
+        save_it(File.join(File.join(d, n), "#{n}.rb"), 'puts 1')
       end
-      list = Judges::Judges.new(d, nil, Loog::NULL, demote: ['zzz*']).each.to_a
-      result = list.map(&:name)
-      demoted = result[-2..]
+      demoted = Judges::Judges.new(d, nil, Loog::NULL, demote: ['zzz*']).each.to_a.map(&:name)[-2..]
       assert_includes(demoted, 'zzz_gamma')
       assert_includes(demoted, 'zzz_delta')
     end
@@ -212,8 +199,7 @@ class TestJudges < Minitest::Test
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), 'puts 1')
       epoch = Time.utc(2020, 1, 2, 3, 4, 5)
-      judges = Judges::Judges.new(d, nil, Loog::NULL, epoch:)
-      yielded = judges.each.to_a
+      yielded = Judges::Judges.new(d, nil, Loog::NULL, epoch:).each.to_a
       assert_equal(1, yielded.size)
       assert_equal(epoch, yielded.first.instance_variable_get(:@epoch))
     end
@@ -223,11 +209,9 @@ class TestJudges < Minitest::Test
     Dir.mktmpdir do |d|
       names = %w[priority_one priority_two normal_alpha normal_beta slow_gamma slow_delta].sort
       names.each do |n|
-        dir = File.join(d, n)
-        save_it(File.join(dir, "#{n}.rb"), 'puts 1')
+        save_it(File.join(File.join(d, n), "#{n}.rb"), 'puts 1')
       end
-      list = Judges::Judges.new(d, nil, Loog::NULL, boost: ['priority*'], demote: ['slow*']).each.to_a
-      result = list.map(&:name)
+      result = Judges::Judges.new(d, nil, Loog::NULL, boost: ['priority*'], demote: ['slow*']).each.to_a.map(&:name)
       boosted = result[0..1]
       assert_includes(boosted, 'priority_one')
       assert_includes(boosted, 'priority_two')

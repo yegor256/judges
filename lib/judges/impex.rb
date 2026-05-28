@@ -3,9 +3,9 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require 'elapsed'
 require 'factbase'
 require 'fileutils'
-require 'elapsed'
 require_relative '../judges'
 require_relative '../judges/to_rel'
 
@@ -51,10 +51,10 @@ class Judges::Impex
     if File.exist?(@file)
       elapsed(@loog, level: Logger::INFO) do
         fb.import(File.binread(@file))
-        throw :"The factbase imported from #{@file.to_rel} (#{File.size(@file)} bytes, #{fb.size} facts)"
+        throw(:"The factbase imported from #{@file.to_rel} (#{File.size(@file)} bytes, #{fb.size} facts)")
       end
     else
-      raise "The factbase is absent at #{@file.to_rel}" if strict
+      raise(StandardError, "The factbase is absent at #{@file.to_rel}") if strict
       @loog.info("Nothing to import from #{@file.to_rel} (file not found)")
     end
     fb
@@ -74,10 +74,10 @@ class Judges::Impex
   #   # ... populate fb with some data ...
   #   impex.import_to(fb) # Adds data from file to existing facts
   def import_to(fb)
-    raise "The factbase is absent at #{@file.to_rel}" unless File.exist?(@file)
+    raise(StandardError, "The factbase is absent at #{@file.to_rel}") unless File.exist?(@file)
     elapsed(@loog, level: Logger::INFO) do
       fb.import(File.binread(@file))
-      throw :"The factbase loaded from #{@file.to_rel} (#{File.size(@file)} bytes, #{fb.size} facts)"
+      throw(:"The factbase loaded from #{@file.to_rel} (#{File.size(@file)} bytes, #{fb.size} facts)")
     end
   end
 
@@ -97,7 +97,7 @@ class Judges::Impex
     elapsed(@loog, level: Logger::INFO) do
       FileUtils.mkdir_p(File.dirname(@file))
       File.binwrite(@file, fb.export)
-      throw :"Factbase exported to #{@file.to_rel} (#{File.size(@file)} bytes, #{fb.size} facts)"
+      throw(:"Factbase exported to #{@file.to_rel} (#{File.size(@file)} bytes, #{fb.size} facts)")
     end
   end
 end

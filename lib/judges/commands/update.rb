@@ -7,8 +7,8 @@ require 'backtrace'
 require 'elapsed'
 require 'factbase'
 require 'factbase/churn'
-require 'factbase/logged'
 require 'factbase/fact_as_yaml'
+require 'factbase/logged'
 require 'logger'
 require 'tago'
 require 'timeout'
@@ -40,15 +40,18 @@ class Judges::Update
   # @param [Array] args List of command line arguments
   # @raise [RuntimeError] If not exactly two arguments provided or directory is missing
   def run(opts, args)
-    raise 'Exactly two arguments required' unless args.size == 2
+    raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     dir = args[0]
-    raise "The directory is absent: #{dir.to_rel}" unless File.exist?(dir)
+    raise(StandardError, "The directory is absent: #{dir.to_rel}") unless File.exist?(dir)
     impex = Judges::Impex.new(@loog, args[1])
     fb = impex.import(strict: false)
     fb = Factbase::Logged.new(fb, @loog) if opts['log']
     options = Judges::Options.new(timeout: opts['timeout']&.to_i, lifetime: opts['lifetime']&.to_i)
     if options.lifetime && options.timeout && options.lifetime < options.timeout * 1.1
-      raise "The --timeout=#{options.timeout} must be at least 10 percent smaller than --lifetime=#{options.lifetime}"
+      raise(
+        StandardError,
+        "The --timeout=#{options.timeout} must be at least 10 percent smaller than --lifetime=#{options.lifetime}"
+      )
     end
     options += Judges::Options.new(opts['option'])
     if opts['options-file']
@@ -77,7 +80,7 @@ class Judges::Update
       end
     rescue Timeout::Error, Timeout::ExitException => e
       @loog.error("Terminated due to --lifetime=#{opts['lifetime']}")
-      raise e unless opts['quiet']
+      raise(e) unless opts['quiet']
       @loog.info("Had to stop due to the --lifetime=#{opts['lifetime']}")
     ensure
       impex.export(fb)
@@ -131,7 +134,7 @@ class Judges::Update
         end
         @loog.info("The cycle #{c} did #{delta}")
       end
-      throw :"👍 Update completed in #{c} cycle(s), did #{ch}"
+      throw(:"👍 Update completed in #{c} cycle(s), did #{ch}")
     end
     statistics&.report(@loog)
     summarize(fb, ch, errors, c) if %w[add append].include?(opts['summary'])
@@ -203,15 +206,15 @@ class Judges::Update
           next unless include?(opts, judge.name)
           @loog.info("\n👉 Running #{judge.name} (##{i}) at #{judge.dir.to_rel} (#{@start.ago} already)...")
           used += 1
-          start_time = Time.now
+          start = Time.now
           result = 'OK'
           impact = nil
           elapsed(@loog, level: Logger::INFO) do
             impact = one_judge(opts, fb, judge, global, options, errors)
             delta += impact
             churn.append(impact.inserted, impact.deleted, impact.added)
-            throw :"👍 The '#{judge.name}' judge made zero changes to #{fb.size} facts" if impact.zero?
-            throw :"👍 The '#{judge.name}' judge #{impact} out of #{fb.size} facts"
+            throw(:"👍 The '#{judge.name}' judge made zero changes to #{fb.size} facts") if impact.zero?
+            throw(:"👍 The '#{judge.name}' judge #{impact} out of #{fb.size} facts")
           end
         rescue StandardError, SyntaxError => e
           if e.is_a?(RuntimeError) && e.message == 'skip'
@@ -222,17 +225,17 @@ class Judges::Update
             result = 'ERROR'
           end
         ensure
-          statistics&.record(judge.name, Time.now - start_time, result, impact) if start_time
+          statistics&.record(judge.name, Time.now - start, result, impact) if start
         end
-      throw :"👍 #{done} judge(s) processed" if errors.empty?
-      throw :"❌ #{done} judge(s) processed with #{errors.size} errors"
+      throw(:"👍 #{done} judge(s) processed") if errors.empty?
+      throw(:"❌ #{done} judge(s) processed with #{errors.size} errors")
     end
     if used.zero?
-      raise 'No judges were used, while at least one expected to run' if opts['expect-judges']
+      raise(StandardError, 'No judges were used, while at least one expected to run') if opts['expect-judges']
       @loog.info('No judges were used (looks like an error); not failing because of --no-expect-judges')
     end
     unless errors.empty?
-      raise "Failed to update correctly (#{errors.size} errors)" unless opts['quiet']
+      raise(StandardError, "Failed to update correctly (#{errors.size} errors)") unless opts['quiet']
       @loog.info('Not failing because of the --quiet flag provided')
     end
     delta
@@ -253,7 +256,7 @@ class Judges::Update
     fb = Factbase::Tallied.new(fb)
     begin
       if opts['lifetime'] && Time.now - @start > opts['lifetime']
-        throw :"👎 The '#{judge.name}' judge skipped, no time left"
+        throw(:"👎 The '#{judge.name}' judge skipped, no time left")
       end
       Timeout.timeout(opts['timeout']) do
         judge.run(fb, global, local, options)

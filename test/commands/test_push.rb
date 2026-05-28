@@ -19,9 +19,7 @@ class TestPush < Minitest::Test
     stub_request(:get, 'https://example.org/csrf').to_return(body: 'test-csrf-token')
     stub_request(:post, %r{https://example.org/lock/foo}).to_return(status: 302)
     stub_request(:post, %r{https://example.org/unlock/foo}).to_return(status: 302)
-    stub_request(:put, 'https://example.org/push/foo').to_return(
-      status: 200, body: '42'
-    )
+    stub_request(:put, 'https://example.org/push/foo').to_return(status: 200, body: '42')
     Dir.mktmpdir do |d|
       file = File.join(d, 'base.fb')
       fb = Factbase.new

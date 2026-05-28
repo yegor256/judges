@@ -22,9 +22,7 @@ class TestDownload < Minitest::Test
     )
     stub_request(:get, 'https://example.org/csrf').to_return(body: 'test-csrf-token')
     stub_request(:post, %r{https://example.org/durables/42/lock}).to_return(status: 302)
-    stub_request(:get, 'https://example.org/durables/42').to_return(
-      status: 200, body: content, headers: {}
-    )
+    stub_request(:get, 'https://example.org/durables/42').to_return(status: 200, body: content, headers: {})
     stub_request(:post, %r{https://example.org/durables/42/unlock}).to_return(status: 302)
     Dir.mktmpdir do |d|
       file = File.join(d, 'downloaded.txt')
@@ -45,14 +43,10 @@ class TestDownload < Minitest::Test
   def test_download_with_custom_owner
     WebMock.disable_net_connect!
     content = 'Custom content'
-    stub_request(:get, %r{http://example.org/durable-find}).to_return(
-      status: 200, body: '123'
-    )
+    stub_request(:get, %r{http://example.org/durable-find}).to_return(status: 200, body: '123')
     stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
     stub_request(:post, %r{http://example.org/durables/123/lock}).to_return(status: 302)
-    stub_request(:get, 'http://example.org/durables/123').to_return(
-      status: 200, body: content, headers: {}
-    )
+    stub_request(:get, 'http://example.org/durables/123').to_return(status: 200, body: content, headers: {})
     stub_request(:post, %r{http://example.org/durables/123/unlock}).to_return(status: 302)
     Dir.mktmpdir do |d|
       file = File.join(d, 'data.bin')
@@ -97,19 +91,17 @@ class TestDownload < Minitest::Test
   end
 
   def test_fails_with_wrong_number_of_arguments
-    assert_raises(RuntimeError) do
+    assert_raises(ArgumentError) do
       Judges::Download.new(Loog::NULL).run({}, ['only_one_arg'])
     end
-    assert_raises(RuntimeError) do
+    assert_raises(ArgumentError) do
       Judges::Download.new(Loog::NULL).run({}, %w[too many args])
     end
   end
 
   def test_handles_not_found_durable
     WebMock.disable_net_connect!
-    stub_request(:get, 'http://example.org/durable-find?file=missing.txt&pname=notfound').to_return(
-      status: 404
-    )
+    stub_request(:get, 'http://example.org/durable-find?file=missing.txt&pname=notfound').to_return(status: 404)
     Dir.mktmpdir do |d|
       file = File.join(d, 'missing.txt')
       Judges::Download.new(Loog::NULL).run(

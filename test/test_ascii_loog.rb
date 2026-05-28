@@ -31,16 +31,14 @@ class TestAsciiLoog < Minitest::Test
     loog = Judges::AsciiLoog.new(buf)
     Judges::AsciiLoog::UNICODE_TO_ASCII.each_key do |unicode|
       loog.info("Test #{unicode} symbol")
-      output = buf.to_s
-      refute_includes(output, unicode)
+      refute_includes(buf.to_s, unicode)
     end
   end
 
   def test_leaves_non_unicode_text_unchanged
     buf = Loog::Buffer.new
-    loog = Judges::AsciiLoog.new(buf)
     message = 'Regular ASCII message with + and - symbols'
-    loog.info(message)
+    Judges::AsciiLoog.new(buf).info(message)
     assert_includes(buf.to_s, message)
   end
 
@@ -53,17 +51,14 @@ class TestAsciiLoog < Minitest::Test
   end
 
   def test_delegates_unknown_methods
-    mock_loog = Minitest::Mock.new
-    loog = Judges::AsciiLoog.new(mock_loog)
-    mock_loog.expect(:some_custom_method, 'result', ['arg'])
-    result = loog.some_custom_method('arg')
-    assert_equal('result', result)
-    mock_loog.verify
+    mock = Minitest::Mock.new
+    mock.expect(:some_custom_method, 'result', ['arg'])
+    assert_equal('result', Judges::AsciiLoog.new(mock).some_custom_method('arg'))
+    mock.verify
   end
 
   def test_responds_to_original_logger_methods
-    buf = Loog::Buffer.new
-    loog = Judges::AsciiLoog.new(buf)
+    loog = Judges::AsciiLoog.new(Loog::Buffer.new)
     assert_respond_to(loog, :info)
     assert_respond_to(loog, :warn)
     assert_respond_to(loog, :error)
@@ -72,8 +67,7 @@ class TestAsciiLoog < Minitest::Test
 
   def test_mixed_unicode_and_ascii
     buf = Loog::Buffer.new
-    loog = Judges::AsciiLoog.new(buf)
-    loog.info('Mixed: 👍 success and ❌ failure')
+    Judges::AsciiLoog.new(buf).info('Mixed: 👍 success and ❌ failure')
     output = buf.to_s
     refute_includes(output, '👍')
     refute_includes(output, '❌')
@@ -81,23 +75,18 @@ class TestAsciiLoog < Minitest::Test
 
   def test_multiple_same_symbols
     buf = Loog::Buffer.new
-    loog = Judges::AsciiLoog.new(buf)
-    loog.info('👍👍👍 Triple success')
-    output = buf.to_s
-    refute_includes(output, '👍')
+    Judges::AsciiLoog.new(buf).info('👍👍👍 Triple success')
+    refute_includes(buf.to_s, '👍')
   end
 
   def test_handles_binary_encoding
     buf = Loog::Buffer.new
-    loog = Judges::AsciiLoog.new(buf)
-    loog.info((+'👍 Success message').force_encoding('ASCII-8BIT'))
-    output = buf.to_s
-    refute_includes(output, '👍')
+    Judges::AsciiLoog.new(buf).info((+'👍 Success message').force_encoding('ASCII-8BIT'))
+    refute_includes(buf.to_s, '👍')
   end
 
   def test_handles_mixed_encodings
-    buf = Loog::Buffer.new
-    loog = Judges::AsciiLoog.new(buf)
+    loog = Judges::AsciiLoog.new(Loog::Buffer.new)
     messages = [
       (+'GET https://example.org:443/test -> 503 (0.00s)').force_encoding('ASCII-8BIT'),
       (+'X-Zerocracy-Failure: Service unavailable').force_encoding('BINARY'),

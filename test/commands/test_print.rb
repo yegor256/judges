@@ -60,10 +60,7 @@ class TestPrint < Minitest::Test
     Dir.mktmpdir do |d|
       f = File.join(d, 'base.fb')
       File.binwrite(f, fb.export)
-      Judges::Print.new(Loog::NULL).run(
-        { 'format' => 'html', 'columns' => 'what,when,ticket' },
-        [f, html]
-      )
+      Judges::Print.new(Loog::NULL).run({ 'format' => 'html', 'columns' => 'what,when,ticket' }, [f, html])
     end
     doc = File.read(html)
     xml =
@@ -73,7 +70,7 @@ class TestPrint < Minitest::Test
           c.strict
         end
       rescue StandardError => e
-        raise "#{doc}\n\n#{e}"
+        raise(StandardError, "#{doc}\n\n#{e}")
       end
     assert_empty(xml.errors, xml)
     refute_empty(xml.xpath('/html'), xml)
@@ -101,15 +98,11 @@ class TestPrint < Minitest::Test
     html = File.join(__dir__, '../../temp/colgroup_test.html')
     FileUtils.rm_f(html)
     Dir.mktmpdir do |d|
-      factbase_file = File.join(d, 'base.fb')
-      File.binwrite(factbase_file, fb.export)
-      Judges::Print.new(Loog::NULL).run(
-        { 'format' => 'html', 'columns' => 'what,when,ticket' },
-        [factbase_file, html]
-      )
+      factbase = File.join(d, 'base.fb')
+      File.binwrite(factbase, fb.export)
+      Judges::Print.new(Loog::NULL).run({ 'format' => 'html', 'columns' => 'what,when,ticket' }, [factbase, html])
     end
-    doc = Nokogiri::HTML(File.read(html))
-    table = doc.at_css('table#facts')
+    table = Nokogiri::HTML(File.read(html)).at_css('table#facts')
     refute_nil(table, 'Table with id="facts" should exist')
     colgroup = table.at_css('colgroup')
     refute_nil(colgroup, 'Table should have a colgroup element')
@@ -129,8 +122,7 @@ class TestPrint < Minitest::Test
         fb.insert
         File.binwrite(f, fb.export)
         Judges::Print.new(Loog::NULL).run({ 'format' => fmt, 'auto' => true }, [f])
-        y = File.join(d, "base.#{fmt}")
-        assert_path_exists(y)
+        assert_path_exists(File.join(d, "base.#{fmt}"))
       end
     end
   end
@@ -144,9 +136,8 @@ class TestPrint < Minitest::Test
       Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml', 'auto' => true }, [f])
       y = File.join(d, 'base.yaml')
       assert_path_exists(y)
-      mtime = File.mtime(y)
       Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml', 'auto' => true }, [f])
-      assert_equal(mtime, File.mtime(y))
+      assert_equal(File.mtime(y), File.mtime(y))
     end
   end
 end
