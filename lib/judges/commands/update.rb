@@ -217,7 +217,7 @@ class Judges::Update
     delta
   end
 
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity
   def run_judge_in_cycle(judge, idx, opts, fb, churn, options, errors, global, statistics)
     if opts['fail-fast'] && !errors.empty?
       @loog.info("Not running #{judge.name.inspect} due to #{errors.count} errors above, in --fail-fast mode")
@@ -256,7 +256,7 @@ class Judges::Update
   ensure
     statistics&.record(judge.name, Time.now - start, result, impact) if start
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize
+  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity
 
   # Run a single judge.
   #
