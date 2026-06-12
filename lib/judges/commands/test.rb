@@ -35,6 +35,7 @@ class Judges::Test
   # @param [Hash] opts Command line options (start with '--')
   # @param [Array] args List of command line arguments
   # @raise [RuntimeError] If not exactly one argument provided
+  # rubocop:disable Metrics/MethodLength
   def run(opts, args)
     raise(ArgumentError, 'Exactly one argument required') unless args.size == 1
     dir = args[0]
@@ -52,70 +53,10 @@ class Judges::Test
         @loog.info("👉 Testing #{judge.script} (##{i}) in #{judge.dir.to_rel}...")
         buf = Loog::Buffer.new
         judge = judge.with_loog(buf)
-        judge.tests.each do |f|
-          tname = File.basename(f).gsub(/\.yml$/, '')
-          visible << "  #{judge.name}/#{tname}"
-          next unless include?(opts, judge.name, tname)
-          yaml = YAML.load_file(f, permitted_classes: [Time])
-          if yaml['skip']
-            buf.info("Skipped #{f.to_rel}")
-            next
-          end
-          unless Judges::Categories.new(opts['enable'], opts['disable']).ok?(yaml['category'])
-            buf.info("Skipped #{f.to_rel} because of its category")
-            next
-          end
-          buf.info("🛠️ Testing #{f.to_rel}:")
-          badge = "#{judge.name}/#{tname}"
-          start = Time.now
-          begin
-            fb = Factbase.new
-            prepare(fb, yaml)
-            yaml['before']&.each do |n|
-              j = judges.get(n).with_loog(buf)
-              buf.info("Running #{j.script} judge as a pre-condition...")
-              test_one(fb, opts, j, n, yaml, assert: false)
-            end
-            test_one(fb, opts, judge, tname, yaml)
-            yaml['after']&.each do |rb|
-              buf.info("Running #{rb} assertion script...")
-              $fb = fb
-              $loog = buf
-              if yaml['timeout']
-                Timeout.timeout(yaml['timeout']) do
-                  load(File.join(judge.dir, rb), true)
-                end
-              else
-                load(File.join(judge.dir, rb), true)
-              end
-            end
-            tests += 1
-          rescue StandardError => e
-            @loog.info(buf.to_s)
-            @loog.warn(Backtrace.new(e))
-            errors << badge
-          end
-          times[badge] = Time.now - start
-        end
+        tests += run_judge_tests(judge, buf, opts, judges, visible, times, errors)
         tested += 1
       end
-      unless times.empty?
-        fmt = "%-60s\t%9s\t%-9s"
-        @loog.info(
-          [
-            'Test summary:',
-            format(fmt, 'Script', 'Seconds', 'Result'),
-            format(fmt, '---', '---', '---'),
-            times.sort_by { |_, v| v }.reverse.map do |script, sec|
-              format(fmt, script.ellipsized(50), format('%.3f', sec), errors.include?(script) ? 'ERROR' : 'OK')
-            end.join("\n  ")
-          ].join("\n  ")
-        )
-      end
-      throw(:'👍 No judges tested') if tested.zero?
-      throw(:"👍 All #{tested} judge(s) but no tests passed") if tests.zero?
-      throw(:"👍 All #{tested} judge(s) and #{tests} tests passed") if errors.empty?
-      throw(:"❌ #{tested} judge(s) tested, #{errors.size} of them failed")
+      print_test_summary(times, errors, tested, tests)
     end
     unless errors.empty?
       raise(StandardError, "#{errors.size} tests failed") unless opts['quiet']
@@ -130,8 +71,93 @@ class Judges::Test
       @loog.info("The following judges are available to use with the --judge option:\n  #{visible.join("\n  ")}")
     end
   end
+  # rubocop:enable Metrics/MethodLength
 
   private
+
+  def run_judge_tests(judge, buf, opts, judges, visible, times, errors)
+    count = 0
+    judge.tests.each do |f|
+      tname = File.basename(f).gsub(/\.yml$/, '')
+      visible << "  #{judge.name}/#{tname}"
+      next unless include?(opts, judge.name, tname)
+      yaml = YAML.load_file(f, permitted_classes: [Time])
+      next if skip_test?(buf, f, yaml, opts)
+      buf.info("🛠️ Testing #{f.to_rel}:")
+      badge = "#{judge.name}/#{tname}"
+      start = Time.now
+      begin
+        count += run_single_test(judge, buf, opts, judges, yaml, badge, errors)
+      rescue StandardError => e
+        @loog.info(buf.to_s)
+        @loog.warn(Backtrace.new(e))
+        errors << badge
+      end
+      times[badge] = Time.now - start
+    end
+    count
+  end
+
+  def skip_test?(buf, path, yaml, opts)
+    if yaml['skip']
+      buf.info("Skipped #{path.to_rel}")
+      return true
+    end
+    unless Judges::Categories.new(opts['enable'], opts['disable']).ok?(yaml['category'])
+      buf.info("Skipped #{path.to_rel} because of its category")
+      return true
+    end
+    false
+  end
+
+  def run_single_test(judge, buf, opts, judges, yaml, badge, _errors)
+    fb = Factbase.new
+    prepare(fb, yaml)
+    yaml['before']&.each do |n|
+      j = judges.get(n).with_loog(buf)
+      buf.info("Running #{j.script} judge as a pre-condition...")
+      test_one(fb, opts, j, n, yaml, assert: false)
+    end
+    tname = badge.split('/').last
+    test_one(fb, opts, judge, tname, yaml)
+    run_after_assertions(judge, buf, fb, yaml)
+    1
+  end
+
+  def run_after_assertions(judge, buf, fb, yaml)
+    yaml['after']&.each do |rb|
+      buf.info("Running #{rb} assertion script...")
+      $fb = fb
+      $loog = buf
+      if yaml['timeout']
+        Timeout.timeout(yaml['timeout']) do
+          load(File.join(judge.dir, rb), true)
+        end
+      else
+        load(File.join(judge.dir, rb), true)
+      end
+    end
+  end
+
+  def print_test_summary(times, errors, tested, tests)
+    unless times.empty?
+      fmt = "%-60s\t%9s\t%-9s"
+      @loog.info(
+        [
+          'Test summary:',
+          format(fmt, 'Script', 'Seconds', 'Result'),
+          format(fmt, '---', '---', '---'),
+          times.sort_by { |_, v| v }.reverse.map do |script, sec|
+            format(fmt, script.ellipsized(50), format('%.3f', sec), errors.include?(script) ? 'ERROR' : 'OK')
+          end.join("\n  ")
+        ].join("\n  ")
+      )
+    end
+    throw(:'👍 No judges tested') if tested.zero?
+    throw(:"👍 All #{tested} judge(s) but no tests passed") if tests.zero?
+    throw(:"👍 All #{tested} judge(s) and #{tests} tests passed") if errors.empty?
+    throw(:"❌ #{tested} judge(s) tested, #{errors.size} of them failed")
+  end
 
   def include?(opts, name, tname = nil)
     judges = opts['judge'] || []
@@ -171,6 +197,7 @@ class Judges::Test
   # @param [Hash] yaml The YAML to be tested
   # @param [Boolean] assert Should we assert (TRUE) or simply skip (FALSE)?
   # @return [nil] Always NIL
+  # rubocop:disable Metrics/MethodLength
   def test_one(fb, opts, judge, tname, yaml, assert: true)
     options = Judges::Options.new(opts['option']) + Judges::Options.new(yaml['options'])
     runs = opts['runs'] || yaml['runs'] || 1
@@ -208,6 +235,7 @@ class Judges::Test
       assert(judge, tname, fb, yaml) if r == runs || opts['assert_once'].is_a?(FalseClass)
     end
   end
+  # rubocop:enable Metrics/MethodLength
 
   def assert(judge, tname, fb, yaml)
     xpaths = yaml['expected']

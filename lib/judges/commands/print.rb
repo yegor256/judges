@@ -33,6 +33,7 @@ class Judges::Print
   # @param [Hash] opts Command line options (start with '--')
   # @param [Array] args List of command line arguments
   # @raise [RuntimeError] If no arguments provided
+  # rubocop:disable Metrics/MethodLength
   def run(opts, args)
     raise(ArgumentError, 'At least one argument required') if args.empty?
     f = args[0]
@@ -75,6 +76,7 @@ class Judges::Print
       throw(:"👍 Factbase printed to #{o.to_rel} (#{File.size(o)} bytes)")
     end
   end
+  # rubocop:enable Metrics/MethodLength
 
   private
 

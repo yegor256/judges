@@ -63,3 +63,10 @@ desc 'Run RuboCop on all directories'
 RuboCop::RakeTask.new(:rubocop) do |task|
   task.fail_on_error = true
 end
+
+desc 'Run SandiMeter static analysis'
+task :sandimeter do
+  require 'sandi_meter'
+  scanner = SandiMeter::Scanner.new
+  scanner.scan(File.join(__dir__, 'lib'))
+end

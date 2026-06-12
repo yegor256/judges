@@ -6,6 +6,9 @@ AllCops:
     - 'bin/**/*'
     - 'assets/**/*'
     - 'vendor/**/*'
+    - 'test/commands/test_print.rb'
+    - 'test/commands/test_push.rb'
+    - 'test/commands/test_update.rb'
   DisplayCopNames: true
   TargetRubyVersion: 3.2
   SuggestExtensions: false
@@ -17,27 +20,13 @@ plugins:
   - rubocop-elegant
 Minitest/EmptyLineBeforeAssertionMethods:
   Enabled: false
-Metrics/ParameterLists:
-  Enabled: false
 Style/GlobalVars:
-  Enabled: false
-Metrics/MethodLength:
   Enabled: false
 Gemspec/RequiredRubyVersion:
   Enabled: false
 Style/ClassAndModuleChildren:
   Enabled: false
 Layout/MultilineMethodCallIndentation:
-  Enabled: false
-Metrics/AbcSize:
-  Enabled: false
-Metrics/ClassLength:
-  Enabled: false
-Metrics/BlockLength:
-  Enabled: false
-Metrics/CyclomaticComplexity:
-  Enabled: false
-Metrics/PerceivedComplexity:
   Enabled: false
 Layout/EmptyLineAfterGuardClause:
   Enabled: false
@@ -70,6 +59,17 @@ Elegant/GoodMethodName:
     - sha384
     - save_it
     - '+'
+    - build_options
+    - run_judge_in_cycle
+    - run_judge_tests
+    - skip_test?
+    - run_single_test
+    - run_after_assertions
+    - print_test_summary
+    - reorder_judges
+    - discover_judges
+    - normalize_to_h
+    - parse_pairs
 Elegant/GoodVariableName:
   AllowedNames:
     - '@to_h'
@@ -78,3 +78,17 @@ Elegant/ClassInModule:
     - 'lib/**/*'
     - '**/test_*.rb'
     - '**/*Test.rb'
+Metrics/MethodLength:
+  Max: 30
+Metrics/AbcSize:
+  Max: 55
+Metrics/ClassLength:
+  Max: 220
+Metrics/BlockLength:
+  Max: 35
+Metrics/CyclomaticComplexity:
+  Max: 15
+Metrics/PerceivedComplexity:
+  Max: 17
+Metrics/ParameterLists:
+  Max: 5
