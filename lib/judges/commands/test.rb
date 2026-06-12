@@ -87,7 +87,7 @@ class Judges::Test
       badge = "#{judge.name}/#{tname}"
       start = Time.now
       begin
-        count += run_single_test(judge, buf, opts, judges, yaml, badge, errors)
+        count += run_single_test(judge, buf, opts, judges, yaml, badge)
       rescue StandardError => e
         @loog.info(buf.to_s)
         @loog.warn(Backtrace.new(e))
@@ -110,7 +110,7 @@ class Judges::Test
     false
   end
 
-  def run_single_test(judge, buf, opts, judges, yaml, badge, _errors)
+  def run_single_test(judge, buf, opts, judges, yaml, badge)
     fb = Factbase.new
     prepare(fb, yaml)
     yaml['before']&.each do |n|

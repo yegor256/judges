@@ -98,21 +98,26 @@ class Judges::Update
     options
   end
 
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
-  def loop_them(judges, fb, churn, opts, options)
-    c = 0
-    ch = Factbase::Churn.new
-    errors = []
-    statistics = opts['statistics'] ? Judges::Statistics.new : nil
+  def log_summary(opts, fb)
     sum = fb.query('(eq what "judges-summary")').each.to_a
     if sum.empty?
       @loog.info('Summary fact not found') unless opts['summary'] == 'off'
     else
       @loog.info("Summary fact found:\n\t#{Factbase::FactAsYaml.new(sum.first).to_s.gsub("\n", "\n\t")}")
     end
-    if !sum.empty? && opts['summary'] == 'add' && fb.query('(eq what "judges-summary")').delete!
-      @loog.info('Summary fact deleted')
-    end
+    return if sum.empty?
+    return unless opts['summary'] == 'add'
+    fb.query('(eq what "judges-summary")').delete!
+    @loog.info('Summary fact deleted')
+  end
+
+  # rubocop:disable Metrics/MethodLength
+  def loop_them(judges, fb, churn, opts, options)
+    c = 0
+    ch = Factbase::Churn.new
+    errors = []
+    statistics = opts['statistics'] ? Judges::Statistics.new : nil
+    log_summary(opts, fb)
     elapsed(@loog, level: Logger::INFO) do
       loop do
         c += 1
@@ -145,7 +150,7 @@ class Judges::Update
     statistics&.report(@loog)
     summarize(fb, ch, errors, c) if %w[add append].include?(opts['summary'])
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+  # rubocop:enable Metrics/MethodLength
 
   # Update the summary.
   # @param [Factbase] fb The factbase
@@ -217,21 +222,8 @@ class Judges::Update
     delta
   end
 
-  # rubocop:disable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity
   def run_judge_in_cycle(judge, idx, opts, fb, churn, options, errors, global, statistics)
-    if opts['fail-fast'] && !errors.empty?
-      @loog.info("Not running #{judge.name.inspect} due to #{errors.count} errors above, in --fail-fast mode")
-      statistics&.record(judge.name, 0, 'SKIPPED (fail-fast)') if include?(opts, judge.name)
-      return
-    end
-    if opts['lifetime'] && opts['timeout']
-      remained = @start + opts['lifetime'] - Time.now
-      if remained < opts['timeout'].to_f / 16
-        @loog.info("Not running #{judge.name.inspect}, not enough time left (just #{remained.seconds})")
-        statistics&.record(judge.name, 0, 'SKIPPED (timeout)') if include?(opts, judge.name)
-        return
-      end
-    end
+    return if skip_judge?(judge, idx, opts, errors, statistics)
     return unless include?(opts, judge.name)
     @loog.info("\n👉 Running #{judge.name} (##{idx}) at #{judge.dir.to_rel} (#{@start.ago} already)...")
     start = Time.now
@@ -256,7 +248,23 @@ class Judges::Update
   ensure
     statistics&.record(judge.name, Time.now - start, result, impact) if start
   end
-  # rubocop:enable Metrics/MethodLength, Metrics/AbcSize, Metrics/CyclomaticComplexity
+
+  def skip_judge?(judge, _idx, opts, errors, statistics)
+    if opts['fail-fast'] && !errors.empty?
+      @loog.info("Not running #{judge.name.inspect} due to #{errors.count} errors above, in --fail-fast mode")
+      statistics&.record(judge.name, 0, 'SKIPPED (fail-fast)') if include?(opts, judge.name)
+      return true
+    end
+    if opts['lifetime'] && opts['timeout']
+      remained = @start + opts['lifetime'] - Time.now
+      if remained < opts['timeout'].to_f / 16
+        @loog.info("Not running #{judge.name.inspect}, not enough time left (just #{remained.seconds})")
+        statistics&.record(judge.name, 0, 'SKIPPED (timeout)') if include?(opts, judge.name)
+        return true
+      end
+    end
+    false
+  end
 
   # Run a single judge.
   #

@@ -6,9 +6,6 @@ AllCops:
     - 'bin/**/*'
     - 'assets/**/*'
     - 'vendor/**/*'
-    - 'test/commands/test_print.rb'
-    - 'test/commands/test_push.rb'
-    - 'test/commands/test_update.rb'
   DisplayCopNames: true
   TargetRubyVersion: 3.2
   SuggestExtensions: false
@@ -70,6 +67,8 @@ Elegant/GoodMethodName:
     - discover_judges
     - normalize_to_h
     - parse_pairs
+    - log_summary
+    - skip_judge?
 Elegant/GoodVariableName:
   AllowedNames:
     - '@to_h'
@@ -80,10 +79,16 @@ Elegant/ClassInModule:
     - '**/*Test.rb'
 Metrics/MethodLength:
   Max: 30
+  Exclude:
+    - 'test/commands/test_print.rb'
+    - 'test/commands/test_push.rb'
+    - 'test/commands/test_update.rb'
 Metrics/AbcSize:
   Max: 55
+  Exclude:
+    - 'test/commands/test_print.rb'
 Metrics/ClassLength:
-  Max: 220
+  Max: 230
 Metrics/BlockLength:
   Max: 35
 Metrics/CyclomaticComplexity:
