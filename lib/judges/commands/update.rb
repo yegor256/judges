@@ -200,7 +200,7 @@ class Judges::Update
           result = run_judge_in_cycle(judge, idx, opts, fb, churn, options, errors, global, statistics)
           if result
             used += 1
-            delta += result
+            delta += result if result.is_a?(Factbase::Churn)
           end
         end
       throw(:"👍 #{done} judge(s) processed") if errors.empty?
@@ -252,7 +252,7 @@ class Judges::Update
       errors << e.message
       result = 'ERROR'
     end
-    impact
+    impact || true
   ensure
     statistics&.record(judge.name, Time.now - start, result, impact) if start
   end
