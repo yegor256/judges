@@ -46,28 +46,7 @@ class Judges::Update
     impex = Judges::Impex.new(@loog, args[1])
     fb = impex.import(strict: false)
     fb = Factbase::Logged.new(fb, @loog) if opts['log']
-    options = Judges::Options.new(timeout: opts['timeout']&.to_i, lifetime: opts['lifetime']&.to_i)
-    if options.lifetime && options.timeout && options.lifetime < options.timeout * 1.1
-      raise(
-        StandardError,
-        "The --timeout=#{options.timeout} must be at least 10 percent smaller than --lifetime=#{options.lifetime}"
-      )
-    end
-    options += Judges::Options.new(opts['option'])
-    if opts['options-file']
-      options += Judges::Options.new(
-        File.readlines(opts['options-file'])
-          .compact
-          .reject(&:empty?)
-          .map { |ln| ln.strip.split('=', 1).map(&:strip).join('=') }
-      )
-      @loog.debug("Options loaded from #{opts['options-file']}")
-    end
-    if options.empty?
-      @loog.debug('No options provided by the --option flag')
-    else
-      @loog.debug("The following options provided:\n\t#{options.to_s.gsub("\n", "\n\t")}")
-    end
+    options = build_options(opts)
     judges = Judges::Judges.new(
       dir, opts['lib'], @loog,
       epoch: @epoch, shuffle: opts['shuffle'], boost: opts['boost'],
@@ -93,20 +72,52 @@ class Judges::Update
 
   private
 
-  def loop_them(judges, fb, churn, opts, options)
-    c = 0
-    ch = Factbase::Churn.new
-    errors = []
-    statistics = opts['statistics'] ? Judges::Statistics.new : nil
+  def build_options(opts)
+    options = Judges::Options.new(timeout: opts['timeout']&.to_i, lifetime: opts['lifetime']&.to_i)
+    if options.lifetime && options.timeout && options.lifetime < options.timeout * 1.1
+      raise(
+        StandardError,
+        "The --timeout=#{options.timeout} must be at least 10 percent smaller than --lifetime=#{options.lifetime}"
+      )
+    end
+    options += Judges::Options.new(opts['option'])
+    if opts['options-file']
+      options += Judges::Options.new(
+        File.readlines(opts['options-file'])
+          .compact
+          .reject(&:empty?)
+          .map { |ln| ln.strip.split('=', 1).map(&:strip).join('=') }
+      )
+      @loog.debug("Options loaded from #{opts['options-file']}")
+    end
+    if options.empty?
+      @loog.debug('No options provided by the --option flag')
+    else
+      @loog.debug("The following options provided:\n\t#{options.to_s.gsub("\n", "\n\t")}")
+    end
+    options
+  end
+
+  def log_summary(opts, fb)
     sum = fb.query('(eq what "judges-summary")').each.to_a
     if sum.empty?
       @loog.info('Summary fact not found') unless opts['summary'] == 'off'
     else
       @loog.info("Summary fact found:\n\t#{Factbase::FactAsYaml.new(sum.first).to_s.gsub("\n", "\n\t")}")
     end
-    if !sum.empty? && opts['summary'] == 'add' && fb.query('(eq what "judges-summary")').delete!
-      @loog.info('Summary fact deleted')
-    end
+    return if sum.empty?
+    return unless opts['summary'] == 'add'
+    fb.query('(eq what "judges-summary")').delete!
+    @loog.info('Summary fact deleted')
+  end
+
+  # rubocop:disable Metrics/MethodLength
+  def loop_them(judges, fb, churn, opts, options)
+    c = 0
+    ch = Factbase::Churn.new
+    errors = []
+    statistics = opts['statistics'] ? Judges::Statistics.new : nil
+    log_summary(opts, fb)
     elapsed(@loog, level: Logger::INFO) do
       loop do
         c += 1
@@ -139,6 +150,7 @@ class Judges::Update
     statistics&.report(@loog)
     summarize(fb, ch, errors, c) if %w[add append].include?(opts['summary'])
   end
+  # rubocop:enable Metrics/MethodLength
 
   # Update the summary.
   # @param [Factbase] fb The factbase
@@ -189,43 +201,12 @@ class Judges::Update
     used = 0
     elapsed(@loog, level: Logger::INFO) do
       done =
-        judges.each_with_index do |judge, i|
-          if opts['fail-fast'] && !errors.empty?
-            @loog.info("Not running #{judge.name.inspect} due to #{errors.count} errors above, in --fail-fast mode")
-            statistics&.record(judge.name, 0, 'SKIPPED (fail-fast)') if include?(opts, judge.name)
-            next
+        judges.each_with_index do |judge, idx|
+          result = run_judge_in_cycle(judge, idx, opts, fb, churn, options, errors, global, statistics)
+          if result
+            used += 1
+            delta += result if result.is_a?(Factbase::Churn)
           end
-          if opts['lifetime'] && opts['timeout']
-            remained = @start + opts['lifetime'] - Time.now
-            if remained < opts['timeout'].to_f / 16
-              @loog.info("Not running #{judge.name.inspect}, not enough time left (just #{remained.seconds})")
-              statistics&.record(judge.name, 0, 'SKIPPED (timeout)') if include?(opts, judge.name)
-              next
-            end
-          end
-          next unless include?(opts, judge.name)
-          @loog.info("\n👉 Running #{judge.name} (##{i}) at #{judge.dir.to_rel} (#{@start.ago} already)...")
-          used += 1
-          start = Time.now
-          result = 'OK'
-          impact = nil
-          elapsed(@loog, level: Logger::INFO) do
-            impact = one_judge(opts, fb, judge, global, options, errors)
-            delta += impact
-            churn.append(impact.inserted, impact.deleted, impact.added)
-            throw(:"👍 The '#{judge.name}' judge made zero changes to #{fb.size} facts") if impact.zero?
-            throw(:"👍 The '#{judge.name}' judge #{impact} out of #{fb.size} facts")
-          end
-        rescue StandardError, SyntaxError => e
-          if e.is_a?(RuntimeError) && e.message == 'skip'
-            result = 'SKIPPED'
-          else
-            @loog.warn(Backtrace.new(e))
-            errors << e.message
-            result = 'ERROR'
-          end
-        ensure
-          statistics&.record(judge.name, Time.now - start, result, impact) if start
         end
       throw(:"👍 #{done} judge(s) processed") if errors.empty?
       throw(:"❌ #{done} judge(s) processed with #{errors.size} errors")
@@ -239,6 +220,50 @@ class Judges::Update
       @loog.info('Not failing because of the --quiet flag provided')
     end
     delta
+  end
+
+  def run_judge_in_cycle(judge, idx, opts, fb, churn, options, errors, global, statistics)
+    return if skip_judge?(judge, idx, opts, errors, statistics)
+    return unless include?(opts, judge.name)
+    @loog.info("\n👉 Running #{judge.name} (##{idx}) at #{judge.dir.to_rel} (#{@start.ago} already)...")
+    start = Time.now
+    result = 'OK'
+    impact = nil
+    elapsed(@loog, level: Logger::INFO) do
+      impact = one_judge(opts, fb, judge, global, options, errors)
+      churn.append(impact.inserted, impact.deleted, impact.added)
+      throw(:"👍 The '#{judge.name}' judge made zero changes to #{fb.size} facts") if impact.zero?
+      throw(:"👍 The '#{judge.name}' judge #{impact} out of #{fb.size} facts")
+    end
+    impact
+  rescue StandardError, SyntaxError => e
+    if e.is_a?(RuntimeError) && e.message == 'skip'
+      result = 'SKIPPED'
+    else
+      @loog.warn(Backtrace.new(e))
+      errors << e.message
+      result = 'ERROR'
+    end
+    impact || true
+  ensure
+    statistics&.record(judge.name, Time.now - start, result, impact) if start
+  end
+
+  def skip_judge?(judge, _idx, opts, errors, statistics)
+    if opts['fail-fast'] && !errors.empty?
+      @loog.info("Not running #{judge.name.inspect} due to #{errors.count} errors above, in --fail-fast mode")
+      statistics&.record(judge.name, 0, 'SKIPPED (fail-fast)') if include?(opts, judge.name)
+      return true
+    end
+    if opts['lifetime'] && opts['timeout']
+      remained = @start + opts['lifetime'] - Time.now
+      if remained < opts['timeout'].to_f / 16
+        @loog.info("Not running #{judge.name.inspect}, not enough time left (just #{remained.seconds})")
+        statistics&.record(judge.name, 0, 'SKIPPED (timeout)') if include?(opts, judge.name)
+        return true
+      end
+    end
+    false
   end
 
   # Run a single judge.

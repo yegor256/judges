@@ -73,29 +73,11 @@ class Judges::Judges
   # @return [Enumerator] Returns an enumerator if no block is given
   def each(&)
     return to_enum(__method__) unless block_given?
-    list =
-      Dir.glob(File.join(@dir, '*')).each.to_a.map do |d|
-        next unless File.directory?(d)
-        next unless File.exist?(File.join(d, "#{File.basename(d)}.rb"))
-        Judges::Judge.new(File.absolute_path(d), @lib, @loog, epoch: @epoch)
-      end
-    list.compact!
-    list.sort_by!(&:name)
-    all = list.each_with_index.to_a
-    good = all.dup
-    mapping =
-      all
-        .map { |a| [a[0].name, a[1], a[1]] }
-        .reject { |a| !@shuffle.empty? && a[0].start_with?(@shuffle) }
-        .to_h { |a| [a[1], a[2]] }
-    positions = mapping.values.shuffle(random: Random.new(@seed))
-    mapping.keys.zip(positions).to_h.each do |before, after|
-      good[after] = all[before]
-    end
+    good = reorder_judges
     boosted = []
     demoted = []
     normal = []
-    good.map { |a| a[0] }.each do |j|
+    good.each do |j|
       if fits?(j.name, @boost)
         boosted.append(j)
       elsif fits?(j.name, @demote)
@@ -125,6 +107,31 @@ class Judges::Judges
   end
 
   private
+
+  def reorder_judges
+    list = discover_judges
+    list.sort_by!(&:name)
+    all = list.each_with_index.to_a
+    good = all.dup
+    mapping =
+      all
+        .map { |a| [a[0].name, a[1], a[1]] }
+        .reject { |a| !@shuffle.empty? && a[0].start_with?(@shuffle) }
+        .to_h { |a| [a[1], a[2]] }
+    positions = mapping.values.shuffle(random: Random.new(@seed))
+    mapping.keys.zip(positions).to_h.each do |before, after|
+      good[after] = all[before]
+    end
+    good.map { |a| a[0] }
+  end
+
+  def discover_judges
+    Dir.glob(File.join(@dir, '*')).each.to_a.filter_map do |d|
+      next unless File.directory?(d)
+      next unless File.exist?(File.join(d, "#{File.basename(d)}.rb"))
+      Judges::Judge.new(File.absolute_path(d), @lib, @loog, epoch: @epoch)
+    end
+  end
 
   # Checks if a judge name matches any of the given patterns.
   # Patterns can contain '*' wildcards which are converted to '.*' regex patterns.
