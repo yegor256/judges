@@ -64,7 +64,7 @@ class Judges::Options
   #   merged = opts1 + opts2
   #   # merged now has token=xyz, debug=true, verbose=true
   def +(other)
-    h = to_h
+    h = to_h.dup
     other.to_h.each do |k, v|
       h[k] = v
     end
