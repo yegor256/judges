@@ -52,6 +52,19 @@ class TestOptions < Minitest::Test
     assert_equal(42, opts.b)
   end
 
+  def test_equals_less_token_in_string
+    opts = Judges::Options.new('token=abc123,max_speed=100,debug')
+    assert_equal('abc123', opts.token)
+    assert_equal(100, opts.max_speed)
+    assert_equal('true', opts.debug)
+  end
+
+  def test_equals_less_token_in_array
+    opts = Judges::Options.new(['token=abc123', 'debug'])
+    assert_equal('abc123', opts.token)
+    assert_equal('true', opts.debug)
+  end
+
   def test_with_hash
     opts = Judges::Options.new('foo' => 42, 'bar' => 'hello')
     assert_equal(42, opts.foo)
