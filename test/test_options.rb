@@ -80,4 +80,11 @@ class TestOptions < Minitest::Test
     assert_equal(42, opts.a, opts)
     assert_equal(7, opts.b, opts)
   end
+
+  def test_merge_does_not_mutate_receiver
+    a = Judges::Options.new(['a = 1'])
+    assert_equal(2, (a + Judges::Options.new(['b = 2'])).to_h.size)
+    assert_equal(1, a.to_h.size, 'receiver must not absorb keys from the other operand')
+    refute(a.to_h.key?(:b))
+  end
 end
