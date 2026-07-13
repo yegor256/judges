@@ -134,7 +134,8 @@ class Judges::Judges
   end
 
   # Checks if a judge name matches any of the given patterns.
-  # Patterns can contain '*' wildcards which are converted to '.*' regex patterns.
+  # Patterns can contain '*' wildcards which are converted to '.*' regex patterns;
+  # every other character matches literally.
   #
   # @param [String] name The judge name to check
   # @param [Array<String>, String, nil] patterns Array of patterns, or single pattern string, may contain '*' wildcards
@@ -142,7 +143,7 @@ class Judges::Judges
   def fits?(name, patterns)
     return false if patterns.nil? || patterns.empty?
     Array(patterns).any? do |pattern|
-      name.match?("\\A#{pattern.gsub('*', '.*')}\\z")
+      name.match?("\\A#{Regexp.escape(pattern).gsub('\\*', '.*')}\\z")
     end
   end
 end
