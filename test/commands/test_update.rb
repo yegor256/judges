@@ -29,6 +29,15 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_sets_epoch_to_update_start
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), "$loog.info(\"captured-epoch=\#{$epoch.class}\")")
+      log = Loog::Buffer.new
+      Judges::Update.new(log).run({}, [d, File.join(d, 'base.fb')])
+      assert_includes(log.to_s, 'captured-epoch=Time')
+    end
+  end
+
   def test_with_only_one_judge
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), 'return if $fb.size > 2; $fb.insert')
