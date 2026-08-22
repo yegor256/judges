@@ -112,6 +112,19 @@ class TestJudges < Minitest::Test
     end
   end
 
+  def test_demote_pattern_treats_dot_literally
+    Dir.mktmpdir do |d|
+      names = %w[my.judge myxjudge myzz]
+      names.each do |n|
+        save_it(File.join(File.join(d, n), "#{n}.rb"), 'puts 1')
+      end
+      assert_equal(
+        %w[myxjudge myzz my.judge],
+        Judges::Judges.new(d, nil, Loog::NULL, shuffle: 'my', demote: ['my.judge']).each.to_a.map(&:name)
+      )
+    end
+  end
+
   def test_same_seed_produces_same_order
     Dir.mktmpdir do |d|
       names = %w[alpha beta gamma delta epsilon zeta eta theta].sort
