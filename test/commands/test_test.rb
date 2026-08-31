@@ -54,6 +54,27 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_reports_unparsable_pack_as_one_failure
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 4')
+      save_it(File.join(d, 'foo/broken.yml'), "input:\n  - foo: 42\n \tbad: yes\n")
+      save_it(
+        File.join(d, 'foo/good.yml'),
+        <<-YAML
+        input:
+          -
+            foo: 42
+        expected:
+          - /fb[count(f)=2]
+        YAML
+      )
+      assert_includes(
+        assert_raises(StandardError) { Judges::Test.new(Loog::NULL).run({}, [d]) }.message,
+        '1 tests failed'
+      )
+    end
+  end
+
   def test_with_options
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = $options.bar')
