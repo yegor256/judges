@@ -40,6 +40,7 @@ class Judges::Test
     raise(ArgumentError, 'Exactly one argument required') unless args.size == 1
     dir = args[0]
     @loog.info("Testing judges in #{dir.to_rel}...")
+    misplaced(dir)
     errors = []
     tested = 0
     tests = 0
@@ -74,6 +75,28 @@ class Judges::Test
   # rubocop:enable Metrics/MethodLength
 
   private
+
+  # Check that every sub-directory holds a script named after it.
+  #
+  # A directory without such a script is not a judge and is skipped silently
+  # by Judges::Judges, so a typo in a name means the judge never runs and
+  # nothing says why.
+  #
+  # @param [String] dir The directory with judges
+  # @raise [StandardError] If at least one sub-directory has no script of its own
+  def misplaced(dir)
+    bad =
+      Dir.glob(File.join(dir, '*'))
+        .select { |d| File.directory?(d) }
+        .reject { |d| File.exist?(File.join(d, "#{File.basename(d)}.rb")) }
+        .map { |d| "#{File.basename(d)}/#{File.basename(d)}.rb is absent" }
+    return if bad.empty?
+    raise(
+      StandardError,
+      "The layout of #{dir.to_rel} is wrong, every judge directory must hold " \
+      "a script named after it: #{bad.join('; ')}"
+    )
+  end
 
   def run_judge_tests(judge, buf, opts, judges, visible, times, errors)
     count = 0

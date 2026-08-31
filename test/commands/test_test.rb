@@ -249,4 +249,23 @@ class TestTest < Minitest::Test
       end
     end
   end
+
+  def test_rejects_directory_without_its_own_script
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      save_it(File.join(d, 'bar/baz.rb'), '$fb.insert.bar = 1')
+      assert_includes(
+        assert_raises(StandardError) { Judges::Test.new(Loog::NULL).run({}, [d]) }.message,
+        'bar/bar.rb is absent'
+      )
+    end
+  end
+
+  def test_accepts_a_correct_layout
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      save_it(File.join(d, 'foo/simple.yml'), "input:\nexpected:\n  - /fb[count(f)=1]")
+      Judges::Test.new(Loog::NULL).run({}, [d])
+    end
+  end
 end
