@@ -254,11 +254,10 @@ class TestTest < Minitest::Test
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
       save_it(File.join(d, 'bar/baz.rb'), '$fb.insert.bar = 1')
-      e =
-        assert_raises(StandardError) do
-          Judges::Test.new(Loog::NULL).run({}, [d])
-        end
-      assert_includes(e.message, 'bar/bar.rb is absent')
+      assert_includes(
+        assert_raises(StandardError) { Judges::Test.new(Loog::NULL).run({}, [d]) }.message,
+        'bar/bar.rb is absent'
+      )
     end
   end
 
