@@ -139,16 +139,14 @@ class TestJudges < Minitest::Test
     end
   end
 
-  def test_default_seed
+  def test_default_seed_gives_a_new_order_every_run
     Dir.mktmpdir do |d|
       names = %w[alpha beta gamma delta epsilon zeta eta theta].sort
       names.each do |n|
         save_it(File.join(File.join(d, n), "#{n}.rb"), 'puts 1')
       end
-      assert_equal(
-        Judges::Judges.new(d, nil, Loog::NULL, seed: 0).each.to_a.map(&:name),
-        Judges::Judges.new(d, nil, Loog::NULL).each.to_a.map(&:name), 'Default seed should be 0'
-      )
+      orders = Array.new(20) { Judges::Judges.new(d, nil, Loog::NULL).each.to_a.map(&:name) }
+      refute_equal(1, orders.uniq.size, 'Without a seed the order must not be the same every time')
     end
   end
 
