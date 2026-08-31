@@ -358,9 +358,7 @@ class TestUpdate < Minitest::Test
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1; sleep 999')
       churn = File.join(d, 'churn.txt')
-      Judges::Update.new(Loog::NULL).run(
-        { 'lifetime' => 0.1, 'churn' => churn }, [d, File.join(d, 'base.fb')]
-      )
+      Judges::Update.new(Loog::NULL).run({ 'lifetime' => 0.1, 'churn' => churn }, [d, File.join(d, 'base.fb')])
       assert_path_exists(churn)
       assert_includes(File.read(churn), '1i/0d/1a')
     end
