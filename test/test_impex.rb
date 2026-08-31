@@ -14,6 +14,14 @@ require_relative 'test__helper'
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
 class TestImpex < Minitest::Test
+  def test_leaves_no_temporary_file_behind
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      Judges::Impex.new(Loog::NULL, file).export(Factbase.new)
+      assert_equal(['base.fb'], Dir.children(d))
+    end
+  end
+
   def test_basic
     Dir.mktmpdir do |d|
       impex = Judges::Impex.new(Loog::NULL, File.join(d, 'foo.rb'))
