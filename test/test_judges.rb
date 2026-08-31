@@ -205,6 +205,42 @@ class TestJudges < Minitest::Test
     end
   end
 
+  def test_demote_matches_dot_literally
+    Dir.mktmpdir do |d|
+      %w[my.judge myxjudge myzz].each do |n|
+        save_it(File.join(File.join(d, n), "#{n}.rb"), 'puts 1')
+      end
+      assert_equal(
+        %w[myxjudge myzz my.judge],
+        Judges::Judges.new(d, nil, Loog::NULL, shuffle: 'my', demote: ['my.judge']).each.to_a.map(&:name)
+      )
+    end
+  end
+
+  def test_demote_matches_plus_literally
+    Dir.mktmpdir do |d|
+      ['a+b', 'ab'].each do |n|
+        save_it(File.join(File.join(d, n), "#{n}.rb"), 'puts 1')
+      end
+      assert_equal(
+        ['ab', 'a+b'],
+        Judges::Judges.new(d, nil, Loog::NULL, shuffle: 'a', demote: ['a+b']).each.to_a.map(&:name)
+      )
+    end
+  end
+
+  def test_demote_expands_asterisk_next_to_a_dot
+    Dir.mktmpdir do |d|
+      %w[x.alpha x.beta xyalpha].each do |n|
+        save_it(File.join(File.join(d, n), "#{n}.rb"), 'puts 1')
+      end
+      assert_equal(
+        %w[xyalpha x.alpha x.beta],
+        Judges::Judges.new(d, nil, Loog::NULL, shuffle: 'x', demote: ['x.*']).each.to_a.map(&:name)
+      )
+    end
+  end
+
   def test_boost_and_demote_with_wildcards_together
     Dir.mktmpdir do |d|
       names = %w[priority_one priority_two normal_alpha normal_beta slow_gamma slow_delta].sort
