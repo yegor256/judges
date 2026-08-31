@@ -81,12 +81,12 @@ class Judges::Test
       tname = File.basename(f).gsub(/\.yml$/, '')
       visible << "  #{judge.name}/#{tname}"
       next unless include?(opts, judge.name, tname)
-      yaml = YAML.load_file(f, permitted_classes: [Time])
-      next if skip_test?(buf, f, yaml, opts)
-      buf.info("🛠️ Testing #{f.to_rel}:")
       badge = "#{judge.name}/#{tname}"
       start = Time.now
       begin
+        yaml = YAML.load_file(f, permitted_classes: [Time])
+        next if skip_test?(buf, f, yaml, opts)
+        buf.info("🛠️ Testing #{f.to_rel}:")
         count += run_single_test(judge, buf, opts, judges, yaml, badge)
       rescue StandardError => e
         @loog.info(buf.to_s)
