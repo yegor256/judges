@@ -145,8 +145,11 @@ class TestJudges < Minitest::Test
       names.each do |n|
         save_it(File.join(File.join(d, n), "#{n}.rb"), 'puts 1')
       end
-      orders = Array.new(20) { Judges::Judges.new(d, nil, Loog::NULL).each.to_a.map(&:name) }
-      refute_equal(1, orders.uniq.size, 'Without a seed the order must not be the same every time')
+      refute_equal(
+        1,
+        Array.new(20) { Judges::Judges.new(d, nil, Loog::NULL).each.to_a.map(&:name) }.uniq.size,
+        'Without a seed the order must not be the same every time'
+      )
     end
   end
 
