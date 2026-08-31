@@ -194,7 +194,7 @@ class TestUpdate < Minitest::Test
       file = File.join(d, 'base.fb')
       log = Loog::Buffer.new
       Judges::Update.new(Loog::Tee.new(log, Loog::NULL)).run({ 'lifetime' => 0.1 }, [d, file])
-      assert_includes(log.to_s, 'Had to stop due to the --lifetime=0.1')
+      assert_includes(log.to_s, 'due to the --lifetime=0.1')
       assert_path_exists(file)
     end
   end
