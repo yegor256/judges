@@ -357,9 +357,10 @@ class TestUpdate < Minitest::Test
   def test_exports_churn_to_file_on_lifetime
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1; sleep 999')
-      file = File.join(d, 'base.fb')
       churn = File.join(d, 'churn.txt')
-      Judges::Update.new(Loog::NULL).run({ 'lifetime' => 0.1, 'churn' => churn }, [d, file])
+      Judges::Update.new(Loog::NULL).run(
+        { 'lifetime' => 0.1, 'churn' => churn }, [d, File.join(d, 'base.fb')]
+      )
       assert_path_exists(churn)
       assert_includes(File.read(churn), '1i/0d/1a')
     end
