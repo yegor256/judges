@@ -16,8 +16,7 @@ require_relative 'test__helper'
 class TestImpex < Minitest::Test
   def test_leaves_no_temporary_file_behind
     Dir.mktmpdir do |d|
-      file = File.join(d, 'base.fb')
-      Judges::Impex.new(Loog::NULL, file).export(Factbase.new)
+      Judges::Impex.new(Loog::NULL, File.join(d, 'base.fb')).export(Factbase.new)
       assert_equal(['base.fb'], Dir.children(d))
     end
   end
