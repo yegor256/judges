@@ -77,10 +77,7 @@ class TestOptions < Minitest::Test
   end
 
   def test_masks_a_secret_made_only_of_digits
-    assert_includes(
-      Judges::Options.new(['github_token=1234567890123456']).to_s,
-      '1234********3456'
-    )
+    assert_includes(Judges::Options.new(['github_token=1234567890123456']).to_s, '1234********3456')
   end
 
   def test_converts_to_string
