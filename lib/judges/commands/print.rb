@@ -24,7 +24,6 @@ require_relative '../../judges/impex'
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
 class Judges::Print
-  # The formats the factbase can be printed to.
   FORMATS = %w[yaml json xml html].freeze
 
   # Initialize.
