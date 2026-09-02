@@ -57,6 +57,12 @@ class Judges::Test
         tests += run_judge_tests(judge, buf, opts, judges, visible, times, errors)
         tested += 1
       end
+      if tested.zero? && !visible.empty? && !(opts['judge'] || []).empty?
+        raise(
+          StandardError,
+          "No judge matches --judge=#{opts['judge'].join(',')}, while these are available: #{visible.join(', ')}"
+        )
+      end
       print_test_summary(times, errors, tested, tests)
     end
     unless errors.empty?
