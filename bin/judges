@@ -180,7 +180,7 @@ class JudgesGLI extend GLI::App
   desc 'Convert the factbase to a human-readable format (YAML, JSON, etc.)'
   arg_name '<factbase> [<output>]'
   command :print do |c|
-    c.desc 'Output format (xml, json, or yaml)'
+    c.desc 'Output format (xml, json, yaml, or html)'
     c.flag([:format], default_value: 'yaml')
     c.desc 'Automatically generate the output filename'
     c.switch([:auto], default_value: false)

@@ -111,6 +111,22 @@ class TestPrint < Minitest::Test
     assert_equal('w50', cols.last['class'], 'Last col should have class="w50"')
   end
 
+  def test_refuses_an_unknown_format
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert.foo = 42
+      File.binwrite(f, fb.export)
+      o = File.join(d, 'out/deep/a.csv')
+      e =
+        assert_raises(ArgumentError) do
+          Judges::Print.new(Loog::NULL).run({ 'format' => 'csv' }, [f, o])
+        end
+      assert_includes(e.message, "Unknown format 'csv'", e.message)
+      refute_path_exists(File.dirname(o))
+    end
+  end
+
   def test_print_all_formats
     WebMock.disable_net_connect!
     stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(body: 'nothing')
