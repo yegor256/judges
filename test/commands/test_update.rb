@@ -236,16 +236,14 @@ class TestUpdate < Minitest::Test
     end
   end
 
-  def test_refuses_a_cycle_count_below_one
+  def test_runs_no_cycle_when_none_is_allowed
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
       file = File.join(d, 'base.fb')
-      e =
-        assert_raises(ArgumentError) do
-          Judges::Update.new(Loog::NULL).run({ 'quiet' => true, 'max-cycles' => 0 }, [d, file])
-        end
-      assert_includes(e.message, 'The --max-cycles must be positive', e.message)
-      refute_path_exists(file)
+      Judges::Update.new(Loog::NULL).run({ 'quiet' => true, 'max-cycles' => 0 }, [d, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_equal(0, fb.size)
     end
   end
 
