@@ -20,9 +20,9 @@ Feature: Test
     Then Exit code is zero
     And Stdout contains "Factbase version to be used: '0.19.14'"
 
-  Scenario: Simple test of no judges
+  Scenario: A judge name that matches nothing is refused
     Given I run bin/judges with "test --judge absent_for_sure ./fixtures"
-    Then Exit code is zero
+    Then Exit code is not zero
 
   Scenario: Simple test of no judges at all
     Given I make a temp directory
