@@ -38,6 +38,9 @@ class Judges::Test
   # rubocop:disable Metrics/MethodLength
   def run(opts, args)
     raise(ArgumentError, 'Exactly one argument required') unless args.size == 1
+    unless opts['runs'].nil? || opts['runs'].to_i.positive?
+      raise(ArgumentError, "The --runs must be positive, while #{opts['runs']} provided")
+    end
     dir = args[0]
     @loog.info("Testing judges in #{dir.to_rel}...")
     misplaced(dir)
@@ -229,7 +232,7 @@ class Judges::Test
   # rubocop:disable Metrics/MethodLength
   def test_one(fb, opts, judge, tname, yaml, assert: true)
     options = Judges::Options.new(opts['option']) + Judges::Options.new(yaml['options'])
-    runs = opts['runs'] || yaml['runs'] || 1
+    runs = runs_of(opts, yaml)
     timeout = yaml['timeout']
     (1..runs).each do |r|
       fbx = fb
@@ -265,6 +268,18 @@ class Judges::Test
     end
   end
   # rubocop:enable Metrics/MethodLength
+
+  # How many times the test must be repeated.
+  # @param [Hash] opts The command line options
+  # @param [Hash] yaml The YAML of the test pack
+  # @return [Integer] The number of runs, always positive
+  def runs_of(opts, yaml)
+    runs = (opts['runs'] || yaml['runs'] || 1).to_i
+    unless runs.positive?
+      raise(StandardError, "The number of runs must be positive, while #{runs} provided")
+    end
+    runs
+  end
 
   def assert(judge, tname, fb, yaml)
     xpaths = yaml['expected']
