@@ -236,6 +236,19 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_refuses_a_cycle_count_below_one
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      file = File.join(d, 'base.fb')
+      e =
+        assert_raises(ArgumentError) do
+          Judges::Update.new(Loog::NULL).run({ 'quiet' => true, 'max-cycles' => 0 }, [d, file])
+        end
+      assert_includes(e.message, 'The --max-cycles must be positive', e.message)
+      refute_path_exists(file)
+    end
+  end
+
   def test_appends_to_existing_summary
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), 'mistake here')

@@ -41,6 +41,9 @@ class Judges::Update
   # @raise [RuntimeError] If not exactly two arguments provided or directory is missing
   def run(opts, args)
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
+    unless opts['max-cycles'].nil? || opts['max-cycles'].to_i.positive?
+      raise(ArgumentError, "The --max-cycles must be positive, while #{opts['max-cycles']} provided")
+    end
     dir = args[0]
     raise(StandardError, "The directory is absent: #{dir.to_rel}") unless File.exist?(dir)
     impex = Judges::Impex.new(@loog, args[1])
