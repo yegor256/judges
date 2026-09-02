@@ -32,7 +32,7 @@ class Judges::Import
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     raise(StandardError, "File not found #{args[0].to_rel}") unless File.exist?(args[0])
     elapsed(@loog, level: Logger::INFO) do
-      yaml = facts_of(args[0])
+      yaml = facts(args[0])
       @loog.info("YAML loaded from #{args[0].to_rel} (#{yaml.size} facts)")
       impex = Judges::Impex.new(@loog, args[1])
       fb = impex.import(strict: false)
@@ -56,7 +56,7 @@ class Judges::Import
   # Read the facts out of a YAML file.
   # @param [String] file The path of the file to read
   # @return [Array] The list of facts found in it
-  def facts_of(file)
+  def facts(file)
     yaml = YAML.load_file(file, permitted_classes: [Time])
     raise(StandardError, "The file #{file.to_rel} is empty, nothing to import") if yaml.nil?
     unless yaml.is_a?(Array)
