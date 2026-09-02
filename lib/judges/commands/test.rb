@@ -232,7 +232,7 @@ class Judges::Test
   # rubocop:disable Metrics/MethodLength
   def test_one(fb, opts, judge, tname, yaml, assert: true)
     options = Judges::Options.new(opts['option']) + Judges::Options.new(yaml['options'])
-    runs = runs_of(opts, yaml)
+    runs = repetitions(opts, yaml)
     timeout = yaml['timeout']
     (1..runs).each do |r|
       fbx = fb
@@ -273,7 +273,7 @@ class Judges::Test
   # @param [Hash] opts The command line options
   # @param [Hash] yaml The YAML of the test pack
   # @return [Integer] The number of runs, always positive
-  def runs_of(opts, yaml)
+  def repetitions(opts, yaml)
     runs = (opts['runs'] || yaml['runs'] || 1).to_i
     unless runs.positive?
       raise(StandardError, "The number of runs must be positive, while #{runs} provided")
