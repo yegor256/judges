@@ -247,6 +247,20 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_summary_counts_what_the_cycle_did
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '3.times { $fb.insert.then { |f| f.what = "x"; f.who = 1 } }')
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::NULL).run({ 'quiet' => true, 'summary' => 'add', 'max-cycles' => 1 }, [d, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      sum = fb.query('(eq what "judges-summary")').each.to_a.first
+      assert_equal(3, sum.inserted)
+      assert_equal(0, sum.deleted)
+      assert_equal(6, sum.added)
+    end
+  end
+
   def test_appends_to_existing_summary
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), 'mistake here')
