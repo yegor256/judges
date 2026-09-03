@@ -14,6 +14,7 @@ require 'time'
 require 'total'
 require_relative '../lib/judges'
 require_relative '../lib/judges/ascii_loog'
+require_relative '../lib/judges/masked_args'
 
 Encoding.default_external = Encoding::UTF_8
 Encoding.default_internal = Encoding::UTF_8
@@ -70,7 +71,7 @@ class JudgesGLI extend GLI::App
       @@loog = Judges::AsciiLoog.new(@@loog)
     end
     if global[:echo]
-      @@loog.info("+ #{File.absolute_path($0)} #{@@args.join(' ')}")
+      @@loog.info("+ #{File.absolute_path($0)} #{Judges::MaskedArgs.new(@@args)}")
     end
     @@loog.debug("Judges #{Judges::VERSION}")
     if global[:factbase]
