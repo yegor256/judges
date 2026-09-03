@@ -37,4 +37,28 @@ class TestImport < Minitest::Test
       refute_empty(xml.xpath('/fb[count(f)=2]'), xml)
     end
   end
+
+  def test_refuses_an_empty_file
+    Dir.mktmpdir do |d|
+      yaml = File.join(d, 'input.yml')
+      File.write(yaml, '')
+      e =
+        assert_raises(StandardError) do
+          Judges::Import.new(Loog::NULL).run({}, [yaml, File.join(d, 'base.fb')])
+        end
+      assert_includes(e.message, 'is empty, nothing to import', e.message)
+    end
+  end
+
+  def test_refuses_a_file_that_is_not_an_array
+    Dir.mktmpdir do |d|
+      yaml = File.join(d, 'input.yml')
+      save_it(yaml, "foo: 42\n")
+      e =
+        assert_raises(StandardError) do
+          Judges::Import.new(Loog::NULL).run({}, [yaml, File.join(d, 'base.fb')])
+        end
+      assert_includes(e.message, 'must hold an array of facts, while Hash found', e.message)
+    end
+  end
 end
