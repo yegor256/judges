@@ -33,6 +33,26 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_refuses_a_judge_name_that_matches_nothing
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 4')
+      save_it(
+        File.join(d, 'foo/something.yml'),
+        <<-YAML
+        input: []
+        expected:
+          - /fb[count(f)=1]
+        YAML
+      )
+      e =
+        assert_raises(StandardError) do
+          Judges::Test.new(Loog::NULL).run({ 'judge' => ['nosuchjudge'] }, [d])
+        end
+      assert_includes(e.message, 'No judge matches --judge=nosuchjudge', e.message)
+      assert_includes(e.message, 'foo', e.message)
+    end
+  end
+
   def test_negative
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.query("(eq foo 42)").each { |f| f.bar = 4 }')
