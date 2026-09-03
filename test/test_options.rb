@@ -29,13 +29,11 @@ class TestOptions < Minitest::Test
   end
 
   def test_keeps_multiline_value_as_is
-    opts = Judges::Options.new({ 'secret' => "12345\nnot-a-number" })
-    assert_equal("12345\nnot-a-number", opts.secret)
+    assert_equal("12345\nnot-a-number", Judges::Options.new({ 'secret' => "12345\nnot-a-number" }).secret)
   end
 
   def test_keeps_leading_zeros
-    opts = Judges::Options.new(['pin=007'])
-    assert_equal('007', opts.pin)
+    assert_equal('007', Judges::Options.new(['pin=007']).pin)
   end
 
   def test_converts_plain_digits
