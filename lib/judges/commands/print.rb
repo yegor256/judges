@@ -24,6 +24,8 @@ require_relative '../../judges/impex'
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
 class Judges::Print
+  FORMATS = %w[yaml json xml html].freeze
+
   # Initialize.
   # @param [Loog] loog Logging facility
   def initialize(loog)
@@ -37,11 +39,12 @@ class Judges::Print
   # rubocop:disable Metrics/MethodLength
   def run(opts, args)
     raise(ArgumentError, 'At least one argument required') if args.empty?
+    fmt = opts['format']&.downcase
+    raise(ArgumentError, "Unknown format '#{fmt}', use one of #{FORMATS.join(', ')}") unless FORMATS.include?(fmt)
     f = args[0]
     fb = Judges::Impex.new(@loog, f).import
     fb.query("(not #{opts['query']})").delete! unless opts['query'].nil?
     o = args[1]
-    fmt = opts['format']&.downcase
     if o.nil?
       raise(ArgumentError, 'Either provide output file name or use --auto') unless opts['auto']
       o = File.join(File.dirname(f), File.basename(f).gsub(/\.[^.]*$/, ''))
@@ -68,10 +71,8 @@ class Judges::Print
           when 'xml'
             require('factbase/to_xml')
             Factbase::ToXML.new(fb).xml
-          when 'html'
-            to_html(opts, fb)
           else
-            raise(StandardError, "Unknown format '#{fmt}'")
+            to_html(opts, fb)
         end
       )
       throw(:"👍 Factbase printed to #{o.to_rel} (#{File.size(o)} bytes)")
