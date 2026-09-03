@@ -5,8 +5,8 @@
 
 require 'factbase'
 require 'loog'
-require 'qbash'
-require 'shellwords'
+require 'open3'
+require 'rbconfig'
 require 'tmpdir'
 require_relative '../lib/judges'
 require_relative '../lib/judges/judge'
@@ -43,7 +43,7 @@ class TestJudge < Minitest::Test
           'end'
         ].join("\n")
       )
-      assert_includes(qbash("ruby #{Shellwords.escape(main)}", accept: [0]), 'kaboom')
+      assert_includes(Open3.capture2e(RbConfig.ruby, main).first, 'kaboom')
     end
   end
 
