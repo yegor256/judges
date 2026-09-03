@@ -24,11 +24,14 @@ class Judges::Categories
   # - If no categories are enabled (empty enable list), all tests are accepted
   #   unless explicitly disabled
   #
-  # @param [Array<String>] enable List of categories to enable
-  # @param [Array<String>] disable List of categories to disable
+  # A single category may be given instead of a list, the same way +ok?+
+  # accepts one.
+  #
+  # @param [Array<String>, String, nil] enable List of categories to enable
+  # @param [Array<String>, String, nil] disable List of categories to disable
   def initialize(enable, disable)
-    @enable = enable.is_a?(Array) ? enable : []
-    @disable = disable.is_a?(Array) ? disable : []
+    @enable = listed(enable)
+    @disable = listed(disable)
   end
 
   # Check if a test with given categories should be executed.
@@ -58,5 +61,16 @@ class Judges::Categories
     return true if cats.any? { |c| @enable.any?(c) }
     return true if @enable.empty?
     false
+  end
+
+  private
+
+  # Turn one category into a list of one, and nil into an empty list.
+  #
+  # @param [Array<String>, String, nil] cats Categories, in whatever shape
+  # @return [Array<String>] The categories as a list
+  def listed(cats)
+    return [] if cats.nil?
+    cats.is_a?(Array) ? cats : [cats]
   end
 end
