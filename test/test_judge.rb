@@ -26,7 +26,7 @@ class TestJudge < Minitest::Test
     end
   end
 
-  def test_runs_a_failing_judge_without_sibling_requires
+  def test_runs_a_failing_judge_alone
     Dir.mktmpdir do |d|
       save_it(File.join(d, "#{File.basename(d)}.rb"), "raise 'kaboom'")
       main = File.join(d, 'main.rb')
@@ -36,15 +36,14 @@ class TestJudge < Minitest::Test
           "require 'factbase'",
           "require 'loog'",
           "require_relative #{File.absolute_path('lib/judges/judge.rb').inspect}",
-          "begin",
+          'begin',
           "  Judges::Judge.new(#{d.inspect}, nil, Loog::NULL).run(Factbase.new, {}, {}, {})",
-          "rescue StandardError => e",
-          "  puts e.message",
-          "end"
+          'rescue StandardError => e',
+          '  puts e.message',
+          'end'
         ].join("\n")
       )
-      stdout = qbash("ruby #{Shellwords.escape(main)}", accept: [0], both: true)
-      assert_includes(stdout, 'kaboom')
+      assert_includes(qbash("ruby #{Shellwords.escape(main)}", accept: [0]), 'kaboom')
     end
   end
 
