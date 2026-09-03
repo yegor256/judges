@@ -118,6 +118,10 @@ class Judges::Update
     log_summary(opts, fb)
     elapsed(@loog, level: Logger::INFO) do
       loop do
+        if !opts['max-cycles'].nil? && c >= opts['max-cycles']
+          @loog.info("Too many cycles already, as set by --max-cycles=#{opts['max-cycles']}, breaking")
+          break
+        end
         c += 1
         if c > 1
           if opts['lifetime'] && Time.now - @start > opts['lifetime'] * 0.51
@@ -131,10 +135,6 @@ class Judges::Update
         ch += delta
         if delta.zero?
           @loog.info("The update cycle ##{c} has made no changes to the factbase, let's stop")
-          break
-        end
-        if !opts['max-cycles'].nil? && c >= opts['max-cycles']
-          @loog.info("Too many cycles already, as set by --max-cycles=#{opts['max-cycles']}, breaking")
           break
         end
         if opts['fail-fast'] && !errors.empty?

@@ -236,6 +236,17 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_runs_no_cycle_when_none_is_allowed
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::NULL).run({ 'quiet' => true, 'max-cycles' => 0 }, [d, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_equal(0, fb.size)
+    end
+  end
+
   def test_appends_to_existing_summary
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), 'mistake here')
