@@ -16,14 +16,25 @@
   <xsl:template name="javascript">
     <xsl:param name="url" as="string"/>
     <xsl:param name="hash" as="string"/>
-    <script type="text/javascript" src="{$url}" integrity="{$hash}" crossorigin="anonymous">
+    <script type="text/javascript" src="{$url}" crossorigin="anonymous">
+      <xsl:if test="$hash != ''">
+        <xsl:attribute name="integrity">
+          <xsl:value-of select="$hash"/>
+        </xsl:attribute>
+      </xsl:if>
       <xsl:text> </xsl:text>
     </script>
   </xsl:template>
   <xsl:template name="css">
     <xsl:param name="url" as="string"/>
     <xsl:param name="hash" as="string"/>
-    <link href="{$url}" rel="stylesheet" integrity="{$hash}" crossorigin="anonymous"/>
+    <link href="{$url}" rel="stylesheet" crossorigin="anonymous">
+      <xsl:if test="$hash != ''">
+        <xsl:attribute name="integrity">
+          <xsl:value-of select="$hash"/>
+        </xsl:attribute>
+      </xsl:if>
+    </link>
   </xsl:template>
   <xsl:template match="/">
     <xsl:text disable-output-escaping="yes">&lt;!DOCTYPE html&gt;</xsl:text>

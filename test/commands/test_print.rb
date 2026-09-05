@@ -156,4 +156,27 @@ class TestPrint < Minitest::Test
       assert_equal(File.mtime(y), File.mtime(y))
     end
   end
+
+  def test_no_integrity_when_the_asset_fails
+    WebMock.disable_net_connect!
+    stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(status: 500)
+    stub_request(:get, 'https://yegor256.github.io/judges/assets/index.js').to_return(status: 500)
+    fb = Factbase.new
+    fb.insert.what = 'test'
+    loog = Loog::Buffer.new
+    Dir.mktmpdir do |d|
+      factbase = File.join(d, 'base.fb')
+      html = File.join(d, 'base.html')
+      File.binwrite(factbase, fb.export)
+      Judges::Print.new(loog).run({ 'format' => 'html' }, [factbase, html])
+      doc = Nokogiri::HTML(File.read(html))
+      link = doc.at_css('link[href="https://yegor256.github.io/judges/assets/index.css"]')
+      refute_nil(link)
+      assert_nil(link['integrity'])
+      script = doc.at_css('script[src="https://yegor256.github.io/judges/assets/index.js"]')
+      refute_nil(script)
+      assert_nil(script['integrity'])
+    end
+    assert_includes(loog.to_s, 'without integrity check')
+  end
 end

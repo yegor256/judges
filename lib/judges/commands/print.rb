@@ -104,11 +104,12 @@ class Judges::Print
     with_retries do
       url = "https://yegor256.github.io/judges/assets/#{asset}"
       http = Typhoeus::Request.get(url)
-      return "Timeout at #{url.inspect}" if http.timed_out?
+      raise(StandardError, "Timeout at #{url.inspect}") if http.timed_out?
       raise(StandardError, "Failed to load #{url.inspect}") unless http.code == 200
       "sha256-#{Base64.strict_encode64(Digest::SHA256.digest(http.body))}"
     rescue StandardError => e
-      e.message
+      @loog.warn("Failed to fetch #{asset.inspect}, the page will load it without integrity check: #{e.message}")
+      ''
     end
   end
 end
