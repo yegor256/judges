@@ -192,9 +192,7 @@ class TestPrint < Minitest::Test
       html = File.join(d, 'base.html')
       File.binwrite(factbase, fb.export)
       Judges::Print.new(Loog::NULL).run({ 'format' => 'html' }, [factbase, html])
-      link = Nokogiri::HTML(File.read(html)).at_css(
-        'link[href="https://yegor256.github.io/judges/assets/index.css"]'
-      )
+      link = Nokogiri::HTML(File.read(html)).at_css('link[href="https://yegor256.github.io/judges/assets/index.css"]')
       refute_nil(link)
       assert_match(/^sha256-/, link['integrity'])
     end
