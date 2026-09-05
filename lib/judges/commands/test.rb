@@ -38,9 +38,7 @@ class Judges::Test
   # rubocop:disable Metrics/MethodLength
   def run(opts, args)
     raise(ArgumentError, 'Exactly one argument required') unless args.size == 1
-    unless opts['runs'].nil? || opts['runs'].to_i.positive?
-      raise(ArgumentError, "The --runs must be positive, while #{opts['runs']} provided")
-    end
+    verify(opts['runs'])
     dir = args[0]
     @loog.info("Testing judges in #{dir.to_rel}...")
     misplaced(dir)
@@ -268,6 +266,14 @@ class Judges::Test
     end
   end
   # rubocop:enable Metrics/MethodLength
+
+  # Make sure the --runs option is not below one.
+  # @param [String] runs The value of the option, may be nil
+  # @return [nil]
+  def verify(runs)
+    return if runs.nil? || runs.to_i.positive?
+    raise(ArgumentError, "The --runs must be positive, while #{runs} provided")
+  end
 
   # How many times the test must be repeated.
   # @param [Hash] opts The command line options
