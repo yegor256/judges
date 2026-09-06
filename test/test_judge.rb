@@ -8,6 +8,7 @@ require 'loog'
 require 'tmpdir'
 require_relative '../lib/judges'
 require_relative '../lib/judges/judge'
+require_relative '../lib/judges/options'
 require_relative 'test__helper'
 
 # Test.
@@ -21,6 +22,22 @@ class TestJudge < Minitest::Test
       fb = Factbase.new
       Judges::Judge.new(d, nil, Loog::NULL).run(fb, {}, {}, {})
       assert_equal(1, fb.size)
+    end
+  end
+
+  def test_restores_env_after_run
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, "#{File.basename(d)}.rb"), "raise 'no option' if ENV['ZRCY_LEAK'].nil?")
+      Judges::Judge.new(d, nil, Loog::NULL).run(Factbase.new, {}, {}, Judges::Options.new(['zrcy_leak=s3cr3t']))
+      assert_nil(ENV.fetch('ZRCY_LEAK', nil))
+    end
+  end
+
+  def test_keeps_reserved_names_out_of_env
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, "#{File.basename(d)}.rb"), '$fb.insert')
+      Judges::Judge.new(d, nil, Loog::NULL).run(Factbase.new, {}, {}, Judges::Options.new(['path=/nowhere']))
+      refute_equal('/nowhere', ENV.fetch('PATH', nil))
     end
   end
 

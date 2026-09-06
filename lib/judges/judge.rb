@@ -17,6 +17,11 @@ require_relative '../judges/to_rel'
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
 class Judges::Judge
+  RESERVED = %w[
+    PATH HOME SHELL TMPDIR PWD USER LANG
+    GEM_HOME GEM_PATH RUBYOPT RUBYLIB LD_PRELOAD LD_LIBRARY_PATH
+  ].freeze
+
   attr_reader :dir
 
   # Ctor.
@@ -68,7 +73,6 @@ class Judges::Judge
     $local = local
     $epoch = @epoch
     $kickoff = Time.now
-    options.to_h.each { |k, v| ENV.store(k.to_s, v.to_s) }
     unless @lib.nil?
       raise(StandardError, "Lib dir #{@lib.to_rel} is absent") unless File.exist?(@lib)
       raise(StandardError, "Lib #{@lib.to_rel} is not a directory") unless File.directory?(@lib)
@@ -78,6 +82,15 @@ class Judges::Judge
     end
     s = File.join(@dir, script)
     raise(StandardError, "Can't load '#{s}'") unless File.exist?(s)
+    env = ENV.to_h
+    options.to_h.each do |k, v|
+      n = k.to_s
+      if RESERVED.include?(n)
+        @loog.warn("The #{n} option is not copied into ENV, this name is reserved")
+        next
+      end
+      ENV.store(n, v.to_s)
+    end
     elapsed(@loog, good: "#{$judge} completed", level: Logger::INFO) do
       load(s, true)
       nil
@@ -92,6 +105,7 @@ class Judges::Judge
       raise(StandardError, "#{e.message} (#{e.class.name})")
     ensure
       $fb = $judge = $options = $loog = $epoch = $kickoff = nil
+      ENV.replace(env)
     end
   end
   # rubocop:enable Metrics/MethodLength
