@@ -5,6 +5,8 @@
 
 require 'factbase'
 require 'loog'
+require 'open3'
+require 'rbconfig'
 require 'tmpdir'
 require_relative '../lib/judges'
 require_relative '../lib/judges/judge'
@@ -21,6 +23,27 @@ class TestJudge < Minitest::Test
       fb = Factbase.new
       Judges::Judge.new(d, nil, Loog::NULL).run(fb, {}, {}, {})
       assert_equal(1, fb.size)
+    end
+  end
+
+  def test_runs_a_failing_judge_alone
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, "#{File.basename(d)}.rb"), "raise 'kaboom'")
+      main = File.join(d, 'main.rb')
+      save_it(
+        main,
+        [
+          "require 'factbase'",
+          "require 'loog'",
+          "require_relative #{File.absolute_path('lib/judges/judge.rb').inspect}",
+          'begin',
+          "  Judges::Judge.new(#{d.inspect}, nil, Loog::NULL).run(Factbase.new, {}, {}, {})",
+          'rescue StandardError => e',
+          '  puts e.message',
+          'end'
+        ].join("\n")
+      )
+      assert_includes(Open3.capture2e(RbConfig.ruby, main).first, 'kaboom')
     end
   end
 
