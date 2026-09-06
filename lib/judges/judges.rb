@@ -56,6 +56,9 @@ class Judges::Judges
   def get(name)
     d = File.absolute_path(File.join(@dir, name))
     raise(StandardError, "Judge #{name} doesn't exist in #{@dir}") unless File.exist?(d)
+    raise(StandardError, "Judge #{name} is a file, while a directory is expected") unless File.directory?(d)
+    s = script(d)
+    raise(StandardError, "Judge #{name} has no #{File.basename(s)} inside") unless File.exist?(s)
     Judges::Judge.new(d, @lib, @loog, epoch: @epoch)
   end
 
@@ -125,10 +128,18 @@ class Judges::Judges
     good.map { |a| a[0] }
   end
 
+  # The script a judge in this directory must have.
+  #
+  # @param [String] dir The directory of the judge
+  # @return [String] The absolute path of the script
+  def script(dir)
+    File.join(dir, "#{File.basename(dir)}.rb")
+  end
+
   def discover_judges
     Dir.glob(File.join(@dir, '*')).each.to_a.filter_map do |d|
       next unless File.directory?(d)
-      next unless File.exist?(File.join(d, "#{File.basename(d)}.rb"))
+      next unless File.exist?(script(d))
       Judges::Judge.new(File.absolute_path(d), @lib, @loog, epoch: @epoch)
     end
   end
