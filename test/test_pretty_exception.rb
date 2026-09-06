@@ -27,5 +27,12 @@ class TestPrettyException < Minitest::Test
     assert_instance_of(RuntimeError, exp)
     assert_kind_of(RuntimeError, exp)
     assert_kind_of(StandardError, exp)
+    assert_kind_of(StandardError, exp)
+  end
+
+  def test_raise_keeps_class_and_shortens_message
+    txt = 'y' * 300
+    pretty = Judges::PrettyException.new(ArgumentError.new(txt))
+    assert_equal(txt.ellipsized(100, :right), assert_raises(ArgumentError) { raise(pretty) }.message)
   end
 end
