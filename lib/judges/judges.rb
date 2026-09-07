@@ -96,14 +96,16 @@ class Judges::Judges
   # as determined by the #each method (with boost and shuffle rules applied).
   #
   # @yield [Judges::Judge, Integer] Yields each judge object along with its index (starting from 0)
-  # @return [Integer] The total count of judges processed
+  # @return [Enumerator] Returns an enumerator if no block is given
+  # @return [Judges::Judges] Returns itself, the way Enumerable#each_with_index does
   def each_with_index
+    return to_enum(__method__) unless block_given?
     idx = 0
     each do |p|
-      yield([p, idx])
+      yield(p, idx)
       idx += 1
     end
-    idx
+    self
   end
 
   private

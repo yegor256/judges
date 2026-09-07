@@ -195,6 +195,37 @@ class TestJudges < Minitest::Test
     end
   end
 
+  def test_each_with_index_without_a_block
+    Dir.mktmpdir do |d|
+      %w[alpha beta gamma].each { |n| save_it(File.join(d, n, "#{n}.rb"), 'hey') }
+      js = Judges::Judges.new(d, nil, Loog::NULL)
+      assert_kind_of(Enumerator, js.each_with_index)
+      assert_equal(3, js.each_with_index.to_a.size)
+    end
+  end
+
+  def test_each_with_index_yields_two_values
+    Dir.mktmpdir do |d|
+      %w[alpha beta gamma].each { |n| save_it(File.join(d, n, "#{n}.rb"), 'hey') }
+      seen = []
+      Judges::Judges.new(d, nil, Loog::NULL).each_with_index do |j| # rubocop:disable Lint/UnexpectedBlockArity, Lint/RedundantWithIndex
+        seen << j
+      end
+      assert_equal(3, seen.size)
+      seen.each { |j| assert_kind_of(Judges::Judge, j, 'a one-parameter block must get the judge alone') }
+    end
+  end
+
+  def test_each_with_index_returns_itself
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo', 'foo.rb'), 'hey')
+      js = Judges::Judges.new(d, nil, Loog::NULL)
+      seen = 0
+      assert_same(js, js.each_with_index { |_j, _i| seen += 1 })
+      assert_equal(1, seen)
+    end
+  end
+
   def test_each_forwards_epoch_to_judge
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), 'puts 1')
