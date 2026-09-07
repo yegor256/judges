@@ -101,12 +101,14 @@ class Judges::Print
 
   def sha256(opts, asset)
     return 'sha256-offline' if opts['offline']
-    with_retries do
-      url = "https://yegor256.github.io/judges/assets/#{asset}"
-      http = Typhoeus::Request.get(url)
-      raise(StandardError, "Timeout at #{url.inspect}") if http.timed_out?
-      raise(StandardError, "Failed to load #{url.inspect}") unless http.code == 200
-      "sha256-#{Base64.strict_encode64(Digest::SHA256.digest(http.body))}"
+    url = "https://yegor256.github.io/judges/assets/#{asset}"
+    begin
+      with_retries(max_tries: 3, base_sleep_seconds: 0.1, max_sleep_seconds: 0.5) do
+        http = Typhoeus::Request.get(url)
+        raise(StandardError, "Timeout at #{url.inspect}") if http.timed_out?
+        raise(StandardError, "Failed to load #{url.inspect}") unless http.code == 200
+        "sha256-#{Base64.strict_encode64(Digest::SHA256.digest(http.body))}"
+      end
     rescue StandardError => e
       @loog.warn("Failed to fetch #{asset.inspect}, the page will load it without integrity check: #{e.message}")
       ''
