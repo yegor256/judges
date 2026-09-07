@@ -125,7 +125,7 @@ class Judges::Options
       .to_h
       .transform_values { |v| v.nil? ? 'true' : v }
       .transform_values { |v| v.is_a?(String) ? v.strip : v }
-      .transform_values { |v| v.is_a?(String) && v.match?(/^[0-9]+$/) ? v.to_i : v }
+      .transform_values { |v| v.is_a?(String) && v.match?(/\A(?:0|[1-9][0-9]*)\z/) ? v.to_i : v }
       .transform_keys { |k| k.to_s.strip.upcase.to_sym }
   end
 
