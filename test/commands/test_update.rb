@@ -442,4 +442,25 @@ class TestUpdate < Minitest::Test
       refute_match('PrettyException', out)
     end
   end
+
+  def test_keeps_the_old_summary_when_the_run_fails
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'this$is$a$broken$Ruby$script')
+      file = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert.then do |f|
+        f.what = 'judges-summary'
+        f.error = 'from the previous run'
+      end
+      File.binwrite(file, fb.export)
+      assert_raises(StandardError) do
+        Judges::Update.new(Loog::NULL).run({ 'summary' => 'add', 'max-cycles' => 1 }, [d, file])
+      end
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      sums = fb.query('(eq what "judges-summary")').each.to_a
+      assert_equal(1, sums.size)
+      assert_equal(['from the previous run'], sums.first['error'])
+    end
+  end
 end
