@@ -14,14 +14,14 @@ class Object
   # @return [String] Relative path to the file with optional quotes if it contains spaces
   def to_rel
     s = File.absolute_path(to_s)
-    p = Pathname.new(s).relative_path_from(Dir.getwd)
-    t = p.to_s
+    t =
+      begin
+        Pathname.new(s).relative_path_from(Dir.getwd).to_s
+      rescue ArgumentError
+        s
+      end
     t = s if t.length > s.length
     t = "\"#{t}\"" if t.include?(' ')
-    if p.directory?
-      "#{t}/"
-    else
-      t
-    end
+    File.directory?(s) ? "#{t}/" : t
   end
 end
