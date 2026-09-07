@@ -171,7 +171,7 @@ class Judges::Update
       s = before.first
       errs = s['error']&.size || 0
       @loog.info(
-        "A summary found, with #{errs.positive? || 'no'} error#{'s' if errs > 1 || errs.zero?}: " \
+        "A summary found, with #{errs.positive? ? errs : 'no'} error#{'s' if errs > 1 || errs.zero?}: " \
         "#{%w[when cycles version inserted deleted added].map { |a| "#{a}=#{s[a]&.first}" }.join(', ')}"
       )
     end
