@@ -198,14 +198,14 @@ class Judges::Update
     global = {}
     used = 0
     elapsed(@loog, level: Logger::INFO) do
-      done =
-        judges.each_with_index do |judge, idx|
-          result = run_judge_in_cycle(judge, idx, opts, fb, churn, options, errors, global, statistics)
-          if result
-            used += 1
-            delta += result if result.is_a?(Factbase::Churn)
-          end
-        end
+      done = 0
+      judges.each_with_index do |judge, idx|
+        done += 1
+        result = run_judge_in_cycle(judge, idx, opts, fb, churn, options, errors, global, statistics)
+        next unless result
+        used += 1
+        delta += result if result.is_a?(Factbase::Churn)
+      end
       throw(:"👍 #{done} judge(s) processed") if errors.empty?
       throw(:"❌ #{done} judge(s) processed with #{errors.size} errors")
     end
