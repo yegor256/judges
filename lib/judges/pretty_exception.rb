@@ -11,9 +11,18 @@ require_relative '../judges'
 class Judges::PrettyException < SimpleDelegator
   undef_method :class
   undef_method :instance_of?
+  undef_method :is_a?
   undef_method :kind_of?
 
   def message
     __getobj__.message.ellipsized(100, :right)
+  end
+
+  # The exception to raise, of the original class, with the shortened message.
+  #
+  # @param [String] msg The message to use, or nil to use the shortened one
+  # @return [Exception] The exception
+  def exception(msg = nil)
+    __getobj__.exception(msg || message)
   end
 end
