@@ -37,4 +37,15 @@ class TestCategories < Minitest::Test
     assert(cats.ok?(%w[other more bar]))
     refute(cats.ok?(%w[bad other]))
   end
+
+  def test_takes_one_category_as_a_string
+    cats = Judges::Categories.new('slow', 'broken')
+    refute(cats.ok?(['broken']))
+    refute(cats.ok?(['other']))
+    assert(cats.ok?(['slow']))
+  end
+
+  def test_takes_nil_lists
+    assert(Judges::Categories.new(nil, nil).ok?(['anything']))
+  end
 end
