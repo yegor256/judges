@@ -43,7 +43,9 @@ class Judges::Import
       yaml.each do |i|
         f = fb.insert
         i.each do |p, v|
-          f.public_send(:"#{p}=", v)
+          Array(v).each do |value|
+            f.public_send(:"#{p}=", value)
+          end
         end
       end
       impex.export(fb)
