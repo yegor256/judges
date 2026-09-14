@@ -300,12 +300,12 @@ class TestJudges < Minitest::Test
   def test_rejects_judge_in_boost_and_demote
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'alpha', 'alpha.rb'), 'puts 1')
-      error = assert_raises(StandardError) do
-        Judges::Judges.new(
-          d, nil, Loog::NULL, boost: ['alpha'], demote: ['alpha']
-        ).each.to_a
-      end
-      assert_includes(error.message, 'matches both boost and demote patterns')
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Judges.new(d, nil, Loog::NULL, boost: ['alpha'], demote: ['alpha']).each.to_a
+        end.message,
+        'matches both boost and demote patterns'
+      )
     end
   end
 end
