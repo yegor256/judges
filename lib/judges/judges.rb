@@ -74,6 +74,7 @@ class Judges::Judges
   def each(&)
     return to_enum(__method__) unless block_given?
     good = reorder_judges
+    validate_priority_patterns(good)
     boosted = []
     demoted = []
     normal = []
@@ -109,6 +110,23 @@ class Judges::Judges
   end
 
   private
+
+  def validate_priority_patterns(judges)
+    { boost: @boost, demote: @demote }.each do |kind, patterns|
+      Array(patterns).each do |pattern|
+        next if judges.any? { |judge| fits?(judge.name, [pattern]) }
+        @loog.warn("The #{kind} pattern #{pattern.inspect} matches no judge")
+      end
+    end
+    conflicts = judges.select do |judge|
+      fits?(judge.name, @boost) && fits?(judge.name, @demote)
+    end
+    return if conflicts.empty?
+    raise(
+      StandardError,
+      "Judge #{conflicts.first.name.inspect} matches both boost and demote patterns"
+    )
+  end
 
   def reorder_judges
     list = discover_judges

@@ -287,4 +287,25 @@ class TestJudges < Minitest::Test
       assert_includes(demoted, 'slow_delta')
     end
   end
+
+  def test_warns_about_unmatched_priority_pattern
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'alpha', 'alpha.rb'), 'puts 1')
+      log = Loog::Buffer.new
+      Judges::Judges.new(d, nil, log, boost: ['missing']).each.to_a
+      assert_includes(log.to_s, 'boost pattern "missing" matches no judge')
+    end
+  end
+
+  def test_rejects_judge_in_boost_and_demote
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'alpha', 'alpha.rb'), 'puts 1')
+      error = assert_raises(StandardError) do
+        Judges::Judges.new(
+          d, nil, Loog::NULL, boost: ['alpha'], demote: ['alpha']
+        ).each.to_a
+      end
+      assert_includes(error.message, 'matches both boost and demote patterns')
+    end
+  end
 end
