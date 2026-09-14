@@ -37,7 +37,6 @@ class Judges::Print
   # @param [Hash] opts Command line options (start with '--')
   # @param [Array] args List of command line arguments
   # @raise [RuntimeError] If no arguments provided
-  # rubocop:disable-next Metrics/MethodLength
   def run(opts, args)
     raise(ArgumentError, 'At least one argument required') if args.empty?
     fmt = opts['format']&.downcase
@@ -55,29 +54,32 @@ class Judges::Print
     stamp = stamp(opts, fmt)
     sidecar = "#{o}.judges-options"
     return if skip?(opts, f, o, sidecar, stamp)
-    elapsed(@loog, level: Logger::INFO) do
-      File.binwrite(
-        o,
-        case fmt
-          when 'yaml'
-            require('factbase/to_yaml')
-            Factbase::ToYAML.new(fb).yaml
-          when 'json'
-            require('factbase/to_json')
-            Factbase::ToJSON.new(fb).json
-          when 'xml'
-            require('factbase/to_xml')
-            Factbase::ToXML.new(fb).xml
-          else
-            to_html(opts, fb)
-        end
-      )
-      File.binwrite(sidecar, stamp)
-      throw(:"👍 Factbase printed to #{o.to_rel} (#{File.size(o)} bytes)")
-    end
+    elapsed(@loog, level: Logger::INFO) { write(o, sidecar, stamp, fmt, opts, fb) }
   end
 
   private
+
+  def write(output, sidecar, stamp, fmt, opts, fb)
+    File.binwrite(output, render(fmt, opts, fb))
+    File.binwrite(sidecar, stamp)
+    throw(:"👍 Factbase printed to #{output.to_rel} (#{File.size(output)} bytes)")
+  end
+
+  def render(fmt, opts, fb)
+    case fmt
+      when 'yaml'
+        require('factbase/to_yaml')
+        Factbase::ToYAML.new(fb).yaml
+      when 'json'
+        require('factbase/to_json')
+        Factbase::ToJSON.new(fb).json
+      when 'xml'
+        require('factbase/to_xml')
+        Factbase::ToXML.new(fb).xml
+      else
+        to_html(opts, fb)
+    end
+  end
 
   def skip?(opts, factbase, output, sidecar, stamp)
     return false if opts['force'] || !cached?(output, sidecar, stamp)
