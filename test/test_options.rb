@@ -82,6 +82,12 @@ class TestOptions < Minitest::Test
     assert_includes(s, '"long****************cret"', s)
   end
 
+  def test_masks_short_values
+    rendered = Judges::Options.new('token' => 'hunter2').to_s
+    refute_includes(rendered, 'hunter2', rendered)
+    assert_includes(rendered, '"*******"', rendered)
+  end
+
   def test_merge
     opts = Judges::Options.new(['a = 1', 'b = 4']) + Judges::Options.new(['a = 44', 'c = 3'])
     assert_equal(44, opts.a)

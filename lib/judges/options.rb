@@ -86,7 +86,7 @@ class Judges::Options
   #   # token → "supe****oken"
   def to_s
     to_h.map do |k, v|
-      v = "#{v[0..3]}#{'*' * (v.length - 8)}#{v[-4..]}" if v.is_a?(String) && v.length > 8
+      v = mask(v) if v.is_a?(String)
       v =
         if v.is_a?(String)
           "\"#{v}\""
@@ -115,6 +115,11 @@ class Judges::Options
   end
 
   private
+
+  def mask(value)
+    return '*' * value.length if value.length <= 8
+    "#{value[0..3]}#{'*' * (value.length - 8)}#{value[-4..]}"
+  end
 
   def normalize_to_h
     pp = parse_pairs
