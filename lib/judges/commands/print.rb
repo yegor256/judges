@@ -89,9 +89,9 @@ class Judges::Print
       Nokogiri::XSLT.quote_params(
         'title' => opts['title'],
         'date' => Time.now.utc.iso8601,
-        'columns' => opts['columns'] || 'when,what,who',
-        'hidden' => opts['hidden'] || '_id,_version,_time,_job',
-        'highlighted' => opts['highlighted'] || 'stale,tombstone',
+        'columns' => opts['columns'].to_s.empty? ? 'when,what,who' : opts['columns'],
+        'hidden' => opts['hidden'].to_s.empty? ? '_id,_version,_time,_job' : opts['hidden'],
+        'highlighted' => opts['highlighted'].to_s.empty? ? 'stale,tombstone' : opts['highlighted'],
         'version' => Judges::VERSION,
         'css_hash' => sha256(opts, 'index.css'),
         'js_hash' => sha256(opts, 'index.js')
