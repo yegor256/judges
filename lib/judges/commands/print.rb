@@ -25,6 +25,7 @@ require_relative '../../judges/impex'
 # License:: MIT
 class Judges::Print
   FORMATS = %w[yaml json xml html].freeze
+  OUTPUT_OPTIONS = %w[format query title columns hidden highlighted offline].freeze
 
   # Initialize.
   # @param [Loog] loog Logging facility
@@ -51,8 +52,10 @@ class Judges::Print
       o = "#{o}.#{fmt}"
     end
     FileUtils.mkdir_p(File.dirname(o))
-    if !opts['force'] && File.exist?(o)
-      if File.mtime(f) <= File.mtime(o)
+    stamp = output_stamp(opts, fmt)
+    sidecar = "#{o}.judges-options"
+    if !opts['force'] && File.exist?(o) && File.exist?(sidecar)
+      if File.mtime(f) <= File.mtime(o) && File.binread(sidecar) == stamp
         @loog.info("No need to print to #{o.to_rel}, since it's up to date (#{File.size(o)} bytes)")
         return
       end
@@ -75,12 +78,19 @@ class Judges::Print
             to_html(opts, fb)
         end
       )
+      File.binwrite(sidecar, stamp)
       throw(:"👍 Factbase printed to #{o.to_rel} (#{File.size(o)} bytes)")
     end
   end
   # rubocop:enable Metrics/MethodLength
 
   private
+
+  def output_stamp(opts, fmt)
+    Digest::SHA256.hexdigest(
+      OUTPUT_OPTIONS.map { |key| "#{key}=#{key == 'format' ? fmt : opts[key].inspect}" }.join("\n")
+    )
+  end
 
   def to_html(opts, fb)
     require('factbase/to_xml')
