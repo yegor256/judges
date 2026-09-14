@@ -64,7 +64,10 @@ class Judges::Import
     end
     yaml.each_with_index do |fact, index|
       unless fact.is_a?(Hash)
-        raise(StandardError, "The fact ##{index} in #{file.to_rel} must be a map of properties, while #{fact.class} found")
+        raise(
+          StandardError,
+          "The fact ##{index} in #{file.to_rel} must be a map of properties, while #{fact.class} found"
+        )
       end
     end
     yaml
