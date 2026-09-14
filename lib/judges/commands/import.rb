@@ -43,7 +43,7 @@ class Judges::Import
       yaml.each do |i|
         f = fb.insert
         i.each do |p, v|
-          Array(v).each do |value|
+          (v.is_a?(Array) ? v : [v]).each do |value|
             f.public_send(:"#{p}=", value)
           end
         end
