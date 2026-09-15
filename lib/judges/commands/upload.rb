@@ -34,6 +34,7 @@ class Judges::Upload
     jname = args[0]
     path = args[1]
     raise(StandardError, "File not found: #{path}") unless File.exist?(path)
+    raise(StandardError, "Not a regular file: #{path}") unless File.file?(path)
     name = File.basename(path)
     baza = BazaRb.new(
       opts['host'], opts['port'].to_i, opts['token'],
