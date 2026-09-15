@@ -95,7 +95,7 @@ class TestPrint < Minitest::Test
     WebMock.disable_net_connect!
     stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(body: 'nothing')
     stub_request(:get, 'https://yegor256.github.io/judges/assets/index.js').to_return(body: 'nothing')
-    html = Judges::Print.new(Loog::NULL).public_send(
+    html = Judges::Print.new(Loog::NULL).__send__(
       :to_html,
       { 'columns' => '', 'hidden' => '', 'highlighted' => '', 'offline' => true, 'title' => '' },
       fb
