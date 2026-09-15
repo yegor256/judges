@@ -49,6 +49,39 @@ class TestPush < Minitest::Test
     end
   end
 
+  def test_keeps_a_fractional_timeout
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert.foo = 1
+      File.binwrite(file, fb.export)
+      seen = nil
+      fake = Object.new
+      fake.define_singleton_method(:lock) { |*| true }
+      fake.define_singleton_method(:unlock) { |*| true }
+      fake.define_singleton_method(:push) { |*| 42 }
+      maker =
+        lambda do |*_args, **kwargs|
+          seen = kwargs[:timeout]
+          fake
+        end
+      BazaRb.stub(:new, maker) do
+        Judges::Push.new(Loog::NULL).run(
+          {
+            'token' => '000',
+            'host' => 'example.org',
+            'port' => 443,
+            'ssl' => true,
+            'owner' => 'none',
+            'timeout' => 0.5
+          },
+          ['foo', file]
+        )
+      end
+      assert_in_delta(0.5, seen)
+    end
+  end
+
   def test_fails_on_http_error
     WebMock.disable_net_connect!
     stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
