@@ -45,6 +45,15 @@ class TestPull < Minitest::Test
     end
   end
 
+  def test_gives_up_immediately_when_wait_is_zero
+    baza = Object.new
+    baza.define_singleton_method(:finished?) { |_| false }
+    pull = Judges::Pull.new(Loog::NULL)
+    start = Time.now
+    assert_raises(StandardError) { pull.__send__(:wait, 'foo', baza, 42, 0) }
+    assert_operator(Time.now - start, :<, 0.5, 'a zero budget must not sleep first')
+  end
+
   def test_unlocks_baza_on_success
     WebMock.disable_net_connect!
     stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
