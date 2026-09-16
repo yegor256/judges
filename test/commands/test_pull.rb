@@ -102,4 +102,17 @@ class TestPull < Minitest::Test
       assert_includes(e.message, 'expire it', e)
     end
   end
+
+  def test_zero_wait_does_not_sleep
+    calls = 0
+    baza = Object.new
+    baza.define_singleton_method(:finished?) do |_id|
+      calls += 1
+      false
+    end
+    assert_raises(StandardError) do
+      Judges::Pull.new(Loog::NULL).send(:wait, 'foo', baza, 42, 0)
+    end
+    assert_equal(1, calls)
+  end
 end
