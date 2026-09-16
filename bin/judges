@@ -67,6 +67,11 @@ class JudgesGLI extend GLI::App
     if global[:verbose]
       @@loog = Loog::VERBOSE
     end
+    if %i[push pull download upload].include?(command.name.to_sym) && options[:token].nil? && ENV['ZEROCRACY_TOKEN']
+      options[:token] = ENV.fetch('ZEROCRACY_TOKEN')
+      options['token'] = options[:token]
+      @@loog.debug('The --token is taken from the ZEROCRACY_TOKEN environment variable')
+    end
     if global[:ascii]
       @@loog = Judges::AsciiLoog.new(@@loog)
     end
