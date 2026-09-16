@@ -71,7 +71,7 @@ class Judges::Update
   private
 
   def build_options(opts)
-    options = Judges::Options.new(timeout: opts['timeout']&.to_i, lifetime: opts['lifetime']&.to_i)
+    options = Judges::Options.new(timeout: seconds(opts['timeout']), lifetime: seconds(opts['lifetime']))
     if options.lifetime && options.timeout && options.lifetime < options.timeout * 1.1
       raise(
         StandardError,
@@ -94,6 +94,10 @@ class Judges::Update
       @loog.debug("The following options provided:\n\t#{options.to_s.gsub("\n", "\n\t")}")
     end
     options
+  end
+
+  def seconds(value)
+    value.is_a?(String) ? value.to_f : value
   end
 
   def log_summary(opts, fb)

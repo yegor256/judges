@@ -210,6 +210,13 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_preserves_fractional_timeout_and_lifetime
+    command = Judges::Update.new(Loog::NULL)
+    options = command.send(:build_options, 'timeout' => '0.5', 'lifetime' => '1.5')
+    assert_in_delta(0.5, options.timeout)
+    assert_in_delta(1.5, options.lifetime)
+  end
+
   def test_update_with_error_no_quiet
     assert_raises(StandardError) do
       Dir.mktmpdir do |d|
