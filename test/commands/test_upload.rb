@@ -112,4 +112,16 @@ class TestUpload < Minitest::Test
       )
     end
   end
+
+  def test_fails_when_path_is_a_directory
+    Dir.mktmpdir do |dir|
+      error = assert_raises(StandardError) do
+        Judges::Upload.new(Loog::NULL).run(
+          { 'token' => '000', 'host' => 'example.org', 'port' => 80, 'ssl' => false },
+          ['myjudge', dir]
+        )
+      end
+      assert_includes(error.message, 'Regular file required')
+    end
+  end
 end
