@@ -36,7 +36,7 @@ class Judges::Download
     baza = BazaRb.new(
       opts['host'], opts['port'].to_i, opts['token'],
       ssl: opts['ssl'],
-      timeout: (opts['timeout'] || 30).to_i,
+      timeout: opts['timeout'].is_a?(String) ? opts['timeout'].to_f : (opts['timeout'] || 30),
       loog: @loog,
       retries: (opts['retries'] || 3).to_i
     )
