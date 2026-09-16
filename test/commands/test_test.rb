@@ -53,6 +53,12 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_matches_judge_names_literally
+    command = Judges::Test.new(Loog::NULL)
+    assert(command.send(:include?, { 'judge' => ['foo.bar'] }, 'foo.bar'))
+    refute(command.send(:include?, { 'judge' => ['foo.bar'] }, 'fooXbar'))
+  end
+
   def test_negative
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.query("(eq foo 42)").each { |f| f.bar = 4 }')

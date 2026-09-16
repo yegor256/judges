@@ -192,7 +192,7 @@ class Judges::Test
     judges = opts['judge'] || []
     return true if judges.empty?
     re = tname.nil? ? '.+' : tname
-    judges.any? { |n| n.match?(%r{^#{name}(/#{re})?$}) }
+    judges.any? { |n| n.match?(%r{^#{Regexp.escape(name)}(/#{re})?$}) }
   end
 
   def prepare(fb, yaml)
