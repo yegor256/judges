@@ -28,4 +28,8 @@ class TestPrettyException < Minitest::Test
     assert_kind_of(RuntimeError, exp)
     assert_kind_of(StandardError, exp)
   end
+
+  def test_refuses_a_nil_exception
+    assert_includes(assert_raises(ArgumentError) { Judges::PrettyException.new(nil) }.message, 'The exception is nil')
+  end
 end

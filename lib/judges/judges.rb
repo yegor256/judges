@@ -36,6 +36,7 @@ class Judges::Judges
   # @param [Array<String>] demote Names/patterns of judges to demote in priority (supports '*' wildcards)
   # @param [Integer] seed Random seed for judge ordering (default: 0)
   def initialize(dir, lib, loog, epoch: Time.now, shuffle: '', boost: [], demote: [], seed: 0)
+    raise(ArgumentError, 'The directory is nil') if dir.nil?
     @dir = dir
     @lib = lib
     @loog = loog
