@@ -88,6 +88,17 @@ class TestOptions < Minitest::Test
     assert_includes(rendered, '"*******"', rendered)
   end
 
+  def test_masks_a_long_number
+    rendered = Judges::Options.new('token' => 1_234_567_890_123_456).to_s
+    refute_includes(rendered, '1234567890123456', rendered)
+    assert_includes(rendered, 'TOKEN → 1234********3456 (Integer)', rendered)
+  end
+
+  def test_masks_a_secret_that_became_a_number
+    rendered = Judges::Options.new(['github_token=1234567890123456']).to_s
+    refute_includes(rendered, '1234567890123456', rendered)
+  end
+
   def test_merge
     opts = Judges::Options.new(['a = 1', 'b = 4']) + Judges::Options.new(['a = 44', 'c = 3'])
     assert_equal(44, opts.a)
