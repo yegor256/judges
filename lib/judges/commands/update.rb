@@ -42,7 +42,7 @@ class Judges::Update
   def run(opts, args)
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     dir = args[0]
-    raise(StandardError, "The directory is absent: #{dir.to_rel}") unless File.exist?(dir)
+    raise(ArgumentError, "The judges path must be a directory: #{dir.to_rel}") unless File.directory?(dir)
     impex = Judges::Impex.new(@loog, args[1])
     fb = impex.import(strict: false)
     fb = Factbase::Logged.new(fb, @loog) if opts['log']
