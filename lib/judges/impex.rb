@@ -47,8 +47,9 @@ class Judges::Impex
   # @example Import with non-strict mode
   #   fb = impex.import(strict: false) # Returns empty factbase if file missing
   def import(strict: true)
+    validate
     fb = Factbase.new
-    if File.exist?(@file)
+    if File.file?(@file)
       elapsed(@loog, level: Logger::INFO) do
         fb.import(File.binread(@file))
         throw(:"The factbase imported from #{@file.to_rel} (#{File.size(@file)} bytes, #{fb.size} facts)")
@@ -74,7 +75,8 @@ class Judges::Impex
   #   # ... populate fb with some data ...
   #   impex.import_to(fb) # Adds data from file to existing facts
   def import_to(fb)
-    raise(StandardError, "The factbase is absent at #{@file.to_rel}") unless File.exist?(@file)
+    validate
+    raise(StandardError, "The factbase is absent at #{@file.to_rel}") unless File.file?(@file)
     elapsed(@loog, level: Logger::INFO) do
       fb.import(File.binread(@file))
       throw(:"The factbase loaded from #{@file.to_rel} (#{File.size(@file)} bytes, #{fb.size} facts)")
@@ -94,10 +96,18 @@ class Judges::Impex
   #   # ... add facts to fb ...
   #   impex.export(fb) # Saves to file specified in constructor
   def export(fb)
+    validate
     elapsed(@loog, level: Logger::INFO) do
       FileUtils.mkdir_p(File.dirname(@file))
       File.binwrite(@file, fb.export)
       throw(:"Factbase exported to #{@file.to_rel} (#{File.size(@file)} bytes, #{fb.size} facts)")
     end
+  end
+
+  private
+
+  def validate
+    return unless File.directory?(@file)
+    raise(ArgumentError, "The factbase path must be a regular file, not a directory: #{@file.to_rel}")
   end
 end
