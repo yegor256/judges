@@ -198,7 +198,11 @@ class Judges::Test
   def prepare(fb, yaml)
     id = 1
     inputs = yaml['input']
-    (yaml['repeat']&.to_i || 1).times do
+    repeat = yaml.fetch('repeat', 1)
+    unless repeat.is_a?(Integer) && repeat.positive?
+      raise(ArgumentError, "The repeat value must be a positive integer, while #{repeat.inspect} found")
+    end
+    repeat.times do
       inputs&.each do |i|
         f = fb.insert
         i.each do |k, vv|
