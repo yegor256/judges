@@ -50,6 +50,26 @@ class TestImport < Minitest::Test
     end
   end
 
+  def test_imports_multi_valued_properties
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      yaml = File.join(d, 'input.yml')
+      save_it(
+        yaml,
+        <<-YAML
+        -
+          tag:
+          - first
+          - second
+        YAML
+      )
+      Judges::Import.new(Loog::NULL).run({}, [yaml, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_equal(%w[first second], fb.query('(always)').first['tag'])
+    end
+  end
+
   def test_refuses_a_file_that_is_not_an_array
     Dir.mktmpdir do |d|
       yaml = File.join(d, 'input.yml')
