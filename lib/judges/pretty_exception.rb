@@ -9,6 +9,13 @@ require_relative '../judges'
 
 # Decorates the exception to show an ellipsized message.
 class Judges::PrettyException < SimpleDelegator
+  # Ctor.
+  # @param [Exception] origin The exception to decorate
+  def initialize(origin)
+    raise(ArgumentError, 'The exception is nil') if origin.nil?
+    super
+  end
+
   undef_method :class
   undef_method :instance_of?
   undef_method :kind_of?
