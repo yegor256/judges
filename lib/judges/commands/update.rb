@@ -103,10 +103,6 @@ class Judges::Update
     else
       @loog.info("Summary fact found:\n\t#{Factbase::FactAsYaml.new(sum.first).to_s.gsub("\n", "\n\t")}")
     end
-    return if sum.empty?
-    return unless opts['summary'] == 'add'
-    fb.query('(eq what "judges-summary")').delete!
-    @loog.info('Summary fact deleted')
   end
 
   # rubocop:disable Metrics/MethodLength
@@ -146,7 +142,7 @@ class Judges::Update
       throw(:"👍 Update completed in #{c} cycle(s), did #{ch}")
     end
     statistics&.report(@loog)
-    summarize(fb, ch, errors, c) if %w[add append].include?(opts['summary'])
+    summarize(fb, ch, errors, c, opts['summary']) if %w[add append].include?(opts['summary'])
   end
   # rubocop:enable Metrics/MethodLength
 
@@ -155,9 +151,13 @@ class Judges::Update
   # @param [Factbase::Churn] churn The churn
   # @param [Array<String>] errors List of errors
   # @param [Integer] cycles How many cycles
-  def summarize(fb, churn, errors, cycles)
+  def summarize(fb, churn, errors, cycles, mode)
     before = fb.query('(eq what "judges-summary")').each.to_a
-    if before.empty?
+    if mode == 'add'
+      fb.query('(eq what "judges-summary")').delete!
+      @loog.info('Summary fact deleted') unless before.empty?
+    end
+    if before.empty? || mode == 'add'
       s = fb.insert
       s.what = 'judges-summary'
       s.when = Time.now

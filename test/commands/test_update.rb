@@ -247,6 +247,27 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_keeps_the_summary_when_cut_short
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      file = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert.then do |f|
+        f.what = 'judges-summary'
+        f.error = 'from the previous run'
+      end
+      File.binwrite(file, fb.export)
+      up = Judges::Update.new(Loog::NULL)
+      up.define_singleton_method(:summarize) { |*| raise(StandardError, 'the process died here') }
+      assert_raises(StandardError) { up.run({ 'quiet' => true, 'summary' => 'add', 'max-cycles' => 1 }, [d, file]) }
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      sums = fb.query('(eq what "judges-summary")').each.to_a
+      assert_equal(1, sums.size, 'a run that dies before the summary is written must not lose the old one')
+      assert_equal('from the previous run', sums.first['error'].first, sums.first.to_s)
+    end
+  end
+
   def test_appends_to_existing_summary
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), 'mistake here')
