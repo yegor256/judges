@@ -106,4 +106,20 @@ class TestOptions < Minitest::Test
     assert_equal(1, a.to_h.size, 'receiver must not absorb keys from the other operand')
     refute(a.to_h.key?(:b))
   end
+
+  def test_keeps_a_value_whose_first_line_is_a_number
+    opts = Judges::Options.new('secret' => "12345\nnot-a-number")
+    assert_equal("12345\nnot-a-number", opts.secret, opts)
+  end
+
+  def test_keeps_the_padding_of_a_zero_padded_value
+    opts = Judges::Options.new(['pin=007'])
+    assert_equal('007', opts.pin, opts)
+  end
+
+  def test_still_converts_a_plain_number
+    opts = Judges::Options.new(['max=42', 'zero=0'])
+    assert_equal(42, opts.max, opts)
+    assert_equal(0, opts.zero, opts)
+  end
 end
