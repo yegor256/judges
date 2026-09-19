@@ -28,6 +28,20 @@ class TestOptions < Minitest::Test
     assert_equal(2, Judges::Options.new(['aBcDeF=1', 'aBCDEf=2']).abcdef)
   end
 
+  def test_keeps_multiline_value_as_is
+    assert_equal("12345\nnot-a-number", Judges::Options.new({ 'secret' => "12345\nnot-a-number" }).secret)
+  end
+
+  def test_keeps_leading_zeros
+    assert_equal('007', Judges::Options.new(['pin=007']).pin)
+  end
+
+  def test_converts_plain_digits
+    opts = Judges::Options.new(['max=42', 'zero=0'])
+    assert_equal(42, opts.max)
+    assert_equal(0, opts.zero)
+  end
+
   def test_with_nil
     opts = Judges::Options.new(nil)
     assert_nil(opts.foo)
