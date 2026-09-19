@@ -314,6 +314,19 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_rejects_a_file_as_judges_directory
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'not-a-directory')
+      File.write(file, '')
+      assert_includes(
+        assert_raises(ArgumentError) do
+          Judges::Update.new(Loog::NULL).run({ 'expect-judges' => false }, [file, File.join(d, 'base.fb')])
+        end.message,
+        'judges path must be a directory'
+      )
+    end
+  end
+
   def test_no_failure_when_expect_judges_false
     Dir.mktmpdir do |d|
       file = File.join(d, 'base.fb')
