@@ -249,9 +249,7 @@ class Judges::Test
         raise(StandardError, 'Exception expected but not raised') if failure
       rescue Timeout::Error => e
         raise(StandardError, "Test timed out after #{timeout} seconds")
-      # rubocop:disable Lint/RescueException
-      rescue Exception => e
-        # rubocop:enable Lint/RescueException
+      rescue StandardError => e
         raise(e) unless failure
         if failure.is_a?(Array) && failure.none? { |s| e.message.include?(s) }
           raise(
