@@ -15,7 +15,7 @@ require_relative '../judges'
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
 class Judges::MaskedArgs
-  SECRETS = %w[--token].freeze
+  SECRETS = %w[--token --option].freeze
 
   # Initialize.
   # @param [Array<String>] args The arguments, as they arrived
