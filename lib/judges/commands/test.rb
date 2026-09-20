@@ -114,6 +114,9 @@ class Judges::Test
       start = Time.now
       begin
         yaml = YAML.load_file(f, permitted_classes: [Time])
+        unless yaml.is_a?(Hash)
+          raise(ArgumentError, "Test file #{f.to_rel} must contain a mapping at the root")
+        end
         next if skip_test?(buf, f, yaml, opts)
         buf.info("🛠️ Testing #{f.to_rel}:")
         count += run_single_test(judge, buf, opts, judges, yaml, badge)
