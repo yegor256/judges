@@ -126,6 +126,6 @@ class Judges::Judge
   #
   # @return [Array<String>] Array of absolute paths to all .yml files in the judge directory
   def tests
-    Dir.glob(File.join(@dir, '*.yml'))
+    Dir.glob(File.join(@dir, '*.yml')).sort_by { |path| File.basename(path) }
   end
 end
