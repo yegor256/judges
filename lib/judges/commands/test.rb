@@ -198,7 +198,9 @@ class Judges::Test
   def prepare(fb, yaml)
     id = 1
     inputs = yaml['input']
-    (yaml['repeat']&.to_i || 1).times do
+    repeat = yaml['repeat']&.to_i || 1
+    raise(ArgumentError, 'The repeat value must be at least 1') if repeat < 1
+    repeat.times do
       inputs&.each do |i|
         f = fb.insert
         i.each do |k, vv|
