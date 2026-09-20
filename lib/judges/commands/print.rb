@@ -50,6 +50,7 @@ class Judges::Print
       o = File.join(File.dirname(f), File.basename(f).gsub(/\.[^.]*$/, ''))
       o = "#{o}.#{fmt}"
     end
+    validate(f, o)
     FileUtils.mkdir_p(File.dirname(o))
     stamp = stamp(opts, fmt)
     sidecar = "#{o}.judges-options"
@@ -99,6 +100,11 @@ class Judges::Print
 
   def cached?(output, sidecar, stamp)
     File.exist?(output) && File.exist?(sidecar) && File.binread(sidecar) == stamp
+  end
+
+  def validate(input, output)
+    return unless File.expand_path(input) == File.expand_path(output)
+    raise(ArgumentError, "Input and output files must differ: #{input.to_rel}")
   end
 
   def to_html(opts, fb)
