@@ -83,7 +83,7 @@ class Judges::Update
       options += Judges::Options.new(
         File.readlines(opts['options-file'])
           .compact
-          .reject(&:empty?)
+          .reject { |ln| ln.strip.empty? }
           .map { |ln| ln.strip.split('=', 1).map(&:strip).join('=') }
       )
       @loog.debug("Options loaded from #{opts['options-file']}")
