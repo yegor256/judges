@@ -41,4 +41,26 @@ class TestInspect < Minitest::Test
       assert_includes(loog.to_s, 'Facts: 1')
     end
   end
+
+  def test_inspect_uses_latest_summary
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert.then do |fact|
+        fact.what = 'judges-summary'
+        fact.when = Time.utc(2026, 1, 1)
+        fact.error = 'old'
+      end
+      fb.insert.then do |fact|
+        fact.what = 'judges-summary'
+        fact.when = Time.utc(2026, 2, 1)
+        fact.error = 'new'
+      end
+      File.binwrite(f, fb.export)
+      loog = Loog::Buffer.new
+      Judges::Inspect.new(loog).run({}, [f])
+      assert_includes(loog.to_s, 'new')
+      refute_includes(loog.to_s, 'old')
+    end
+  end
 end
