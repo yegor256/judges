@@ -121,8 +121,9 @@ class Judges::Test
         @loog.info(buf.to_s)
         @loog.warn(Backtrace.new(e))
         errors << badge
+      ensure
+        times[badge] = Time.now - start
       end
-      times[badge] = Time.now - start
     end
     count
   end
@@ -192,13 +193,15 @@ class Judges::Test
     judges = opts['judge'] || []
     return true if judges.empty?
     re = tname.nil? ? '.+' : tname
-    judges.any? { |n| n.match?(%r{^#{name}(/#{re})?$}) }
+    judges.any? { |n| n.match?(%r{^#{Regexp.escape(name)}(/#{re})?$}) }
   end
 
   def prepare(fb, yaml)
     id = 1
     inputs = yaml['input']
-    (yaml['repeat']&.to_i || 1).times do
+    repeat = yaml['repeat']&.to_i || 1
+    raise(ArgumentError, 'The repeat value must be at least 1') if repeat < 1
+    repeat.times do
       inputs&.each do |i|
         f = fb.insert
         i.each do |k, vv|
