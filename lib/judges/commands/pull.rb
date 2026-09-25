@@ -68,6 +68,7 @@ class Judges::Pull
     start = Time.now
     loop do
       break if baza.finished?(id)
+      raise(StandardError, "Time is over, the job ##{id} ('#{name}') is still not completed") if limit <= 0
       sleep(1)
       if Time.now - start > limit
         raise(StandardError, "Time is over, the job ##{id} ('#{name}') is still not completed")
