@@ -287,4 +287,11 @@ class TestJudges < Minitest::Test
       assert_includes(demoted, 'slow_delta')
     end
   end
+
+  def test_refuses_a_nil_directory
+    assert_includes(
+      assert_raises(ArgumentError) { Judges::Judges.new(nil, nil, Loog::NULL) }.message,
+      'The directory is nil'
+    )
+  end
 end

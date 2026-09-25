@@ -30,4 +30,8 @@ class TestMaskedArgs < Minitest::Test
   def test_keeps_everything_else
     assert_equal('update --quiet a b', Judges::MaskedArgs.new(%w[update --quiet a b]).to_s)
   end
+
+  def test_refuses_nil_args
+    assert_includes(assert_raises(ArgumentError) { Judges::MaskedArgs.new(nil) }.message, 'The args are nil')
+  end
 end
