@@ -30,4 +30,32 @@ class TestImpex < Minitest::Test
       impex.import
     end
   end
+
+  def test_keeps_the_previous_factbase_on_failure
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      impex = Judges::Impex.new(Loog::NULL, file)
+      first = Factbase.new
+      first.insert.foo = 1
+      impex.export(first)
+      before = File.binread(file)
+      refute_empty(before)
+      second = Factbase.new
+      second.insert.bar = 2
+      second.insert.baz = 3
+      File.stub(:rename, ->(*) { raise(StandardError, 'the disk is full') }) do
+        assert_raises(StandardError) { impex.export(second) }
+      end
+      assert_equal(before, File.binread(file), 'the previous factbase must survive a failed replacement')
+    end
+  end
+
+  def test_leaves_no_leftover_file_behind
+    Dir.mktmpdir do |d|
+      fb = Factbase.new
+      fb.insert.foo = 1
+      Judges::Impex.new(Loog::NULL, File.join(d, 'base.fb')).export(fb)
+      assert_equal(['base.fb'], Dir.children(d))
+    end
+  end
 end
