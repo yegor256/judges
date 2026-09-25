@@ -106,4 +106,12 @@ class TestOptions < Minitest::Test
     assert_equal(1, a.to_h.size, 'receiver must not absorb keys from the other operand')
     refute(a.to_h.key?(:b))
   end
+
+  def test_does_not_cache_hash_before_source_array_changes
+    pairs = ['a=1']
+    opts = Judges::Options.new(pairs)
+    pairs << 'b=2'
+    assert_equal(1, opts.a)
+    assert_nil(opts.b)
+  end
 end
