@@ -37,4 +37,9 @@ class TestCategories < Minitest::Test
     assert(cats.ok?(%w[other more bar]))
     refute(cats.ok?(%w[bad other]))
   end
+
+  def test_accepts_scalar_enable_and_disable
+    assert(Judges::Categories.new('foo', nil).ok?('foo'))
+    refute(Judges::Categories.new(nil, 'bad').ok?('bad'))
+  end
 end
