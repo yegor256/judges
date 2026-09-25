@@ -5,6 +5,7 @@
 
 require 'baza-rb'
 require 'elapsed'
+require 'fileutils'
 require 'iri'
 require 'typhoeus'
 require_relative '../../judges'
@@ -32,6 +33,7 @@ class Judges::Download
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     jname = args[0]
     path = args[1]
+    FileUtils.mkdir_p(File.dirname(path))
     name = File.basename(path)
     baza = BazaRb.new(
       opts['host'], opts['port'].to_i, opts['token'],
