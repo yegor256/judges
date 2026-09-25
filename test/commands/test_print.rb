@@ -157,6 +157,17 @@ class TestPrint < Minitest::Test
     end
   end
 
+  def test_rejects_same_input_and_output
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'base.fb')
+      File.binwrite(f, Factbase.new.export)
+      error = assert_raises(ArgumentError) do
+        Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml' }, [f, f])
+      end
+      assert_includes(error.message, 'must differ')
+    end
+  end
+
   def test_no_integrity_when_the_asset_fails
     WebMock.disable_net_connect!
     stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(status: 500)

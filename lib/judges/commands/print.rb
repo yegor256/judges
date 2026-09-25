@@ -50,6 +50,7 @@ class Judges::Print
       o = File.join(File.dirname(f), File.basename(f).gsub(/\.[^.]*$/, ''))
       o = "#{o}.#{fmt}"
     end
+    validate(f, o)
     FileUtils.mkdir_p(File.dirname(o))
     if !opts['force'] && File.exist?(o)
       if File.mtime(f) <= File.mtime(o)
@@ -81,6 +82,11 @@ class Judges::Print
   # rubocop:enable Metrics/MethodLength
 
   private
+
+  def validate(input, output)
+    return unless File.expand_path(input) == File.expand_path(output)
+    raise(ArgumentError, "Input and output files must differ: #{input.to_rel}")
+  end
 
   def to_html(opts, fb)
     require('factbase/to_xml')
