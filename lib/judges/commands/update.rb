@@ -159,14 +159,6 @@ class Judges::Update
     before = fb.query('(eq what "judges-summary")').each.to_a
     if before.empty?
       s = fb.insert
-      s.what = 'judges-summary'
-      s.when = Time.now
-      s.version = Judges::VERSION
-      s.seconds = Time.now - @start
-      s.cycles = cycles
-      s.inserted = churn.inserted.size
-      s.deleted = churn.deleted.size
-      s.added = churn.added.size
     else
       s = before.first
       errs = s['error']&.size || 0
@@ -175,6 +167,14 @@ class Judges::Update
         "#{%w[when cycles version inserted deleted added].map { |a| "#{a}=#{s[a]&.first}" }.join(', ')}"
       )
     end
+    s.what = 'judges-summary'
+    s.when = Time.now
+    s.version = Judges::VERSION
+    s.seconds = Time.now - @start
+    s.cycles = cycles
+    s.inserted = churn.inserted.size
+    s.deleted = churn.deleted.size
+    s.added = churn.added.size
     if errors.empty?
       @loog.info('No errors added to the summary')
     else
