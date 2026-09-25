@@ -5,6 +5,7 @@
 
 require 'factbase'
 require 'fileutils'
+require 'json'
 require 'loog'
 require 'nokogiri'
 require 'online'
@@ -154,6 +155,22 @@ class TestPrint < Minitest::Test
       assert_path_exists(y)
       Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml', 'auto' => true }, [f])
       assert_equal(File.mtime(y), File.mtime(y))
+    end
+  end
+
+  def test_reprints_when_output_options_change
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert.what = 'alpha'
+      fb.insert.what = 'beta'
+      File.binwrite(f, fb.export)
+      output = File.join(d, 'result')
+      printer = Judges::Print.new(Loog::NULL)
+      printer.run({ 'format' => 'yaml', 'query' => '(eq what "alpha")' }, [f, output])
+      assert_equal(1, YAML.load_file(output).size)
+      printer.run({ 'format' => 'json', 'query' => '(always)' }, [f, output])
+      assert_equal(2, JSON.parse(File.read(output)).size)
     end
   end
 
