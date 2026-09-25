@@ -25,4 +25,14 @@ class TestEval < Minitest::Test
       refute_empty(xml.xpath('/fb/f[foo="42"]'), xml)
     end
   end
+
+  def test_reports_invalid_ruby_as_a_command_error
+    Dir.mktmpdir do |d|
+      error =
+        assert_raises(StandardError) do
+          Judges::Eval.new(Loog::NULL).run({}, [File.join(d, 'base.fb'), '1 +'])
+        end
+      assert_includes(error.message, 'is not valid Ruby', error.message)
+    end
+  end
 end
