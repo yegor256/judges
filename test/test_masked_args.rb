@@ -30,4 +30,26 @@ class TestMaskedArgs < Minitest::Test
   def test_keeps_everything_else
     assert_equal('update --quiet a b', Judges::MaskedArgs.new(%w[update --quiet a b]).to_s)
   end
+
+  def test_hides_a_token_inside_a_glued_option
+    line = Judges::MaskedArgs.new(%w[update --option=github_token=SUPERSECRET123 zzz]).to_s
+    refute_includes(line, 'SUPERSECRET123', line)
+    assert_equal('update --option=github_token=SUPE******T123 zzz', line)
+  end
+
+  def test_hides_a_token_inside_a_separate_option
+    line = Judges::MaskedArgs.new(['update', '--option', 'github_token=SUPERSECRET123']).to_s
+    refute_includes(line, 'SUPERSECRET123', line)
+    assert_equal('update --option github_token=SUPE******T123', line)
+  end
+
+  def test_hides_a_token_inside_a_short_option
+    line = Judges::MaskedArgs.new(['update', '-o', 'github_token=SUPERSECRET123']).to_s
+    refute_includes(line, 'SUPERSECRET123', line)
+    assert_equal('update -o github_token=SUPE******T123', line)
+  end
+
+  def test_keeps_an_option_that_carries_no_value
+    assert_equal('update --option verbose', Judges::MaskedArgs.new(%w[update --option verbose]).to_s)
+  end
 end

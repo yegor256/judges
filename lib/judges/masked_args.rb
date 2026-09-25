@@ -17,6 +17,8 @@ require_relative '../judges'
 class Judges::MaskedArgs
   SECRETS = %w[--token].freeze
 
+  PAIRS = %w[--option -o].freeze
+
   # Initialize.
   # @param [Array<String>] args The arguments, as they arrived
   def initialize(args)
@@ -29,8 +31,12 @@ class Judges::MaskedArgs
     @args.each_with_index.map do |arg, i|
       if i.positive? && SECRETS.include?(@args[i - 1])
         mask(arg)
+      elsif i.positive? && PAIRS.include?(@args[i - 1])
+        redact(arg)
       elsif (opt = SECRETS.find { |s| arg.start_with?("#{s}=") })
         "#{opt}=#{mask(arg[(opt.length + 1)..])}"
+      elsif (opt = PAIRS.find { |s| arg.start_with?("#{s}=") })
+        "#{opt}=#{redact(arg[(opt.length + 1)..])}"
       else
         arg
       end
@@ -38,6 +44,15 @@ class Judges::MaskedArgs
   end
 
   private
+
+  # Hide the value of a +key=value+ pair, keeping the key visible.
+  # @param [String] txt The pair, as it arrived
+  # @return [String] The same key, with the value masked
+  def redact(txt)
+    key, eq, value = txt.partition('=')
+    return txt if eq.empty?
+    "#{key}=#{mask(value)}"
+  end
 
   # Hide the middle of a secret, the way +Judges::Options#to_s+ hides it.
   # @param [String] txt The secret
