@@ -17,6 +17,10 @@ require_relative '../judges'
 class Judges::MaskedArgs
   SECRETS = %w[--token].freeze
 
+  OPTIONS = %w[-o --option].freeze
+
+  SENSITIVE = /\A(?<key>[a-z_0-9]*(?:token|secret|password|key))=(?<value>.+)\z/i
+
   # Initialize.
   # @param [Array<String>] args The arguments, as they arrived
   def initialize(args)
@@ -26,18 +30,33 @@ class Judges::MaskedArgs
   # Render them as one line, with every secret hidden.
   # @return [String] The line, safe to print
   def to_s
-    @args.each_with_index.map do |arg, i|
-      if i.positive? && SECRETS.include?(@args[i - 1])
-        mask(arg)
-      elsif (opt = SECRETS.find { |s| arg.start_with?("#{s}=") })
-        "#{opt}=#{mask(arg[(opt.length + 1)..])}"
-      else
-        arg
-      end
-    end.join(' ')
+    @args.each_with_index.map { |arg, i| hidden(arg, i.positive? ? @args[i - 1] : nil) }.join(' ')
   end
 
   private
+
+  # Hide whatever is secret in one argument.
+  # @param [String] arg The argument
+  # @param [String, nil] prev The argument before it, if any
+  # @return [String] The argument, safe to print
+  def hidden(arg, prev)
+    return mask(arg) if SECRETS.include?(prev)
+    return pairs(arg) if OPTIONS.include?(prev)
+    opt = SECRETS.find { |s| arg.start_with?("#{s}=") }
+    return "#{opt}=#{mask(arg[(opt.length + 1)..])}" if opt
+    opt = OPTIONS.find { |s| arg.start_with?("#{s}=") }
+    return "#{opt}=#{pairs(arg[(opt.length + 1)..])}" if opt
+    pairs(arg)
+  end
+
+  # Hide the value of a "key=value" pair whose key names a secret.
+  # @param [String] arg The pair, or anything else
+  # @return [String] The pair with the value hidden, or the argument as it was
+  def pairs(arg)
+    m = SENSITIVE.match(arg)
+    return arg if m.nil?
+    "#{m[:key]}=#{mask(m[:value])}"
+  end
 
   # Hide the middle of a secret, the way +Judges::Options#to_s+ hides it.
   # @param [String] txt The secret
