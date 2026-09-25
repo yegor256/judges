@@ -61,4 +61,16 @@ class TestImport < Minitest::Test
       assert_includes(e.message, 'must hold an array of facts, while Hash found', e.message)
     end
   end
+
+  def test_refuses_an_array_of_scalars
+    Dir.mktmpdir do |d|
+      yaml = File.join(d, 'input.yml')
+      save_it(yaml, "- just a string\n- 42\n")
+      error =
+        assert_raises(StandardError) do
+          Judges::Import.new(Loog::NULL).run({}, [yaml, File.join(d, 'base.fb')])
+        end
+      assert_includes(error.message, 'must be a map of properties, while String found', error.message)
+    end
+  end
 end
