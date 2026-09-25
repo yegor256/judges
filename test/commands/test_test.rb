@@ -221,6 +221,20 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_expected_failure_does_not_swallow_process_exit
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'exit 7')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        expected_failure: true
+        YAML
+      )
+      assert_raises(SystemExit) { Judges::Test.new(Loog::NULL).run({}, [d]) }
+    end
+  end
+
   def test_with_timeout_success
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
