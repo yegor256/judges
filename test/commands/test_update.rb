@@ -247,6 +247,23 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_tells_how_many_errors_the_summary_holds
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'mistake here')
+      file = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert.then do |f|
+        f.what = 'judges-summary'
+        f.error = 'first'
+        f.error = 'second'
+      end
+      File.binwrite(file, fb.export)
+      log = Loog::Buffer.new
+      Judges::Update.new(log).run({ 'quiet' => true, 'summary' => 'append', 'max-cycles' => 1 }, [d, file])
+      assert_includes(log.to_s, 'A summary found, with 2 errors:', log.to_s)
+    end
+  end
+
   def test_appends_to_existing_summary
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), 'mistake here')
