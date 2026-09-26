@@ -86,14 +86,15 @@ class Judges::Options
   #   # token → "supe****oken"
   def to_s
     to_h.map do |k, v|
-      v = mask(v) if v.is_a?(String)
-      v =
+      text = v.to_s
+      text = mask(text) if v.is_a?(String) || text.length > 8
+      text =
         if v.is_a?(String)
-          "\"#{v}\""
+          "\"#{text}\""
         else
-          "#{v} (#{v.class.name})"
+          "#{text} (#{v.class.name})"
         end
-      "#{k} → #{v}"
+      "#{k} → #{text}"
     end.sort.join("\n")
   end
 

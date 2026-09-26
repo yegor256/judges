@@ -76,6 +76,10 @@ class TestOptions < Minitest::Test
     assert_nil(Judges::Options.new('foo' => nil).foo)
   end
 
+  def test_masks_a_secret_made_only_of_digits
+    assert_includes(Judges::Options.new(['github_token=1234567890123456']).to_s, '1234********3456')
+  end
+
   def test_converts_to_string
     s = Judges::Options.new('foo' => 44, 'bar' => 'long-string-maybe-secret').to_s
     assert_includes(s, 'FOO → 44 (Integer)', s)
