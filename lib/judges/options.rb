@@ -25,7 +25,7 @@ class Judges::Options
   # @param [Array<String>, String, Hash, nil] pairs List of key-value pairs.
   #   Can be provided as:
   #   - Array of strings: ["token=af73cd3", "max_speed=1"]
-  #   - Comma-separated string: "token=af73cd3,max_speed=1"
+  #   - Comma-separated string: "token=af73cd3,max_speed=1" (escape commas as \\,)
   #   - Hash: { token: "af73cd3", max_speed: 1 }
   #   - nil: Creates empty options
   # @example Initialize with array
@@ -110,6 +110,7 @@ class Judges::Options
   # @example Convert to hash
   #   options = Judges::Options.new("token=abc123,max_speed=100,debug")
   #   options.to_h # => { TOKEN: "abc123", MAX_SPEED: 100, DEBUG: "true" }
+  #   Judges::Options.new("message=hello\\,world").to_h # => { MESSAGE: "hello,world" }
   def to_h
     @to_h ||= normalize_to_h
   end
@@ -136,7 +137,7 @@ class Judges::Options
 
   def parse_pairs
     pp = @pairs || []
-    pp = pp.split(',') if pp.is_a?(String)
+    pp = split_pairs(pp) if pp.is_a?(String)
     if pp.is_a?(Array)
       pp = pp
         .compact
@@ -148,6 +149,31 @@ class Judges::Options
         .to_h
     end
     pp
+  end
+
+  # Split a comma-separated option string, preserving escaped commas.
+  # @param [String] string Options in the comma-separated form
+  # @return [Array<String>] Individual option pairs
+  def split_pairs(string) # rubocop:disable Elegant/GoodMethodName
+    pairs = []
+    current = +''
+    escaped = false
+    string.each_char do |char|
+      if escaped
+        current << (['\\', ','].include?(char) ? char : "\\#{char}")
+        escaped = false
+      elsif char == '\\'
+        escaped = true
+      elsif char == ','
+        pairs << current
+        current = +''
+      else
+        current << char
+      end
+    end
+    current << '\\' if escaped
+    pairs << current
+    pairs
   end
 
   others do |*args|

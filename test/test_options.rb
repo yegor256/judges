@@ -52,6 +52,14 @@ class TestOptions < Minitest::Test
     assert_equal(42, opts.b)
   end
 
+  def test_escaped_comma
+    assert_equal({ MESSAGE: 'hello,world', DEBUG: 'true' }, Judges::Options.new('message=hello\\,world,debug').to_h)
+  end
+
+  def test_unrecognized_escape
+    assert_equal({ PATH: 'C:\\tmp\\file' }, Judges::Options.new('path=C:\\tmp\\file').to_h)
+  end
+
   def test_equals_less_token_in_string
     opts = Judges::Options.new('token=abc123,max_speed=100,debug')
     assert_equal('abc123', opts.token)
