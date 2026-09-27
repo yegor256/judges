@@ -9,6 +9,7 @@ require 'factbase'
 require 'factbase/churn'
 require 'factbase/fact_as_yaml'
 require 'factbase/logged'
+require 'fileutils'
 require 'logger'
 require 'tago'
 require 'timeout'
@@ -62,7 +63,7 @@ class Judges::Update
     ensure
       impex.export(fb)
       if opts['churn'] && churn
-        File.write(opts['churn'], churn.to_s)
+        FileUtils.mkdir_p(File.dirname(opts['churn'])).tap { File.write(opts['churn'], churn.to_s) }
         @loog.info("Churn written to #{opts['churn']}: #{churn}")
       end
     end
