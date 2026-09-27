@@ -48,13 +48,14 @@ class Judges::Impex
   #   fb = impex.import(strict: false) # Returns empty factbase if file missing
   def import(strict: true)
     fb = Factbase.new
-    if File.exist?(@file)
+    if File.file?(@file)
       elapsed(@loog, level: Logger::INFO) do
         fb.import(File.binread(@file))
         throw(:"The factbase imported from #{@file.to_rel} (#{File.size(@file)} bytes, #{fb.size} facts)")
       end
     else
-      raise(StandardError, "The factbase is absent at #{@file.to_rel}") if strict
+      raise(StandardError, "The factbase is absent at #{@file.to_rel}") if strict && !File.directory?(@file)
+      raise(StandardError, "The factbase path is a directory: #{@file.to_rel}") if File.directory?(@file)
       @loog.info("Nothing to import from #{@file.to_rel} (file not found)")
     end
     fb
@@ -74,7 +75,7 @@ class Judges::Impex
   #   # ... populate fb with some data ...
   #   impex.import_to(fb) # Adds data from file to existing facts
   def import_to(fb)
-    raise(StandardError, "The factbase is absent at #{@file.to_rel}") unless File.exist?(@file)
+    raise(StandardError, "The factbase is absent at #{@file.to_rel}") unless File.file?(@file)
     elapsed(@loog, level: Logger::INFO) do
       fb.import(File.binread(@file))
       throw(:"The factbase loaded from #{@file.to_rel} (#{File.size(@file)} bytes, #{fb.size} facts)")
@@ -94,6 +95,7 @@ class Judges::Impex
   #   # ... add facts to fb ...
   #   impex.export(fb) # Saves to file specified in constructor
   def export(fb)
+    raise(StandardError, "The factbase path is a directory: #{@file.to_rel}") if File.directory?(@file)
     elapsed(@loog, level: Logger::INFO) do
       FileUtils.mkdir_p(File.dirname(@file))
       File.binwrite(@file, fb.export)
