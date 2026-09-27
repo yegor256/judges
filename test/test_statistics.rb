@@ -164,4 +164,11 @@ class TestStatistics < Minitest::Test
     stats.report(buffer)
     assert_includes(buffer.to_s, lengthy)
   end
+
+  def test_refuses_a_nil_time
+    assert_includes(
+      assert_raises(ArgumentError) { Judges::Statistics.new.record('judge', nil, 'OK') }.message,
+      'The time is nil'
+    )
+  end
 end

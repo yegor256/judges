@@ -26,6 +26,7 @@ class Judges::Impex
   # @example Create an Impex instance
   #   impex = Judges::Impex.new(logger, '/path/to/factbase.fb')
   def initialize(loog, file)
+    raise(ArgumentError, 'The file is nil') if file.nil?
     @loog = loog
     @file = file
   end

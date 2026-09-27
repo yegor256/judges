@@ -20,6 +20,7 @@ class Judges::MaskedArgs
   # Initialize.
   # @param [Array<String>] args The arguments, as they arrived
   def initialize(args)
+    raise(ArgumentError, 'The args are nil') if args.nil?
     @args = args
   end
 

@@ -30,4 +30,8 @@ class TestImpex < Minitest::Test
       impex.import
     end
   end
+
+  def test_refuses_a_nil_file
+    assert_includes(assert_raises(ArgumentError) { Judges::Impex.new(Loog::NULL, nil) }.message, 'The file is nil')
+  end
 end
