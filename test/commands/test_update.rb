@@ -132,6 +132,17 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_hands_judges_a_fractional_timeout
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.t = $options.timeout')
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::NULL).run({ 'timeout' => 0.5, 'lifetime' => 10, 'quiet' => true }, [d, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_in_delta(0.5, fb.query('(exists t)').each.first.t)
+    end
+  end
+
   def test_exports_all_judges_despite_lifetime_timeout
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
