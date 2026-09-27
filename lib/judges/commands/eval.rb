@@ -36,7 +36,11 @@ class Judges::Eval
         $fb = Factbase::Logged.new($fb, @loog)
       end
       # rubocop:disable Security/Eval
-      eval(args[1])
+      begin
+        eval(args[1])
+      rescue SyntaxError => e
+        raise(StandardError, "The expression #{args[1].inspect} is not valid Ruby: #{e.message}", cause: e)
+      end
       # rubocop:enable Security/Eval
       impex.export($fb)
       throw(:'👍 Evaluated successfully')
