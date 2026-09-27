@@ -226,7 +226,6 @@ class Judges::Test
   # @param [Hash] yaml The YAML to be tested
   # @param [Boolean] assert Should we assert (TRUE) or simply skip (FALSE)?
   # @return [nil] Always NIL
-  # rubocop:disable Metrics/MethodLength
   def test_one(fb, opts, judge, tname, yaml, assert: true)
     options = Judges::Options.new(opts['option']) + Judges::Options.new(yaml['options'])
     runs = opts['runs'] || yaml['runs'] || 1
@@ -238,33 +237,37 @@ class Judges::Test
         fbx = Factbase::Logged.new(fb, @loog)
       end
       failure = yaml['expected_failure']
-      begin
-        if timeout
-          Timeout.timeout(timeout) do
-            judge.run(fbx, {}, {}, options)
-          end
-        else
-          judge.run(fbx, {}, {}, options)
-        end
-        raise(StandardError, 'Exception expected but not raised') if failure
-      rescue Timeout::Error => e
-        raise(StandardError, "Test timed out after #{timeout} seconds")
-      # rubocop:disable Lint/RescueException
-      rescue Exception => e
-        # rubocop:enable Lint/RescueException
-        raise(e) unless failure
-        if failure.is_a?(Array) && failure.none? { |s| e.message.include?(s) }
+      caught = capture(fbx, judge, options, timeout)
+      if failure
+        raise(StandardError, 'Exception expected but not raised') if caught.nil?
+        if failure.is_a?(Array) && failure.none? { |s| caught.message.include?(s) }
           raise(
             StandardError,
-            "Exception #{e.class} raised with #{e.message.inspect}, but this is not what was expected"
+            "Exception #{caught.class} raised with #{caught.message.inspect}, but this is not what was expected"
           )
         end
+      elsif caught
+        raise(caught)
       end
       next unless assert
       assert(judge, tname, fb, yaml) if r == runs || yaml['assert_once'].is_a?(FalseClass)
     end
   end
-  # rubocop:enable Metrics/MethodLength
+
+  def capture(fbx, judge, options, timeout)
+    if timeout
+      Timeout.timeout(timeout) { judge.run(fbx, {}, {}, options) }
+    else
+      judge.run(fbx, {}, {}, options)
+    end
+    nil
+  rescue Timeout::Error
+    raise(StandardError, "Test timed out after #{timeout} seconds")
+  # rubocop:disable Lint/RescueException
+  rescue Exception => e
+    # rubocop:enable Lint/RescueException
+    e
+  end
 
   def assert(judge, tname, fb, yaml)
     xpaths = yaml['expected']
