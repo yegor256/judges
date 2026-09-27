@@ -156,14 +156,20 @@ class Judges::Test
   def run_after_assertions(judge, buf, fb, yaml)
     yaml['after']&.each do |rb|
       buf.info("Running #{rb} assertion script...")
-      $fb = fb
-      $loog = buf
-      if yaml['timeout']
-        Timeout.timeout(yaml['timeout']) do
+      previous = [$fb, $loog]
+      begin
+        $fb = fb
+        $loog = buf
+        if yaml['timeout']
+          Timeout.timeout(yaml['timeout']) do
+            load(File.join(judge.dir, rb), true)
+          end
+        else
           load(File.join(judge.dir, rb), true)
         end
-      else
-        load(File.join(judge.dir, rb), true)
+      ensure
+        $fb = previous[0]
+        $loog = previous[1]
       end
     end
   end
