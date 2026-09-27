@@ -86,10 +86,11 @@ class Judges::Options
   #   # token → "supe****oken"
   def to_s
     to_h.map do |k, v|
-      v = mask(v) if v.is_a?(String)
       v =
         if v.is_a?(String)
-          "\"#{v}\""
+          "\"#{mask(v)}\""
+        elsif v.to_s.length > 8
+          "#{mask(v.to_s)} (#{v.class.name})"
         else
           "#{v} (#{v.class.name})"
         end
