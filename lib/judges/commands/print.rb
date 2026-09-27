@@ -25,6 +25,7 @@ require_relative '../../judges/impex'
 # License:: MIT
 class Judges::Print
   FORMATS = %w[yaml json xml html].freeze
+  OUTPUT_OPTIONS = %w[format query title columns hidden highlighted offline].freeze
 
   # Initialize.
   # @param [Loog] loog Logging facility
@@ -36,7 +37,6 @@ class Judges::Print
   # @param [Hash] opts Command line options (start with '--')
   # @param [Array] args List of command line arguments
   # @raise [RuntimeError] If no arguments provided
-  # rubocop:disable Metrics/MethodLength
   def run(opts, args)
     raise(ArgumentError, 'At least one argument required') if args.empty?
     fmt = opts['format']&.downcase
@@ -51,36 +51,55 @@ class Judges::Print
       o = "#{o}.#{fmt}"
     end
     FileUtils.mkdir_p(File.dirname(o))
-    if !opts['force'] && File.exist?(o)
-      if File.mtime(f) <= File.mtime(o)
-        @loog.info("No need to print to #{o.to_rel}, since it's up to date (#{File.size(o)} bytes)")
-        return
-      end
-      @loog.debug("The factbase #{f.to_rel} is younger than the target #{o.to_rel}, need to print")
-    end
-    elapsed(@loog, level: Logger::INFO) do
-      File.binwrite(
-        o,
-        case fmt
-          when 'yaml'
-            require('factbase/to_yaml')
-            Factbase::ToYAML.new(fb).yaml
-          when 'json'
-            require('factbase/to_json')
-            Factbase::ToJSON.new(fb).json
-          when 'xml'
-            require('factbase/to_xml')
-            Factbase::ToXML.new(fb).xml
-          else
-            to_html(opts, fb)
-        end
-      )
-      throw(:"👍 Factbase printed to #{o.to_rel} (#{File.size(o)} bytes)")
-    end
+    stamp = stamp(opts, fmt)
+    sidecar = "#{o}.judges-options"
+    return if skip?(opts, f, o, sidecar, stamp)
+    elapsed(@loog, level: Logger::INFO) { write(o, sidecar, stamp, fmt, opts, fb) }
   end
-  # rubocop:enable Metrics/MethodLength
 
   private
+
+  def write(output, sidecar, stamp, fmt, opts, fb)
+    File.binwrite(output, render(fmt, opts, fb))
+    File.binwrite(sidecar, stamp)
+    throw(:"👍 Factbase printed to #{output.to_rel} (#{File.size(output)} bytes)")
+  end
+
+  def render(fmt, opts, fb)
+    case fmt
+      when 'yaml'
+        require('factbase/to_yaml')
+        Factbase::ToYAML.new(fb).yaml
+      when 'json'
+        require('factbase/to_json')
+        Factbase::ToJSON.new(fb).json
+      when 'xml'
+        require('factbase/to_xml')
+        Factbase::ToXML.new(fb).xml
+      else
+        to_html(opts, fb)
+    end
+  end
+
+  def skip?(opts, factbase, output, sidecar, stamp)
+    return false if opts['force'] || !cached?(output, sidecar, stamp)
+    if File.mtime(factbase) <= File.mtime(output)
+      @loog.info("No need to print to #{output.to_rel}, since it's up to date (#{File.size(output)} bytes)")
+      return true
+    end
+    @loog.debug("The factbase #{factbase.to_rel} is younger than the target #{output.to_rel}, need to print")
+    false
+  end
+
+  def stamp(opts, fmt)
+    Digest::SHA256.hexdigest(
+      OUTPUT_OPTIONS.map { |key| "#{key}=#{key == 'format' ? fmt : opts[key].inspect}" }.join("\n")
+    )
+  end
+
+  def cached?(output, sidecar, stamp)
+    File.exist?(output) && File.exist?(sidecar) && File.binread(sidecar) == stamp
+  end
 
   def to_html(opts, fb)
     require('factbase/to_xml')
