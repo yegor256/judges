@@ -141,6 +141,7 @@ class Judges::Test
   end
 
   def run_single_test(judge, buf, opts, judges, yaml, badge)
+    validate_timeout(yaml)
     fb = Factbase.new
     prepare(fb, yaml)
     yaml['before']&.each do |n|
@@ -152,6 +153,12 @@ class Judges::Test
     test_one(fb, opts, judge, tname, yaml)
     run_after_assertions(judge, buf, fb, yaml)
     1
+  end
+
+  def validate_timeout(yaml)
+    timeout = yaml['timeout']
+    return if timeout.nil? || (timeout.is_a?(Numeric) && timeout.positive?)
+    raise(ArgumentError, 'The timeout must be a positive number')
   end
 
   def run_after_assertions(judge, buf, fb, yaml)
