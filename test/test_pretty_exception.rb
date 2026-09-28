@@ -21,12 +21,9 @@ class TestPrettyException < Minitest::Test
     assert_equal(txt, Judges::PrettyException.new(RuntimeError.new(txt)).message)
   end
 
-  def test_nil_exception_message_falls_back_to_class_name
-    error = Class.new(StandardError) do
-      def message
-        nil
-      end
-    end.new
+  def test_nil_message_falls_back
+    error = Class.new(StandardError).new
+    error.define_singleton_method(:message) { [].first }
     assert_equal(error.class.to_s, Judges::PrettyException.new(error).message)
   end
 
