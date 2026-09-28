@@ -266,9 +266,8 @@ class TestTest < Minitest::Test
         YAML
       )
       loog = Loog::Buffer.new
-      assert_equal('1 tests failed', assert_raises(StandardError) {
-        Judges::Test.new(loog).run({}, [d])
-      }.message)
+      error = assert_raises(StandardError) { Judges::Test.new(loog).run({}, [d]) }
+      assert_equal('StandardError: 1 tests failed', "#{error.class}: #{error.message}")
       assert_includes(loog.to_s, 'The timeout must be a positive number')
     end
   end
