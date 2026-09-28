@@ -59,8 +59,8 @@ class TestInspect < Minitest::Test
       File.binwrite(f, fb.export)
       loog = Loog::Buffer.new
       Judges::Inspect.new(loog).run({}, [f])
-      assert_includes(loog.to_s, 'new')
-      refute_includes(loog.to_s, 'old')
+      assert_includes(loog.to_s, 'error: "new"')
+      refute_includes(loog.to_s, 'error: "old"')
     end
   end
 end
