@@ -15,7 +15,7 @@ require_relative '../judges'
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
 class Judges::MaskedArgs
-  SECRETS = %w[--token --option].freeze
+  SECRETS = %w[--token].freeze
 
   OPTIONS = %w[-o --option].freeze
 
