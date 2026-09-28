@@ -50,6 +50,26 @@ class TestImport < Minitest::Test
     end
   end
 
+  def test_imports_multi_valued_properties
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      yaml = File.join(d, 'input.yml')
+      save_it(
+        yaml,
+        <<-YAML
+        -
+          tag:
+          - first
+          - second
+        YAML
+      )
+      Judges::Import.new(Loog::NULL).run({}, [yaml, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_equal(%w[first second], fb.query('(always)').first['tag'])
+    end
+  end
+
   def test_refuses_a_file_that_is_not_an_array
     Dir.mktmpdir do |d|
       yaml = File.join(d, 'input.yml')
@@ -59,6 +79,18 @@ class TestImport < Minitest::Test
           Judges::Import.new(Loog::NULL).run({}, [yaml, File.join(d, 'base.fb')])
         end
       assert_includes(e.message, 'must hold an array of facts, while Hash found', e.message)
+    end
+  end
+
+  def test_refuses_an_array_of_scalars
+    Dir.mktmpdir do |d|
+      yaml = File.join(d, 'input.yml')
+      save_it(yaml, "- just a string\n- 42\n")
+      error =
+        assert_raises(StandardError) do
+          Judges::Import.new(Loog::NULL).run({}, [yaml, File.join(d, 'base.fb')])
+        end
+      assert_includes(error.message, 'must be a map of properties, while String found', error.message)
     end
   end
 end

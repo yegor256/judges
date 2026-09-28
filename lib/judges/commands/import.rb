@@ -43,7 +43,9 @@ class Judges::Import
       yaml.each do |i|
         f = fb.insert
         i.each do |p, v|
-          f.public_send(:"#{p}=", v)
+          (v.is_a?(Array) ? v : [v]).each do |value|
+            f.public_send(:"#{p}=", value)
+          end
         end
       end
       impex.export(fb)
@@ -61,6 +63,13 @@ class Judges::Import
     raise(StandardError, "The file #{file.to_rel} is empty, nothing to import") if yaml.nil?
     unless yaml.is_a?(Array)
       raise(StandardError, "The file #{file.to_rel} must hold an array of facts, while #{yaml.class} found")
+    end
+    yaml.each_with_index do |fact, index|
+      next if fact.is_a?(Hash)
+      raise(
+        StandardError,
+        "The fact ##{index} in #{file.to_rel} must be a map of properties, while #{fact.class} found"
+      )
     end
     yaml
   end

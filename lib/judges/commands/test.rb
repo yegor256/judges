@@ -121,8 +121,9 @@ class Judges::Test
         @loog.info(buf.to_s)
         @loog.warn(Backtrace.new(e))
         errors << badge
+      ensure
+        times[badge] = Time.now - start
       end
-      times[badge] = Time.now - start
     end
     count
   end
@@ -156,14 +157,20 @@ class Judges::Test
   def run_after_assertions(judge, buf, fb, yaml)
     yaml['after']&.each do |rb|
       buf.info("Running #{rb} assertion script...")
-      $fb = fb
-      $loog = buf
-      if yaml['timeout']
-        Timeout.timeout(yaml['timeout']) do
+      previous = [$fb, $loog]
+      begin
+        $fb = fb
+        $loog = buf
+        if yaml['timeout']
+          Timeout.timeout(yaml['timeout']) do
+            load(File.join(judge.dir, rb), true)
+          end
+        else
           load(File.join(judge.dir, rb), true)
         end
-      else
-        load(File.join(judge.dir, rb), true)
+      ensure
+        $fb = previous[0]
+        $loog = previous[1]
       end
     end
   end
@@ -192,13 +199,15 @@ class Judges::Test
     judges = opts['judge'] || []
     return true if judges.empty?
     re = tname.nil? ? '.+' : tname
-    judges.any? { |n| n.match?(%r{^#{name}(/#{re})?$}) }
+    judges.any? { |n| n.match?(%r{^#{Regexp.escape(name)}(/#{re})?$}) }
   end
 
   def prepare(fb, yaml)
     id = 1
     inputs = yaml['input']
-    (yaml['repeat']&.to_i || 1).times do
+    repeat = yaml['repeat']&.to_i || 1
+    raise(ArgumentError, 'The repeat value must be at least 1') if repeat < 1
+    repeat.times do
       inputs&.each do |i|
         f = fb.insert
         i.each do |k, vv|
@@ -226,7 +235,6 @@ class Judges::Test
   # @param [Hash] yaml The YAML to be tested
   # @param [Boolean] assert Should we assert (TRUE) or simply skip (FALSE)?
   # @return [nil] Always NIL
-  # rubocop:disable Metrics/MethodLength
   def test_one(fb, opts, judge, tname, yaml, assert: true)
     options = Judges::Options.new(opts['option']) + Judges::Options.new(yaml['options'])
     runs = opts['runs'] || yaml['runs'] || 1
@@ -238,33 +246,37 @@ class Judges::Test
         fbx = Factbase::Logged.new(fb, @loog)
       end
       failure = yaml['expected_failure']
-      begin
-        if timeout
-          Timeout.timeout(timeout) do
-            judge.run(fbx, {}, {}, options)
-          end
-        else
-          judge.run(fbx, {}, {}, options)
-        end
-        raise(StandardError, 'Exception expected but not raised') if failure
-      rescue Timeout::Error => e
-        raise(StandardError, "Test timed out after #{timeout} seconds")
-      # rubocop:disable Lint/RescueException
-      rescue Exception => e
-        # rubocop:enable Lint/RescueException
-        raise(e) unless failure
-        if failure.is_a?(Array) && failure.none? { |s| e.message.include?(s) }
+      caught = capture(fbx, judge, options, timeout)
+      if failure
+        raise(StandardError, 'Exception expected but not raised') if caught.nil?
+        if failure.is_a?(Array) && failure.none? { |s| caught.message.include?(s) }
           raise(
             StandardError,
-            "Exception #{e.class} raised with #{e.message.inspect}, but this is not what was expected"
+            "Exception #{caught.class} raised with #{caught.message.inspect}, but this is not what was expected"
           )
         end
+      elsif caught
+        raise(caught)
       end
       next unless assert
       assert(judge, tname, fb, yaml) if r == runs || yaml['assert_once'].is_a?(FalseClass)
     end
   end
-  # rubocop:enable Metrics/MethodLength
+
+  def capture(fbx, judge, options, timeout)
+    if timeout
+      Timeout.timeout(timeout) { judge.run(fbx, {}, {}, options) }
+    else
+      judge.run(fbx, {}, {}, options)
+    end
+    nil
+  rescue Timeout::Error
+    raise(StandardError, "Test timed out after #{timeout} seconds")
+  # rubocop:disable Lint/RescueException
+  rescue Exception => e
+    # rubocop:enable Lint/RescueException
+    e
+  end
 
   def assert(judge, tname, fb, yaml)
     xpaths = yaml['expected']

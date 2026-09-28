@@ -31,6 +31,7 @@ class Judges::Statistics
   # @param [String] result The result for this run
   # @param [Churn] churn The churn for this run (can be nil)
   def record(name, time, result, churn = nil)
+    raise(ArgumentError, 'The time is nil') if time.nil?
     unless @data[name]
       @data[name] = { total_time: 0.0, cycles: 0, results: [], total_churn: nil }
     end

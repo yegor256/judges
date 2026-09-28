@@ -132,6 +132,17 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_hands_judges_a_fractional_timeout
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.t = $options.timeout')
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::NULL).run({ 'timeout' => 0.5, 'lifetime' => 10, 'quiet' => true }, [d, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_in_delta(0.5, fb.query('(exists t)').each.first.t)
+    end
+  end
+
   def test_exports_all_judges_despite_lifetime_timeout
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
@@ -244,6 +255,27 @@ class TestUpdate < Minitest::Test
       fb = Factbase.new
       fb.import(File.binread(file))
       assert_equal(0, fb.size)
+    end
+  end
+
+  def test_keeps_the_summary_when_cut_short
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      file = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert.then do |f|
+        f.what = 'judges-summary'
+        f.error = 'from the previous run'
+      end
+      File.binwrite(file, fb.export)
+      up = Judges::Update.new(Loog::NULL)
+      up.define_singleton_method(:summarize) { |*| raise(StandardError, 'the process died here') }
+      assert_raises(StandardError) { up.run({ 'quiet' => true, 'summary' => 'add', 'max-cycles' => 1 }, [d, file]) }
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      sums = fb.query('(eq what "judges-summary")').each.to_a
+      assert_equal(1, sums.size, 'a run that dies before the summary is written must not lose the old one')
+      assert_equal('from the previous run', sums.first['error'].first, sums.first.to_s)
     end
   end
 

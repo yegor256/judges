@@ -35,7 +35,7 @@ class Judges::Pull
     baza = BazaRb.new(
       opts['host'], opts['port'].to_i, opts['token'],
       ssl: opts['ssl'],
-      timeout: (opts['timeout'] || 30).to_i,
+      timeout: (opts['timeout'] || 30).to_f,
       loog: @loog,
       retries: (opts['retries'] || 3).to_i
     )
@@ -68,6 +68,7 @@ class Judges::Pull
     start = Time.now
     loop do
       break if baza.finished?(id)
+      raise(StandardError, "Time is over, the job ##{id} ('#{name}') is still not completed") if limit <= 0
       sleep(1)
       if Time.now - start > limit
         raise(StandardError, "Time is over, the job ##{id} ('#{name}') is still not completed")

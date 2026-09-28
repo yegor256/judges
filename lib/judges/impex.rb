@@ -26,6 +26,7 @@ class Judges::Impex
   # @example Create an Impex instance
   #   impex = Judges::Impex.new(logger, '/path/to/factbase.fb')
   def initialize(loog, file)
+    raise(ArgumentError, 'The file is nil') if file.nil?
     @loog = loog
     @file = file
   end
@@ -55,7 +56,8 @@ class Judges::Impex
         throw(:"The factbase imported from #{@file.to_rel} (#{File.size(@file)} bytes, #{fb.size} facts)")
       end
     else
-      raise(StandardError, "The factbase is absent at #{@file.to_rel}") if strict
+      raise(StandardError, "The factbase is absent at #{@file.to_rel}") if strict && !File.directory?(@file)
+      raise(StandardError, "The factbase path is a directory: #{@file.to_rel}") if File.directory?(@file)
       @loog.info("Nothing to import from #{@file.to_rel} (file not found)")
     end
     fb

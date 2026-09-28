@@ -9,6 +9,7 @@ require 'factbase'
 require 'factbase/churn'
 require 'factbase/fact_as_yaml'
 require 'factbase/logged'
+require 'fileutils'
 require 'logger'
 require 'tago'
 require 'timeout'
@@ -42,7 +43,7 @@ class Judges::Update
   def run(opts, args)
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     dir = args[0]
-    raise(StandardError, "The directory is absent: #{dir.to_rel}") unless File.exist?(dir)
+    raise(StandardError, "The directory is absent: #{dir.to_rel}") unless File.directory?(dir)
     impex = Judges::Impex.new(@loog, args[1])
     fb = impex.import(strict: false)
     fb = Factbase::Logged.new(fb, @loog) if opts['log']
@@ -62,7 +63,7 @@ class Judges::Update
     ensure
       impex.export(fb)
       if opts['churn'] && churn
-        File.write(opts['churn'], churn.to_s)
+        FileUtils.mkdir_p(File.dirname(opts['churn'])).tap { File.write(opts['churn'], churn.to_s) }
         @loog.info("Churn written to #{opts['churn']}: #{churn}")
       end
     end
@@ -71,7 +72,7 @@ class Judges::Update
   private
 
   def build_options(opts)
-    options = Judges::Options.new(timeout: opts['timeout']&.to_i, lifetime: opts['lifetime']&.to_i)
+    options = Judges::Options.new(timeout: opts['timeout']&.to_f, lifetime: opts['lifetime']&.to_f)
     if options.lifetime && options.timeout && options.lifetime < options.timeout * 1.1
       raise(
         StandardError,
@@ -83,7 +84,7 @@ class Judges::Update
       options += Judges::Options.new(
         File.readlines(opts['options-file'])
           .compact
-          .reject(&:empty?)
+          .reject { |ln| ln.strip.empty? }
           .map { |ln| ln.strip.split('=', 1).map(&:strip).join('=') }
       )
       @loog.debug("Options loaded from #{opts['options-file']}")
@@ -103,10 +104,6 @@ class Judges::Update
     else
       @loog.info("Summary fact found:\n\t#{Factbase::FactAsYaml.new(sum.first).to_s.gsub("\n", "\n\t")}")
     end
-    return if sum.empty?
-    return unless opts['summary'] == 'add'
-    fb.query('(eq what "judges-summary")').delete!
-    @loog.info('Summary fact deleted')
   end
 
   # rubocop:disable Metrics/MethodLength
@@ -146,7 +143,7 @@ class Judges::Update
       throw(:"👍 Update completed in #{c} cycle(s), did #{ch}")
     end
     statistics&.report(@loog)
-    summarize(fb, ch, errors, c) if %w[add append].include?(opts['summary'])
+    summarize(fb, ch, errors, c, opts['summary']) if %w[add append].include?(opts['summary'])
   end
   # rubocop:enable Metrics/MethodLength
 
@@ -155,18 +152,14 @@ class Judges::Update
   # @param [Factbase::Churn] churn The churn
   # @param [Array<String>] errors List of errors
   # @param [Integer] cycles How many cycles
-  def summarize(fb, churn, errors, cycles)
+  def summarize(fb, churn, errors, cycles, mode)
     before = fb.query('(eq what "judges-summary")').each.to_a
-    if before.empty?
+    if mode == 'add'
+      fb.query('(eq what "judges-summary")').delete!
+      @loog.info('Summary fact deleted') unless before.empty?
+    end
+    if before.empty? || mode == 'add'
       s = fb.insert
-      s.what = 'judges-summary'
-      s.when = Time.now
-      s.version = Judges::VERSION
-      s.seconds = Time.now - @start
-      s.cycles = cycles
-      s.inserted = churn.inserted.size
-      s.deleted = churn.deleted.size
-      s.added = churn.added.size
     else
       s = before.first
       errs = s['error']&.size || 0
@@ -175,6 +168,14 @@ class Judges::Update
         "#{%w[when cycles version inserted deleted added].map { |a| "#{a}=#{s[a]&.first}" }.join(', ')}"
       )
     end
+    s.what = 'judges-summary'
+    s.when = Time.now
+    s.version = Judges::VERSION
+    s.seconds = Time.now - @start
+    s.cycles = cycles
+    s.inserted = churn.inserted.size
+    s.deleted = churn.deleted.size
+    s.added = churn.added.size
     if errors.empty?
       @loog.info('No errors added to the summary')
     else

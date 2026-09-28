@@ -33,12 +33,12 @@ class Judges::Upload
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     jname = args[0]
     path = args[1]
-    raise(StandardError, "File not found: #{path}") unless File.exist?(path)
+    raise(StandardError, "File not found: #{path}") unless File.file?(path)
     name = File.basename(path)
     baza = BazaRb.new(
       opts['host'], opts['port'].to_i, opts['token'],
       ssl: opts['ssl'],
-      timeout: (opts['timeout'] || 30).to_i,
+      timeout: (opts['timeout'] || 30).to_f,
       loog: @loog,
       retries: (opts['retries'] || 3).to_i
     )

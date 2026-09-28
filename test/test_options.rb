@@ -52,6 +52,14 @@ class TestOptions < Minitest::Test
     assert_equal(42, opts.b)
   end
 
+  def test_escaped_comma
+    assert_equal({ MESSAGE: 'hello,world', DEBUG: 'true' }, Judges::Options.new('message=hello\\,world,debug').to_h)
+  end
+
+  def test_unrecognized_escape
+    assert_equal({ PATH: 'C:\\tmp\\file' }, Judges::Options.new('path=C:\\tmp\\file').to_h)
+  end
+
   def test_equals_less_token_in_string
     opts = Judges::Options.new('token=abc123,max_speed=100,debug')
     assert_equal('abc123', opts.token)
@@ -88,6 +96,17 @@ class TestOptions < Minitest::Test
     assert_includes(rendered, '"*******"', rendered)
   end
 
+  def test_masks_a_long_number
+    rendered = Judges::Options.new('token' => 1_234_567_890_123_456).to_s
+    refute_includes(rendered, '1234567890123456', rendered)
+    assert_includes(rendered, 'TOKEN → 1234********3456 (Integer)', rendered)
+  end
+
+  def test_masks_a_secret_that_became_a_number
+    rendered = Judges::Options.new(['github_token=1234567890123456']).to_s
+    refute_includes(rendered, '1234567890123456', rendered)
+  end
+
   def test_merge
     opts = Judges::Options.new(['a = 1', 'b = 4']) + Judges::Options.new(['a = 44', 'c = 3'])
     assert_equal(44, opts.a)
@@ -105,5 +124,21 @@ class TestOptions < Minitest::Test
     assert_equal(2, (a + Judges::Options.new(['b = 2'])).to_h.size)
     assert_equal(1, a.to_h.size, 'receiver must not absorb keys from the other operand')
     refute(a.to_h.key?(:b))
+  end
+
+  def test_keeps_a_value_whose_first_line_is_a_number
+    opts = Judges::Options.new('secret' => "12345\nnot-a-number")
+    assert_equal("12345\nnot-a-number", opts.secret, opts)
+  end
+
+  def test_keeps_the_padding_of_a_zero_padded_value
+    opts = Judges::Options.new(['pin=007'])
+    assert_equal('007', opts.pin, opts)
+  end
+
+  def test_still_converts_a_plain_number
+    opts = Judges::Options.new(['max=42', 'zero=0'])
+    assert_equal(42, opts.max, opts)
+    assert_equal(0, opts.zero, opts)
   end
 end

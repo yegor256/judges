@@ -27,8 +27,8 @@ class Judges::Categories
   # @param [Array<String>] enable List of categories to enable
   # @param [Array<String>] disable List of categories to disable
   def initialize(enable, disable)
-    @enable = enable.is_a?(Array) ? enable : []
-    @disable = disable.is_a?(Array) ? disable : []
+    @enable = list(enable)
+    @disable = list(disable)
   end
 
   # Check if a test with given categories should be executed.
@@ -58,5 +58,13 @@ class Judges::Categories
     return true if cats.any? { |c| @enable.any?(c) }
     return true if @enable.empty?
     false
+  end
+
+  private
+
+  def list(value)
+    return [] if value.nil?
+    return value if value.is_a?(Array)
+    [value]
   end
 end
