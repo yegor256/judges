@@ -114,6 +114,18 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_fails_when_no_test_matches
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      save_it(File.join(d, 'foo/ok.yml'), 'input: []')
+      Judges::Test.new(Loog::NULL).run({ 'judge' => ['foo/ok'] }, [d])
+      assert_includes(
+        assert_raises(StandardError) { Judges::Test.new(Loog::NULL).run({ 'judge' => ['foo/typo'] }, [d]) }.message,
+        'No test matches --judge=foo/typo'
+      )
+    end
+  end
+
   def test_with_before
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'first/first.rb'), 'x = $fb.size; $fb.insert.foo = x')
