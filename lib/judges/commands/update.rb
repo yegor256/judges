@@ -279,22 +279,19 @@ class Judges::Update
   # @param [Judges::Options] options The options
   # @param [Array<String>] errors List of errors
   def one_judge(opts, fb, judge, global, options, errors)
-    local = {}
     start = Time.now
-    begin
-      if opts['lifetime'] && Time.now - @start > opts['lifetime']
-        throw(:"👎 The '#{judge.name}' judge skipped, no time left")
-      end
-      Timeout.timeout(opts['timeout']) do
-        judge.run(fb, global, local, options)
-      end
-    rescue Timeout::Error, Timeout::ExitException => e
-      if opts['lifetime'] && Time.now - @start >= opts['lifetime']
-        @loog.info("Had to stop '#{judge.name}' due to the --lifetime=#{opts['lifetime']}")
-      else
-        @loog.error("Terminated due to --timeout=#{opts['timeout']}")
-        errors << "Judge #{judge.name} stopped by timeout after #{start.ago}: #{e.message}"
-      end
+    if opts['lifetime'] && Time.now - @start > opts['lifetime']
+      throw(:"👎 The '#{judge.name}' judge skipped, no time left")
+    end
+    Timeout.timeout(opts['timeout']) do
+      judge.run(fb, global, {}, options)
+    end
+  rescue Timeout::Error, Timeout::ExitException => e
+    if opts['lifetime'] && Time.now - @start >= opts['lifetime']
+      @loog.info("Had to stop '#{judge.name}' due to the --lifetime=#{opts['lifetime']}")
+    else
+      @loog.error("Terminated due to --timeout=#{opts['timeout']}")
+      errors << "Judge #{judge.name} stopped by timeout after #{start.ago}: #{e.message}"
     end
   end
 
