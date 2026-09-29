@@ -105,6 +105,18 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_counts_changes_from_failing_judge
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1; raise "boom"')
+      log = Loog::Buffer.new
+      Judges::Update.new(Loog::Tee.new(log, Loog::NULL)).run(
+        { 'quiet' => true, 'max-cycles' => 1 },
+        [d, File.join(d, 'base.fb')]
+      )
+      assert_includes(log.to_s, 'Update completed in 1 cycle(s), did 1i/0d/1a')
+    end
+  end
+
   def test_exports_fb_only_once
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1;')
@@ -393,7 +405,7 @@ class TestUpdate < Minitest::Test
       fb = Factbase.new
       fb.import(File.binread(file))
       assert_equal(2, fb.query('(always)').to_a.size)
-      assert_match(%r{bar\s+\d\.\d{3}\s+\d\s+N/A\s+SKIPPED}, loog.to_s)
+      assert_match(/bar\s+\d\.\d{3}\s+\d\s+nothing\s+SKIPPED/, loog.to_s)
     end
   end
 
