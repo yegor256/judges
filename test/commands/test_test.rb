@@ -206,6 +206,22 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_with_skipping_judge
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'raise "skip";')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        expected:
+          - /fb[not(f)]
+        YAML
+      )
+      Judges::Test.new(Loog::NULL).run({}, [d])
+      assert_path_exists(d)
+    end
+  end
+
   def test_with_expected_failure_no_string
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), 'raise "this is intentional";')
