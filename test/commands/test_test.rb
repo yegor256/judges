@@ -206,6 +206,20 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_with_unmatched_scalar_expected_failure
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'raise "totally unrelated";')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        expected_failure: intentional
+        YAML
+      )
+      assert_includes(assert_raises(StandardError) { Judges::Test.new(Loog::NULL).run({}, [d]) }.message, '1 tests failed')
+    end
+  end
+
   def test_with_expected_failure_no_string
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), 'raise "this is intentional";')
