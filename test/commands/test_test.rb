@@ -309,4 +309,17 @@ class TestTest < Minitest::Test
       Judges::Test.new(Loog::NULL).run({}, [d])
     end
   end
+
+  def test_names_pack_with_non_string_option
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 1')
+      save_it(File.join(d, 'foo/numeric.yml'), "input: []\noptions:\n  - 42\n")
+      loog = Loog::Buffer.new
+      assert_raises(StandardError) do
+        Judges::Test.new(loog).run({}, [d])
+      end
+      assert_includes(loog.to_s, 'numeric.yml', loog.to_s)
+      assert_includes(loog.to_s, 'The option 42 is not a String', loog.to_s)
+    end
+  end
 end
