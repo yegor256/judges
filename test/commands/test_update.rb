@@ -105,6 +105,20 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_counts_errors_per_cycle
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'raise "boom"')
+      save_it(File.join(d, 'bar/bar.rb'), '$fb.insert.bar = 1')
+      file = File.join(d, 'base.fb')
+      loog = Loog::Buffer.new
+      Judges::Update.new(loog).run({ 'quiet' => true, 'summary' => 'add', 'max-cycles' => 3 }, [d, file])
+      assert_equal(3, loog.to_s.scan('judge(s) processed with 1 errors').size)
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_equal(['boom'], fb.query('(eq what "judges-summary")').each.to_a.first['error'])
+    end
+  end
+
   def test_exports_fb_only_once
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1;')
