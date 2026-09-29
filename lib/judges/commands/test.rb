@@ -70,7 +70,7 @@ class Judges::Test
       @loog.debug('Not failing the build with test failures, due to the --quiet option')
     end
     return unless tested.zero? || tests.zero?
-    if (opts['judge'] || []).empty?
+    if Array(opts['judge']).empty?
       raise(StandardError, 'There seem to be no judges') unless opts['quiet']
       @loog.debug('Not failing the build with no judges tested, due to the --quiet option')
     else
