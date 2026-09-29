@@ -142,6 +142,7 @@ class Judges::Options
     if pp.is_a?(Array)
       pp = pp
         .compact
+        .each { |s| raise(ArgumentError, "The option #{s.inspect} is not a String") unless s.is_a?(String) }
         .map(&:strip)
         .reject(&:empty?)
         .map { |s| s.split('=', 2) }
