@@ -216,7 +216,10 @@ class TestTest < Minitest::Test
         expected_failure: intentional
         YAML
       )
-      assert_includes(assert_raises(StandardError) { Judges::Test.new(Loog::NULL).run({}, [d]) }.message, '1 tests failed')
+      assert_includes(
+        assert_raises(StandardError) { Judges::Test.new(Loog::NULL).run({}, [d]) }.message,
+        '1 tests failed'
+      )
     end
   end
 
