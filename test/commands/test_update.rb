@@ -108,9 +108,10 @@ class TestUpdate < Minitest::Test
   def test_refuses_non_positive_timeout_and_lifetime
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert')
+      file = File.join(d, 'base.fb')
       [{ 'timeout' => -5, 'lifetime' => 60 }, { 'timeout' => 0, 'lifetime' => 0 }].each do |opts|
         assert_includes(
-          assert_raises(StandardError) { Judges::Update.new(Loog::NULL).run(opts, [d, File.join(d, 'base.fb')]) }.message,
+          assert_raises(StandardError) { Judges::Update.new(Loog::NULL).run(opts, [d, file]) }.message,
           "--timeout=#{opts['timeout']} must be a positive number"
         )
       end
