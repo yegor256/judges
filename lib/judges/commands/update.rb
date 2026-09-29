@@ -228,9 +228,14 @@ class Judges::Update
     start = Time.now
     result = 'OK'
     impact = nil
+    tallied = Factbase::Tallied.new(fb)
     elapsed(@loog, level: Logger::INFO) do
-      impact = one_judge(opts, fb, judge, global, options, errors)
-      churn.append(impact.inserted, impact.deleted, impact.added)
+      begin
+        one_judge(opts, tallied, judge, global, options, errors)
+      ensure
+        impact = tallied.churn
+        churn.append(impact.inserted, impact.deleted, impact.added)
+      end
       throw(:"👍 The '#{judge.name}' judge made zero changes to #{fb.size} facts") if impact.zero?
       throw(:"👍 The '#{judge.name}' judge #{impact} out of #{fb.size} facts")
     end
@@ -273,11 +278,9 @@ class Judges::Update
   # @param [Hash] global Global options
   # @param [Judges::Options] options The options
   # @param [Array<String>] errors List of errors
-  # @return [Factbase::Churn] How many modifications have been made
   def one_judge(opts, fb, judge, global, options, errors)
     local = {}
     start = Time.now
-    fb = Factbase::Tallied.new(fb)
     begin
       if opts['lifetime'] && Time.now - @start > opts['lifetime']
         throw(:"👎 The '#{judge.name}' judge skipped, no time left")
@@ -293,7 +296,6 @@ class Judges::Update
         errors << "Judge #{judge.name} stopped by timeout after #{start.ago}: #{e.message}"
       end
     end
-    fb.churn
   end
 
   def include?(opts, name)
