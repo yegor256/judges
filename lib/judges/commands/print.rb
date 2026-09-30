@@ -74,8 +74,7 @@ class Judges::Print
         require('factbase/to_json')
         Factbase::ToJSON.new(fb).json
       when 'xml'
-        require('factbase/to_xml')
-        Factbase::ToXML.new(fb).xml
+        xml(fb)
       else
         to_html(opts, fb)
     end
@@ -102,9 +101,8 @@ class Judges::Print
   end
 
   def to_html(opts, fb)
-    require('factbase/to_xml')
     Nokogiri::XSLT(File.read(File.join(__dir__, '../../../assets/index.xsl'))).apply_to(
-      Nokogiri::XML(Factbase::ToXML.new(fb).xml),
+      Nokogiri::XML(xml(fb)),
       Nokogiri::XSLT.quote_params(
         'title' => opts['title'],
         'date' => Time.now.utc.iso8601,
@@ -116,6 +114,21 @@ class Judges::Print
         'js_hash' => sha256(opts, 'index.js')
       )
     )
+  end
+
+  def xml(fb)
+    require('factbase/to_xml')
+    xml = Factbase::ToXML.new(fb).xml
+    begin
+      Nokogiri::XML(xml, &:strict)
+    rescue Nokogiri::XML::SyntaxError => e
+      raise(
+        StandardError,
+        "A fact holds a value that XML doesn't allow, at line #{e.line}: " \
+        "#{xml.lines[e.line - 1].to_s.strip.inspect} (#{e.message})"
+      )
+    end
+    xml
   end
 
   def sha256(opts, asset)
