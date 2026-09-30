@@ -28,7 +28,7 @@ class Judges::Push
   # Run the push command (called by the +bin/judges+ script).
   # @param [Hash] opts Command line options (start with '--')
   # @param [Array] args List of command line arguments
-  # @raise [RuntimeError] If not exactly two arguments provided
+  # @raise [ArgumentError] If not exactly two arguments provided
   def run(opts, args)
     raise(ArgumentError, 'Exactly two arguments required: <name> and <path>') unless args.size == 2
     name = args[0]
