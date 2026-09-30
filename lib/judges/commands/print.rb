@@ -36,7 +36,7 @@ class Judges::Print
   # Run the print command (called by the +bin/judges+ script).
   # @param [Hash] opts Command line options (start with '--')
   # @param [Array] args List of command line arguments
-  # @raise [RuntimeError] If no arguments provided
+  # @raise [ArgumentError] If no arguments provided
   def run(opts, args)
     raise(ArgumentError, 'At least one argument required') if args.empty?
     fmt = opts['format']&.downcase

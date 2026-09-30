@@ -53,7 +53,7 @@ class Judges::Judges
   #
   # @param [String] name The name of the judge to retrieve (directory name)
   # @return [Judges::Judge] The judge object initialized with the found directory
-  # @raise [RuntimeError] If no judge directory exists with the given name
+  # @raise [StandardError] If no judge directory exists with the given name
   def get(name)
     d = File.absolute_path(File.join(@dir, name))
     raise(StandardError, "Judge #{name} doesn't exist in #{@dir}") unless File.exist?(d)
