@@ -78,8 +78,9 @@ class Judges::Impex
   def import_to(fb)
     raise(StandardError, "The factbase is absent at #{@file.to_rel}") unless File.file?(@file)
     elapsed(@loog, level: Logger::INFO) do
+      before = fb.size
       fb.import(File.binread(@file))
-      throw(:"The factbase loaded from #{@file.to_rel} (#{File.size(@file)} bytes, #{fb.size} facts)")
+      throw(:"The factbase loaded from #{@file.to_rel} (#{File.size(@file)} bytes, #{fb.size - before} facts)")
     end
   end
 
