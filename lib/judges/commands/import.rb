@@ -3,8 +3,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
-require 'elapsed'
 require 'date'
+require 'elapsed'
 require 'time'
 require_relative '../../judges'
 require_relative '../../judges/impex'
