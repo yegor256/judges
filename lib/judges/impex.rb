@@ -80,7 +80,7 @@ class Judges::Impex
     elapsed(@loog, level: Logger::INFO) do
       before = fb.size
       fb.import(File.binread(@file))
-      throw(:"The factbase loaded from #{@file.to_rel} (#{File.size(@file)} bytes, #{fb.size - before} facts)")
+      throw(:"#{fb.size - before} facts loaded from #{@file.to_rel} (#{File.size(@file)} bytes) to #{before} facts")
     end
   end
 
