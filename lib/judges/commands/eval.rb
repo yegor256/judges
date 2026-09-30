@@ -37,7 +37,7 @@ class Judges::Eval
       end
       # rubocop:disable Security/Eval
       begin
-        eval(args[1])
+        eval(args[1], Object.new.instance_eval { binding })
       rescue SyntaxError => e
         raise(StandardError, "The expression #{args[1].inspect} is not valid Ruby: #{e.message}", cause: e)
       end
