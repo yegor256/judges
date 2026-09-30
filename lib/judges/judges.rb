@@ -131,7 +131,10 @@ class Judges::Judges
   def discover_judges
     Dir.glob(File.join(@dir, '*')).each.to_a.filter_map do |d|
       next unless File.directory?(d)
-      next unless File.exist?(File.join(d, "#{File.basename(d)}.rb"))
+      unless File.exist?(File.join(d, "#{File.basename(d)}.rb"))
+        @loog.warn("The directory #{d.to_rel} is ignored, since it has no #{File.basename(d)}.rb script")
+        next
+      end
       Judges::Judge.new(File.absolute_path(d), @lib, @loog, epoch: @epoch)
     end
   end
