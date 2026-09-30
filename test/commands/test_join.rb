@@ -42,9 +42,8 @@ class TestJoin < Minitest::Test
       fb = Factbase.new
       fb.insert.zz = 5
       File.binwrite(file, fb.export)
-      before = File.binread(file)
       assert_raises(ArgumentError) { Judges::Join.new(Loog::NULL).run({}, [file, File.join(d, '.', 'self.fb')]) }
-      assert_equal(before, File.binread(file), 'the factbase was changed')
+      assert_equal(fb.export, File.binread(file), 'the factbase was changed')
     end
   end
 
