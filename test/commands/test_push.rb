@@ -144,7 +144,9 @@ class TestPush < Minitest::Test
     fake.define_singleton_method(:lock) { |*| true }
     fake.define_singleton_method(:unlock) { |*| true }
     fake.define_singleton_method(:name_exists?) { |_name| true }
-    fake.define_singleton_method(:recent) { |_name| 0 }
+    fake.define_singleton_method(:recent) do |_name|
+      raise(BazaRb::ServerFailure, "Invalid response code #303: the product doesn't have any not-yet-expired jobs")
+    end
     fake.define_singleton_method(:push) { |*| sent = true }
     maker = ->(*_args, **_kwargs) { fake }
     Dir.mktmpdir do |d|
@@ -158,6 +160,31 @@ class TestPush < Minitest::Test
       end
     end
     assert(sent, 'a new remote name has no snapshot that could be stale')
+  end
+
+  def test_rejects_a_push_without_a_marker_for_an_existing_snapshot
+    sent = false
+    fake = Object.new
+    fake.define_singleton_method(:lock) { |*| true }
+    fake.define_singleton_method(:unlock) { |*| true }
+    fake.define_singleton_method(:name_exists?) { |_name| true }
+    fake.define_singleton_method(:recent) { |_name| 42 }
+    fake.define_singleton_method(:push) { |*| sent = true }
+    maker = ->(*_args, **_kwargs) { fake }
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      File.binwrite(file, Factbase.new.export)
+      BazaRb.stub(:new, maker) do
+        error = assert_raises(StandardError) do
+          Judges::Push.new(Loog::NULL).run(
+            { 'token' => '000', 'host' => 'example.org', 'port' => 443, 'ssl' => true, 'owner' => 'none' },
+            ['foo', file]
+          )
+        end
+        assert_match(/No pulled snapshot is recorded/, error.message)
+      end
+    end
+    refute(sent, 'an existing remote factbase requires a pull marker')
   end
 
   def test_pushes_when_the_snapshot_is_current
