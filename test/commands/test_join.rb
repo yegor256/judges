@@ -36,6 +36,17 @@ class TestJoin < Minitest::Test
     end
   end
 
+  def test_refuses_to_join_a_factbase_with_itself
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'self.fb')
+      fb = Factbase.new
+      fb.insert.zz = 5
+      File.binwrite(file, fb.export)
+      assert_raises(ArgumentError) { Judges::Join.new(Loog::NULL).run({}, [file, File.join(d, '.', 'self.fb')]) }
+      assert_equal(fb.export, File.binread(file), 'the factbase was changed')
+    end
+  end
+
   def test_renumbers_the_facts_it_takes_in
     Dir.mktmpdir do |d|
       files =
