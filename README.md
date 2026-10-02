@@ -63,7 +63,9 @@ Here, the `input` is an array of facts to be placed into the Factbase before
 the test starts; the `options` is a hash map of options as if they are passed
 via the command line `--option` flag of the `update` command; and `expected` is
 an array of XPath expressions that must be present in the XML of the Factbase
-when the test is finished.
+when the test is finished. The `_id` of a fact in the `input` is not kept:
+it is replaced with a counter that starts at `1` and grows with every fact
+that has an `_id`, in both the scalar and the array form.
 
 The `category` (default: `[]`) may have one category or an array of categories,
 which then may be turned on via the `--category` command line flag.
