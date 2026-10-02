@@ -91,6 +91,14 @@ class TestJudges < Minitest::Test
     end
   end
 
+  def test_lists_judges_under_bracketed_dir
+    Dir.mktmpdir do |d|
+      dir = File.join(d, 'my[1]judges')
+      save_it(File.join(dir, 'alpha/alpha.rb'), 'hello')
+      assert_equal(['alpha'], Judges::Judges.new(dir, nil, Loog::NULL).each.to_a.map(&:name))
+    end
+  end
+
   def test_list_with_empty_dir
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'wrong.rb'), '')
