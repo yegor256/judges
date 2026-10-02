@@ -114,7 +114,7 @@ class Judges::Judge
   # @raise [RuntimeError] If the expected script file is not found in the judge directory
   def script
     b = "#{File.basename(@dir)}.rb"
-    files = Dir.glob(File.join(@dir, '*.rb')).map { |f| File.basename(f) }
+    files = Dir.glob('*.rb', base: @dir)
     raise(StandardError, "No #{b} script in #{@dir.to_rel} among #{files}") unless files.include?(b)
     b
   end
