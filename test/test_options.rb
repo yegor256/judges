@@ -81,7 +81,7 @@ class TestOptions < Minitest::Test
   end
 
   def test_with_nil_values
-    assert_nil(Judges::Options.new('foo' => nil).foo)
+    assert_equal({ FOO: 'true' }, Judges::Options.new('foo' => nil).to_h)
   end
 
   def test_converts_to_string
