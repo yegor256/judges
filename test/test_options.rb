@@ -107,6 +107,14 @@ class TestOptions < Minitest::Test
     refute_includes(rendered, '1234567890123456', rendered)
   end
 
+  def test_masks_short_numeric_secrets
+    %w[1234 12345678].each do |secret|
+      rendered = Judges::Options.new(["github_token=#{secret}"]).to_s
+      refute_includes(rendered, secret, rendered)
+      assert_includes(rendered, "GITHUB_TOKEN → #{'*' * secret.length} (Integer)", rendered)
+    end
+  end
+
   def test_merge
     opts = Judges::Options.new(['a = 1', 'b = 4']) + Judges::Options.new(['a = 44', 'c = 3'])
     assert_equal(44, opts.a)
