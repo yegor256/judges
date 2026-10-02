@@ -63,7 +63,7 @@ class Judges::Push
       begin
         baza.recent(name)
       rescue BazaRb::ServerFailure => e
-        return if e.message.match?(/Invalid response code #303 .*doesn't have any not-yet-expired jobs/)
+        return if e.message.match?(/Invalid response code #303.*doesn't have any not-yet-expired jobs/)
         raise
       end
       raise(
