@@ -174,17 +174,17 @@ class TestPrint < Minitest::Test
     end
   end
 
-  def test_reprints_when_factbase_changes_even_if_it_is_older
+  def test_reprints_when_factbase_changes
     Dir.mktmpdir do |d|
       first = File.join(d, 'first.fb')
       second = File.join(d, 'second.fb')
       output = File.join(d, 'report.json')
-      first_fb = Factbase.new
-      first_fb.insert.what = 'first'
-      second_fb = Factbase.new
-      second_fb.insert.what = 'second'
-      File.binwrite(first, first_fb.export)
-      File.binwrite(second, second_fb.export)
+      fb = Factbase.new
+      fb.insert.what = 'first'
+      other = Factbase.new
+      other.insert.what = 'second'
+      File.binwrite(first, fb.export)
+      File.binwrite(second, other.export)
       printer = Judges::Print.new(Loog::NULL)
       printer.run({ 'format' => 'json' }, [first, output])
       future = Time.now + 5
