@@ -51,7 +51,7 @@ class Judges::Print
       o = "#{o}.#{fmt}"
     end
     FileUtils.mkdir_p(File.dirname(o))
-    assets = asset_hashes(opts, fmt)
+    assets = fingerprint(opts, fmt)
     stamp = stamp(opts, fmt)
     stamp = Digest::SHA256.hexdigest([stamp, *assets.values].join("\n")) unless assets.empty?
     sidecar = "#{o}.judges-options"
@@ -103,7 +103,7 @@ class Judges::Print
     File.exist?(output) && File.exist?(sidecar) && File.binread(sidecar) == stamp
   end
 
-  def asset_hashes(opts, fmt)
+  def fingerprint(opts, fmt)
     return {} unless fmt == 'html'
     {
       'css_hash' => sha256(opts, 'index.css'),
