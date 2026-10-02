@@ -82,7 +82,7 @@ class TestOptions < Minitest::Test
 
   def test_rejects_whitespace_only_hash_keys
     assert_empty(Judges::Options.new('   ' => 'value').to_h)
-    assert_empty(Judges::Options.new(Hash[:'   ', 'value']).to_h)
+    assert_empty(Judges::Options.new('   '.to_sym => 'value').to_h)
   end
 
   def test_with_nil_values
