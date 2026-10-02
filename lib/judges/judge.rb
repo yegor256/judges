@@ -56,7 +56,7 @@ class Judges::Judge
   # @param [Hash] local Local configuration options specific to this judge
   # @param [Judges::Options] options Command-line options object
   # @return [nil] Nothing
-  # @raise [RuntimeError] If the lib directory doesn't exist, the script can't be loaded, or execution fails
+  # @raise [StandardError] If the lib directory doesn't exist, the script can't be loaded, or execution fails
   # rubocop:disable Metrics/MethodLength
   def run(fb, global, local, options)
     $fb = fb
@@ -111,7 +111,7 @@ class Judges::Judge
   # For example, if the judge directory is "quality", the script must be "quality.rb".
   #
   # @return [String] The filename of the judge script (e.g., "judge_name.rb")
-  # @raise [RuntimeError] If the expected script file is not found in the judge directory
+  # @raise [StandardError] If the expected script file is not found in the judge directory
   def script
     b = "#{File.basename(@dir)}.rb"
     files = Dir.glob(File.join(@dir, '*.rb')).map { |f| File.basename(f) }

@@ -39,7 +39,8 @@ class Judges::Update
   # Run the update command (called by the +bin/judges+ script).
   # @param [Hash] opts Command line options (start with '--')
   # @param [Array] args List of command line arguments
-  # @raise [RuntimeError] If not exactly two arguments provided or directory is missing
+  # @raise [ArgumentError] If not exactly two arguments provided
+  # @raise [StandardError] If the directory is missing
   def run(opts, args)
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     dir = args[0]
