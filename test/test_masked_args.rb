@@ -52,13 +52,9 @@ class TestMaskedArgs < Minitest::Test
   end
 
   def test_hides_hyphenated_secret_keys
-    line = Judges::MaskedArgs.new(
-      %w[--option=github-token=hunter2 --password=hunter2 --api-key=hunter2]
-    ).to_s
-    assert_equal(
-      '--option=github-token=******* --password=******* --api-key=*******',
-      line
-    )
+    assert_equal('--option=github-token=*******', Judges::MaskedArgs.new(['--option=github-token=hunter2']).to_s)
+    assert_equal('--password=*******', Judges::MaskedArgs.new(['--password=hunter2']).to_s)
+    assert_equal('--api-key=*******', Judges::MaskedArgs.new(['--api-key=hunter2']).to_s)
   end
 
   def test_hides_a_multiline_secret_value
