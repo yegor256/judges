@@ -14,6 +14,7 @@ require 'logger'
 require 'tago'
 require 'timeout'
 require_relative '../../judges'
+require_relative '../../judges/clock'
 require_relative '../../judges/impex'
 require_relative '../../judges/judges'
 require_relative '../../judges/options'
@@ -28,21 +29,13 @@ require_relative '../../judges/to_rel'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
-class Judges::Clock
-  def initialize
-    @start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-  end
-
-  def elapsed
-    Process.clock_gettime(Process::CLOCK_MONOTONIC) - @start
-  end
-end
-
 class Judges::Update
   # Initialize.
   # @param [Loog] loog Logging facility
   def initialize(loog)
-    @loog, @start, @clock = loog, Time.now, Judges::Clock.new
+    @loog = loog
+    @start = Time.now
+    @clock = Judges::Clock.new
   end
 
   # Run the update command (called by the +bin/judges+ script).
@@ -299,8 +292,8 @@ class Judges::Update
         @loog.info("Had to stop '#{judge.name}' due to the --lifetime=#{opts['lifetime']}")
       else
         @loog.error("Terminated due to --timeout=#{opts['timeout']}")
-        errors << "Judge #{judge.name} stopped by timeout after " \
-          "#{format('%.2f', Process.clock_gettime(Process::CLOCK_MONOTONIC) - start)}s: #{e.message}"
+        duration = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
+        errors << "Judge #{judge.name} stopped by timeout after #{format('%.2f', duration)}s: #{e.message}"
       end
     end
     fb.churn
@@ -311,5 +304,4 @@ class Judges::Update
     return true if judges.empty?
     judges.any?(name)
   end
-
 end
