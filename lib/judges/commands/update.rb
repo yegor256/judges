@@ -28,13 +28,21 @@ require_relative '../../judges/to_rel'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
+class Judges::Clock
+  def initialize
+    @start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+  end
+
+  def elapsed
+    Process.clock_gettime(Process::CLOCK_MONOTONIC) - @start
+  end
+end
+
 class Judges::Update
   # Initialize.
   # @param [Loog] loog Logging facility
   def initialize(loog)
-    @loog = loog
-    @start = Time.now
-    @lifetime_start = monotonic_now
+    @loog, @start, @clock = loog, Time.now, Judges::Clock.new
   end
 
   # Run the update command (called by the +bin/judges+ script).
@@ -122,7 +130,7 @@ class Judges::Update
         end
         c += 1
         if c > 1
-          if opts['lifetime'] && lifetime_elapsed > opts['lifetime'] * 0.51
+          if opts['lifetime'] && @clock.elapsed > opts['lifetime'] * 0.51
             @loog.info("Not starting cycle ##{c}, no time left")
             c -= 1
             break
@@ -172,7 +180,7 @@ class Judges::Update
     s.what = 'judges-summary'
     s.when = Time.now
     s.version = Judges::VERSION
-    s.seconds = lifetime_elapsed
+    s.seconds = @clock.elapsed
     s.cycles = cycles
     s.inserted = churn.inserted.size
     s.deleted = churn.deleted.size
@@ -225,11 +233,8 @@ class Judges::Update
   def run_judge_in_cycle(judge, idx, opts, fb, churn, options, errors, global, statistics)
     return if skip_judge?(judge, idx, opts, errors, statistics)
     return unless include?(opts, judge.name)
-    @loog.info(
-      "\n👉 Running #{judge.name} (##{idx}) at #{judge.dir.to_rel} " \
-      "(#{format('%.2f', lifetime_elapsed)}s already)..."
-    )
-    start = monotonic_now
+    @loog.info("\n👉 Running #{judge.name} (##{idx}) at #{judge.dir.to_rel} (#{@clock.elapsed.round(2)}s already)...")
+    start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     result = 'OK'
     impact = nil
     elapsed(@loog, level: Logger::INFO) do
@@ -249,7 +254,7 @@ class Judges::Update
     end
     impact || true
   ensure
-    statistics&.record(judge.name, monotonic_now - start, result, impact) if start
+    statistics&.record(judge.name, Process.clock_gettime(Process::CLOCK_MONOTONIC) - start, result, impact) if start
   end
 
   def skip_judge?(judge, _idx, opts, errors, statistics)
@@ -259,7 +264,7 @@ class Judges::Update
       return true
     end
     if opts['lifetime'] && opts['timeout']
-      remained = opts['lifetime'] - lifetime_elapsed
+      remained = opts['lifetime'] - @clock.elapsed
       if remained < opts['timeout'].to_f / 16
         @loog.info("Not running #{judge.name.inspect}, not enough time left (just #{remained.seconds})")
         statistics&.record(judge.name, 0, 'SKIPPED (timeout)') if include?(opts, judge.name)
@@ -280,21 +285,22 @@ class Judges::Update
   # @return [Factbase::Churn] How many modifications have been made
   def one_judge(opts, fb, judge, global, options, errors)
     local = {}
-    start = monotonic_now
+    start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     fb = Factbase::Tallied.new(fb)
     begin
-      if opts['lifetime'] && lifetime_elapsed > opts['lifetime']
+      if opts['lifetime'] && @clock.elapsed > opts['lifetime']
         throw(:"👎 The '#{judge.name}' judge skipped, no time left")
       end
       Timeout.timeout(opts['timeout']) do
         judge.run(fb, global, local, options)
       end
     rescue Timeout::Error, Timeout::ExitException => e
-      if opts['lifetime'] && lifetime_elapsed >= opts['lifetime']
+      if opts['lifetime'] && @clock.elapsed >= opts['lifetime']
         @loog.info("Had to stop '#{judge.name}' due to the --lifetime=#{opts['lifetime']}")
       else
         @loog.error("Terminated due to --timeout=#{opts['timeout']}")
-        errors << "Judge #{judge.name} stopped by timeout after #{format('%.2f', monotonic_now - start)}s: #{e.message}"
+        errors << "Judge #{judge.name} stopped by timeout after " \
+          "#{format('%.2f', Process.clock_gettime(Process::CLOCK_MONOTONIC) - start)}s: #{e.message}"
       end
     end
     fb.churn
@@ -306,11 +312,4 @@ class Judges::Update
     judges.any?(name)
   end
 
-  def lifetime_elapsed
-    monotonic_now - @lifetime_start
-  end
-
-  def monotonic_now
-    Process.clock_gettime(Process::CLOCK_MONOTONIC)
-  end
 end
