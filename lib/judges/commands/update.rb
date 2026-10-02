@@ -34,7 +34,6 @@ class Judges::Update
   # @param [Loog] loog Logging facility
   def initialize(loog)
     @loog = loog
-    @start = Time.now
     @clock = Judges::Clock.new
   end
 
@@ -52,7 +51,7 @@ class Judges::Update
     options = build_options(opts)
     judges = Judges::Judges.new(
       dir, opts['lib'], @loog,
-      epoch: @start, shuffle: opts['shuffle'], boost: opts['boost'],
+      epoch: @clock.started_at, shuffle: opts['shuffle'], boost: opts['boost'],
       demote: opts['demote'], seed: opts['seed']
     )
     churn = Factbase::Churn.new
@@ -247,7 +246,7 @@ class Judges::Update
     end
     impact || true
   ensure
-    statistics&.record(judge.name, Process.clock_gettime(Process::CLOCK_MONOTONIC) - start, result, impact) if start
+    statistics&.record(judge.name, @clock.elapsed_since(start), result, impact) if start
   end
 
   def skip_judge?(judge, _idx, opts, errors, statistics)
@@ -292,8 +291,7 @@ class Judges::Update
         @loog.info("Had to stop '#{judge.name}' due to the --lifetime=#{opts['lifetime']}")
       else
         @loog.error("Terminated due to --timeout=#{opts['timeout']}")
-        duration = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
-        errors << "Judge #{judge.name} stopped by timeout after #{format('%.2f', duration)}s: #{e.message}"
+        errors << "Judge #{judge.name} stopped by timeout after #{format('%.2f', @clock.elapsed_since(start))}s: #{e.message}"
       end
     end
     fb.churn
