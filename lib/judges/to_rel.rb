@@ -21,7 +21,7 @@ class Object
         s
       end
     t = s if t.length > s.length
-    t = "\"#{t}\"" if t.include?(' ')
-    File.directory?(s) ? "#{t}/" : t
+    t = "#{t}/" if File.directory?(s)
+    t.include?(' ') ? "\"#{t}\"" : t
   end
 end
