@@ -59,11 +59,12 @@ class Judges::Push
 
   def snapshot(name, baza, marker)
     return unless baza.name_exists?(name)
+    actual = baza.recent(name)
     unless File.file?(marker)
+      return if actual.zero?
       raise(StandardError, "No pulled snapshot is recorded for #{name.inspect}; run 'judges pull' before pushing")
     end
     expected = File.binread(marker).strip
-    actual = baza.recent(name)
     return if expected == actual.to_s
     raise(StandardError, "The Baza snapshot for #{name.inspect} changed after job ##{expected}; pull again before pushing")
   end

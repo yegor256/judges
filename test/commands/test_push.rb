@@ -138,6 +138,28 @@ class TestPush < Minitest::Test
     end
   end
 
+  def test_pushes_a_new_name_without_a_pulled_snapshot
+    sent = false
+    fake = Object.new
+    fake.define_singleton_method(:lock) { |*| true }
+    fake.define_singleton_method(:unlock) { |*| true }
+    fake.define_singleton_method(:name_exists?) { |_name| true }
+    fake.define_singleton_method(:recent) { |_name| 0 }
+    fake.define_singleton_method(:push) { |*| sent = true }
+    maker = ->(*_args, **_kwargs) { fake }
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      File.binwrite(file, Factbase.new.export)
+      BazaRb.stub(:new, maker) do
+        Judges::Push.new(Loog::NULL).run(
+          { 'token' => '000', 'host' => 'example.org', 'port' => 443, 'ssl' => true, 'owner' => 'none' },
+          ['foo', file]
+        )
+      end
+    end
+    assert(sent, 'a new remote name has no snapshot that could be stale')
+  end
+
   def test_pushes_when_the_snapshot_is_current
     sent = false
     fake = Object.new
