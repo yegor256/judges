@@ -9,6 +9,7 @@ require 'tmpdir'
 
 Before do
   @cwd = Dir.pwd
+  @fake_name = nil
 end
 
 After do
@@ -37,7 +38,7 @@ end
 
 When(%r{^I run bin/judges with "([^"]*)"$}) do |arg|
   home = File.join(File.dirname(__FILE__), '../..')
-  arg.gsub!('{FAKE-NAME}') { "fake#{SecureRandom.hex(8)}" }
+  arg = arg.gsub('{FAKE-NAME}') { @fake_name ||= "fake#{SecureRandom.hex(8)}" }
   cmd = "ruby -I#{home}/lib #{home}/bin/judges #{arg}"
   cmd = "GLI_DEBUG=true #{cmd}" unless Gem.win_platform?
   @stdout = `#{cmd} 2>&1`

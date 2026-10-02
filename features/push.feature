@@ -7,6 +7,8 @@ Feature: Push
   Scenario: Push a small factbase
     Given We are online
     Given I make a temp directory
+    Then I run bin/judges with "--verbose pull --token ZRCY-00000000-0000-0000-0000-000000000000 --wait=15 {FAKE-NAME} simple.fb"
+    And Exit code is zero
     Then I run bin/judges with "--verbose eval simple.fb '(0..1000).each { $fb.insert.foo = 42 }'"
     And Exit code is zero
     Then I run bin/judges with "push --token ZRCY-00000000-0000-0000-0000-000000000000 --meta a:b --meta foo:bar --meta=pages_url:https://zerocracy.github.io/zerocracy.html --meta=duration:1055 {FAKE-NAME} simple.fb"
