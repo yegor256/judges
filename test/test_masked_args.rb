@@ -51,6 +51,24 @@ class TestMaskedArgs < Minitest::Test
     end
   end
 
+  def test_hides_hyphenated_secret_keys
+    line = Judges::MaskedArgs.new(
+      %w[--option=github-token=hunter2 --password=hunter2 --api-key=hunter2]
+    ).to_s
+    assert_equal(
+      '--option=github-token=******* --password=******* --api-key=*******',
+      line
+    )
+  end
+
+  def test_hides_a_multiline_secret_value
+    secret = "BEGIN\nPRIVATE KEY\nEND"
+    line = Judges::MaskedArgs.new(['-o', "github_token=#{secret}"]).to_s
+    refute_includes(line, secret, line)
+    refute_includes(line, 'PRIVATE KEY', line)
+    assert_includes(line, '*', line)
+  end
+
   def test_keeps_an_option_that_is_not_a_secret
     assert_equal(
       'update --option=repositories=zerocracy/fbe',
