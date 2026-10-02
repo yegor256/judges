@@ -133,13 +133,14 @@ class TestPrint < Minitest::Test
       factbase = File.join(d, 'base.fb')
       File.binwrite(factbase, Factbase.new.export)
       output = File.join(d, 'result.json')
-      error =
+      assert_includes(
         assert_raises(ArgumentError) do
           Judges::Print.new(Loog::NULL).run(
             { 'format' => 'json' }, [factbase, output, File.join(d, 'unexpected.txt')]
           )
-        end
-      assert_includes(error.message, 'At most two arguments accepted')
+        end.message,
+        'At most two arguments accepted'
+      )
       refute_path_exists(output)
     end
   end
