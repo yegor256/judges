@@ -21,16 +21,7 @@ class TestPull < Minitest::Test
     stub_request(:post, %r{http://example.org/lock/foo}).to_return(status: 302)
     stub_request(:get, 'http://example.org/exists/foo').to_return(body: 'yes')
     stub_request(:get, 'http://example.org/recent/foo.txt').to_return(body: '42')
-    finishes = 0
-    finished =
-      stub_request(:get, 'http://example.org/finished/42').to_return do
-        finishes += 1
-        { body: finishes == 1 ? 'no' : 'yes' }
-      end
-    exit_code =
-      stub_request(:get, 'http://example.org/exit/42.txt').to_return do
-        finishes.zero? ? { status: 404 } : { body: '0' }
-      end
+    finished, status = stub_running_job
     stub_request(:post, %r{http://example.org/unlock/foo}).to_return(status: 302)
     fb = Factbase.new
     fb.insert.foo = 42
@@ -52,7 +43,7 @@ class TestPull < Minitest::Test
       fb.import(File.binread(file))
     end
     assert_requested(finished, times: 2)
-    assert_requested(exit_code, times: 1)
+    assert_requested(status, times: 1)
   end
 
   def test_unlocks_baza_on_success
@@ -111,5 +102,19 @@ class TestPull < Minitest::Test
         end
       assert_includes(e.message, 'expire it', e)
     end
+  end
+
+  private
+
+  def stub_running_job
+    finishes = 0
+    finished = stub_request(:get, 'http://example.org/finished/42').to_return do
+      finishes += 1
+      { body: finishes == 1 ? 'no' : 'yes' }
+    end
+    status = stub_request(:get, 'http://example.org/exit/42.txt').to_return do
+      finishes.zero? ? { status: 404 } : { body: '0' }
+    end
+    [finished, status]
   end
 end
