@@ -65,16 +65,17 @@ class Judges::Pull
 
   def wait(name, baza, id, limit)
     raise(StandardError, 'Waiting time is nil') if limit.nil?
-    start = Time.now
+    start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     loop do
       break if baza.finished?(id)
       raise(StandardError, "Time is over, the job ##{id} ('#{name}') is still not completed") if limit <= 0
       sleep(1)
-      if Time.now - start > limit
+      duration = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
+      if duration > limit
         raise(StandardError, "Time is over, the job ##{id} ('#{name}') is still not completed")
       end
       @loog.debug(
-        "Still waiting for the job ##{id} ('#{name}') to finish... (#{format('%.2f', Time.now - start)}s already)"
+        "Still waiting for the job ##{id} ('#{name}') to finish... (#{format('%.2f', duration)}s already)"
       )
     end
     id
