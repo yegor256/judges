@@ -18,7 +18,7 @@ class Judges::Clock
     Process.clock_gettime(Process::CLOCK_MONOTONIC) - @start
   end
 
-  def elapsed_since(start)
+  def duration(start)
     Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
   end
 end

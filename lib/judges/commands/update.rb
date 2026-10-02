@@ -246,7 +246,7 @@ class Judges::Update
     end
     impact || true
   ensure
-    statistics&.record(judge.name, @clock.elapsed_since(start), result, impact) if start
+    statistics&.record(judge.name, @clock.duration(start), result, impact) if start
   end
 
   def skip_judge?(judge, _idx, opts, errors, statistics)
@@ -291,16 +291,14 @@ class Judges::Update
         @loog.info("Had to stop '#{judge.name}' due to the --lifetime=#{opts['lifetime']}")
       else
         @loog.error("Terminated due to --timeout=#{opts['timeout']}")
-        errors << "Judge #{judge.name} stopped by timeout after #{format('%.2f', @clock.elapsed_since(start))}s: " \
-          "#{e.message}"
+        errors << "Judge #{judge.name} stopped by timeout after #{format('%.2f', @clock.duration(start))}s: " \
+                  "#{e.message}"
       end
     end
     fb.churn
   end
 
   def include?(opts, name)
-    judges = opts['judge'] || []
-    return true if judges.empty?
-    judges.any?(name)
+    opts['judge'].nil? || opts['judge'].empty? || opts['judge'].any?(name)
   end
 end
