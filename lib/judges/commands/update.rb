@@ -291,7 +291,8 @@ class Judges::Update
         @loog.info("Had to stop '#{judge.name}' due to the --lifetime=#{opts['lifetime']}")
       else
         @loog.error("Terminated due to --timeout=#{opts['timeout']}")
-        errors << "Judge #{judge.name} stopped by timeout after #{format('%.2f', @clock.elapsed_since(start))}s: #{e.message}"
+        errors << "Judge #{judge.name} stopped by timeout after #{format('%.2f', @clock.elapsed_since(start))}s: " \
+          "#{e.message}"
       end
     end
     fb.churn
