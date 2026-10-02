@@ -74,9 +74,7 @@ class Judges::Pull
       if duration > limit
         raise(StandardError, "Time is over, the job ##{id} ('#{name}') is still not completed")
       end
-      @loog.debug(
-        "Still waiting for the job ##{id} ('#{name}') to finish... (#{format('%.2f', duration)}s already)"
-      )
+      @loog.debug("Still waiting for the job ##{id} ('#{name}') to finish... (#{format('%.2f', duration)}s already)")
     end
     id
   end

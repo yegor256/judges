@@ -29,7 +29,7 @@ class TestPull < Minitest::Test
       Time.stub(:now, -> { wall -= 3600 }) do
         pull.stub(:sleep, ->(_seconds) {}) do
           assert_includes(
-            assert_raises(StandardError) { pull.send(:wait, 'foo', baza, 42, 1.5) }.message,
+            assert_raises(StandardError) { pull.__send__(:wait, 'foo', baza, 42, 1.5) }.message,
             'Time is over'
           )
         end
