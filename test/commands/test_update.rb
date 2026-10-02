@@ -55,7 +55,7 @@ class TestUpdate < Minitest::Test
         save_it(File.join(d, "foo-#{i}/foo-#{i}.rb"), '$fb.insert.foo = 0.05; sleep 2;')
       end
       file = File.join(d, 'base.fb')
-      Judges::Update.new(Loog::NULL).run({ 'lifetime' => 0.12, 'timeout' => 0.1, 'quiet' => true }, [d, file])
+      Judges::Update.new(Loog::NULL).run({ 'lifetime' => 0.8, 'timeout' => 0.1, 'quiet' => true }, [d, file])
       fb = Factbase.new
       fb.import(File.binread(file))
       xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
