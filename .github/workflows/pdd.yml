@@ -3,6 +3,8 @@
 ---
 # yamllint disable rule:line-length
 name: pdd
+permissions:
+  contents: read
 'on':
   push:
     branches:

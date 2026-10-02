@@ -3,6 +3,8 @@
 ---
 # yamllint disable rule:line-length
 name: actionlint
+permissions:
+  contents: read
 'on':
   push:
     branches:
@@ -12,6 +14,11 @@ name: actionlint
       - master
 jobs:
   actionlint:
+    permissions:
+      checks: write
+      contents: read
+      issues: write
+      pull-requests: write
     timeout-minutes: 15
     runs-on: ubuntu-26.04
     steps:
