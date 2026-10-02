@@ -21,7 +21,7 @@ class TestPull < Minitest::Test
     stub_request(:post, %r{http://example.org/lock/foo}).to_return(status: 302)
     stub_request(:get, 'http://example.org/exists/foo').to_return(body: 'yes')
     stub_request(:get, 'http://example.org/recent/foo.txt').to_return(body: '42')
-    finished, status = stub_job
+    finished, status = responses
     stub_request(:post, %r{http://example.org/unlock/foo}).to_return(status: 302)
     fb = Factbase.new
     fb.insert.foo = 42
@@ -106,15 +106,17 @@ class TestPull < Minitest::Test
 
   private
 
-  def stub_job
+  def responses
     finishes = 0
-    finished = stub_request(:get, 'http://example.org/finished/42').to_return do
-      finishes += 1
-      { body: finishes == 1 ? 'no' : 'yes' }
-    end
-    status = stub_request(:get, 'http://example.org/exit/42.txt').to_return do
-      finishes.zero? ? { status: 404 } : { body: '0' }
-    end
+    finished =
+      stub_request(:get, 'http://example.org/finished/42').to_return do
+        finishes += 1
+        { body: finishes == 1 ? 'no' : 'yes' }
+      end
+    status =
+      stub_request(:get, 'http://example.org/exit/42.txt').to_return do
+        finishes.zero? ? { status: 404 } : { body: '0' }
+      end
     [finished, status]
   end
 end
