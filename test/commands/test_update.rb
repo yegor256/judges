@@ -52,10 +52,10 @@ class TestUpdate < Minitest::Test
   def test_cancels_slow_execution
     Dir.mktmpdir do |d|
       100.times do |i|
-        save_it(File.join(d, "foo-#{i}/foo-#{i}.rb"), '$fb.insert.foo = 0.05; sleep 2;')
+        save_it(File.join(d, "foo-#{i}/foo-#{i}.rb"), '$fb.insert.foo = 0.05; sleep 10;')
       end
       file = File.join(d, 'base.fb')
-      Judges::Update.new(Loog::NULL).run({ 'lifetime' => 0.12, 'quiet' => true }, [d, file])
+      Judges::Update.new(Loog::NULL).run({ 'lifetime' => 2, 'quiet' => true }, [d, file])
       fb = Factbase.new
       fb.import(File.binread(file))
       xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
