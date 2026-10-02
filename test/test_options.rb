@@ -141,4 +141,11 @@ class TestOptions < Minitest::Test
     assert_equal(42, opts.max, opts)
     assert_equal(0, opts.zero, opts)
   end
+
+  def test_converts_negative_numbers
+    opts = Judges::Options.new(['delta=-1', 'offset=-42', 'zero=-0'])
+    assert_equal(-1, opts.delta, opts)
+    assert_equal(-42, opts.offset, opts)
+    assert_equal(0, opts.zero, opts)
+  end
 end
