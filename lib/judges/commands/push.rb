@@ -63,15 +63,19 @@ class Judges::Push
       begin
         baza.recent(name)
       rescue BazaRb::ServerFailure => e
-        return if e.message.include?('Invalid response code #303') &&
-          e.message.include?("doesn't have any not-yet-expired jobs")
+        return if e.message.match?(/Invalid response code #303 .*doesn't have any not-yet-expired jobs/)
         raise
       end
-      raise(StandardError, "No pulled snapshot is recorded for #{name.inspect}; run 'judges pull' before pushing")
+      raise(
+        StandardError,
+        "No pulled snapshot is recorded for #{name.inspect}; run 'judges pull' before pushing"
+      )
     end
-    actual = baza.recent(name)
     expected = File.binread(marker).strip
-    return if expected == actual.to_s
-    raise(StandardError, "The Baza snapshot for #{name.inspect} changed after job ##{expected}; pull again before pushing")
+    return if expected == baza.recent(name).to_s
+    raise(
+      StandardError,
+      "The Baza snapshot for #{name.inspect} changed after job ##{expected}; pull again before pushing"
+    )
   end
 end
