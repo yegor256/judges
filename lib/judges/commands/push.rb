@@ -44,11 +44,27 @@ class Judges::Push
     elapsed(@loog, level: Logger::INFO) do
       baza.lock(name, opts['owner'])
       begin
+        marker = Judges::Impex.marker(args[1])
+        snapshot(name, baza, marker)
         baza.push(name, fb.export, opts['meta'] || [])
+        File.delete(marker) if File.file?(marker)
         throw(:"👍 Pushed #{fb.size} facts to baza")
       ensure
         baza.unlock(name, opts['owner'])
       end
     end
+  end
+
+  private
+
+  def snapshot(name, baza, marker)
+    return unless baza.name_exists?(name)
+    unless File.file?(marker)
+      raise(StandardError, "No pulled snapshot is recorded for #{name.inspect}; run 'judges pull' before pushing")
+    end
+    expected = File.binread(marker).strip
+    actual = baza.recent(name)
+    return if expected == actual.to_s
+    raise(StandardError, "The Baza snapshot for #{name.inspect} changed after job ##{expected}; pull again before pushing")
   end
 end
