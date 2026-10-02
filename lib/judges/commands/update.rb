@@ -51,7 +51,7 @@ class Judges::Update
     options = build_options(opts)
     judges = Judges::Judges.new(
       dir, opts['lib'], @loog,
-      epoch: @clock.started_at, shuffle: opts['shuffle'], boost: opts['boost'],
+      epoch: @clock.epoch, shuffle: opts['shuffle'], boost: opts['boost'],
       demote: opts['demote'], seed: opts['seed']
     )
     churn = Factbase::Churn.new

@@ -7,10 +7,10 @@
 module Judges; end unless defined?(Judges)
 
 class Judges::Clock
-  attr_reader :started_at
+  attr_reader :epoch
 
   def initialize
-    @started_at = Time.now
+    @epoch = Time.now
     @start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
   end
 
