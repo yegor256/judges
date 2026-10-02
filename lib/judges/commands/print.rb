@@ -61,12 +61,12 @@ class Judges::Print
   private
 
   def write(output, sidecar, stamp, fmt, opts, fb)
-    write_atomically(output, render(fmt, opts, fb))
-    write_atomically(sidecar, stamp)
+    replace(output, render(fmt, opts, fb))
+    replace(sidecar, stamp)
     throw(:"👍 Factbase printed to #{output.to_rel} (#{File.size(output)} bytes)")
   end
 
-  def write_atomically(path, content)
+  def replace(path, content)
     mode = File.exist?(path) ? File.stat(path).mode & 0o777 : 0o666 & ~File.umask
     Tempfile.create([File.basename(path), '.tmp'], File.dirname(path)) do |file|
       file.binmode
