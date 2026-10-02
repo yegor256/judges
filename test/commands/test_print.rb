@@ -176,14 +176,9 @@ class TestPrint < Minitest::Test
 
   def test_html_cache_uses_renderer_version
     printer = Judges::Print.new(Loog::NULL)
-    refute_equal(
-      printer.send(:stamp, {}, 'html', version: '1.0'),
-      printer.send(:stamp, {}, 'html', version: '2.0')
-    )
-    assert_equal(
-      printer.send(:stamp, {}, 'yaml', version: '1.0'),
-      printer.send(:stamp, {}, 'yaml', version: '2.0')
-    )
+    stamp = ->(format, version) { printer.__send__(:stamp, {}, format, version:) }
+    refute_equal(stamp.call('html', '1.0'), stamp.call('html', '2.0'))
+    assert_equal(stamp.call('yaml', '1.0'), stamp.call('yaml', '2.0'))
   end
 
   def test_no_integrity_when_the_asset_fails
