@@ -128,7 +128,7 @@ class Judges::Options
     pp
       .reject { |k, _| k.nil? }
       .compact
-      .reject { |k, _| k.is_a?(String) && k.empty? }
+      .reject { |k, _| k.to_s.strip.empty? }
       .to_h
       .transform_values { |v| v.nil? ? 'true' : v }
       .transform_values { |v| v.is_a?(String) ? v.strip : v }
