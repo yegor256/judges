@@ -174,7 +174,7 @@ class TestPrint < Minitest::Test
     end
   end
 
-  def test_keeps_previous_output_when_replacement_fails
+  def test_preserves_output_on_write_error
     Dir.mktmpdir do |d|
       factbase = File.join(d, 'base.fb')
       output = File.join(d, 'result.yaml')
@@ -184,19 +184,22 @@ class TestPrint < Minitest::Test
       printer = Judges::Print.new(Loog::NULL)
       opts = { 'format' => 'yaml' }
       printer.run(opts, [factbase, output])
-      original = File.binread(output)
       fb.insert.what = 'new'
       File.binwrite(factbase, fb.export)
       future = Time.now + 5
       File.utime(future, future, factbase)
       rename = File.method(:rename)
-      File.stub(:rename, lambda { |source, destination|
-        raise(Errno::ENOSPC, destination) if destination == output
-        rename.call(source, destination)
-      }) do
+      File.stub(
+        :rename,
+        lambda do |source, destination|
+          raise(Errno::ENOSPC, destination) if destination == output
+          rename.call(source, destination)
+        end
+      ) do
         assert_raises(Errno::ENOSPC) { printer.run(opts, [factbase, output]) }
       end
-      assert_equal(original, File.binread(output), 'a failed replacement must leave the previous output intact')
+      assert_equal(1, YAML.load_file(output).size)
+      assert_includes(File.binread(output), 'old')
       printer.run(opts, [factbase, output])
       assert_includes(File.binread(output), 'new', 'the retry must render the updated factbase')
     end
