@@ -309,4 +309,15 @@ class TestTest < Minitest::Test
       Judges::Test.new(Loog::NULL).run({}, [d])
     end
   end
+
+  def test_turns_category_on_and_off
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'raise "boom"')
+      save_it(File.join(d, 'foo/x.yml'), "category: slow\ninput: []\n")
+      Judges::Test.new(Loog::NULL).run({ 'disable' => ['slow'], 'quiet' => true }, [d])
+      assert_raises(StandardError) do
+        Judges::Test.new(Loog::NULL).run({ 'enable' => ['slow'] }, [d])
+      end
+    end
+  end
 end

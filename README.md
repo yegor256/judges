@@ -66,7 +66,8 @@ an array of XPath expressions that must be present in the XML of the Factbase
 when the test is finished.
 
 The `category` (default: `[]`) may have one category or an array of categories,
-which then may be turned on via the `--category` command line flag.
+which then may be turned on via the `--enable` command line flag
+or turned off via the `--disable` one.
 
 The `repeat` (default: `1`) makes the `input` to be repeated multiple times
 (mostly useful for speed measuring on big data inputs).
