@@ -265,7 +265,7 @@ class Judges::Update
     end
     if opts['lifetime'] && opts['timeout']
       remained = opts['lifetime'] - @clock.elapsed
-      if remained < opts['timeout'].to_f
+      if remained < opts['timeout'].to_f / 16
         @loog.info("Not running #{judge.name.inspect}, not enough time left (just #{remained.seconds})")
         statistics&.record(judge.name, 0, 'SKIPPED (timeout)') if include?(opts, judge.name)
         return true
