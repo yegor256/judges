@@ -32,25 +32,27 @@ class TestImpex < Minitest::Test
   end
 
   def test_keeps_the_previous_factbase_if_export_fails
-    skip('No process file-size limit') unless Process.respond_to?(:fork) &&
-      Process.const_defined?(:RLIMIT_FSIZE) && Signal.list.key?('XFSZ')
+    skip('No process file-size limit') unless Process.const_defined?(:RLIMIT_FSIZE) && Process.respond_to?(:fork)
     Dir.mktmpdir do |d|
       path = File.join(d, 'base.fb')
       File.binwrite(path, 'previous valid factbase')
       fb = Factbase.new
       fb.insert.what = 'new content'
-      child = Process.fork do
-        Signal.trap('XFSZ', 'IGNORE')
-        Process.setrlimit(Process::RLIMIT_FSIZE, 1, 1)
-        begin
-          Judges::Impex.new(Loog::NULL, path).export(fb)
-        rescue Errno::EFBIG
-          exit!(0)
-        end
-        exit!(1)
-      end
-      _, status = Process.wait2(child)
-      assert_predicate(status, :success?)
+      assert_predicate(
+        Process.wait2(
+          Process.fork do
+            Signal.trap('XFSZ', 'IGNORE')
+            Process.setrlimit(Process::RLIMIT_FSIZE, 1, 1)
+            begin
+              Judges::Impex.new(Loog::NULL, path).export(fb)
+            rescue Errno::EFBIG
+              exit!(0)
+            end
+            exit!(1)
+          end
+        ).last,
+        :success?
+      )
       assert_equal('previous valid factbase', File.binread(path))
     end
   end
