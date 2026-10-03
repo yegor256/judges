@@ -139,7 +139,7 @@ class TestPush < Minitest::Test
   def test_pushes_a_new_name_without_a_pulled_snapshot
     [
       "Invalid response code #303: the product doesn't have any not-yet-expired jobs",
-      "Invalid response code #303 at GET /recent/foo.txt (Flash: The product \"foo\" has no jobs, can't find recent one)"
+      "Invalid response code #303 (Flash: product has no jobs, can't find recent one)"
     ].each do |message|
       sent = false
       fake = Object.new

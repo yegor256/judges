@@ -68,7 +68,7 @@ class Judges::Push
         )
         raise
       end
-      raise StandardError, "No pulled snapshot is recorded for #{name.inspect}; run 'judges pull' before pushing"
+      raise(StandardError, "No pulled snapshot is recorded for #{name.inspect}; run 'judges pull' before pushing")
     end
     expected = File.binread(marker).strip
     return if expected == baza.recent(name).to_s
