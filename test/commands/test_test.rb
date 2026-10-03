@@ -255,6 +255,23 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_rejects_zero_timeout
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        timeout: 0
+        YAML
+      )
+      loog = Loog::Buffer.new
+      error = assert_raises(StandardError) { Judges::Test.new(loog).run({}, [d]) }
+      assert_equal('StandardError: 1 tests failed', "#{error.class}: #{error.message}")
+      assert_includes(loog.to_s, 'The timeout must be a positive number')
+    end
+  end
+
   def test_with_timeout_in_after_script
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')

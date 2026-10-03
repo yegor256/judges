@@ -141,6 +141,10 @@ class Judges::Test
   end
 
   def run_single_test(judge, buf, opts, judges, yaml, badge)
+    timeout = yaml['timeout']
+    unless timeout.nil? || (timeout.is_a?(Numeric) && timeout.positive?)
+      raise(ArgumentError, 'The timeout must be a positive number')
+    end
     fb = Factbase.new
     prepare(fb, yaml)
     yaml['before']&.each do |n|
