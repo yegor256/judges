@@ -174,6 +174,27 @@ class TestPrint < Minitest::Test
     end
   end
 
+  def test_reprints_when_factbase_changes
+    Dir.mktmpdir do |d|
+      first = File.join(d, 'first.fb')
+      second = File.join(d, 'second.fb')
+      output = File.join(d, 'report.json')
+      fb = Factbase.new
+      fb.insert.what = 'first'
+      other = Factbase.new
+      other.insert.what = 'second'
+      File.binwrite(first, fb.export)
+      File.binwrite(second, other.export)
+      printer = Judges::Print.new(Loog::NULL)
+      printer.run({ 'format' => 'json' }, [first, output])
+      future = Time.now + 5
+      File.utime(future, future, output)
+      printer.run({ 'format' => 'json' }, [second, output])
+      assert_includes(File.read(output), 'second')
+      refute_includes(File.read(output), 'first')
+    end
+  end
+
   def test_no_integrity_when_the_asset_fails
     WebMock.disable_net_connect!
     stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(status: 500)
