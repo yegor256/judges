@@ -24,7 +24,10 @@ class Judges::AsciiLoog
     '►' => '>',
     '◄' => '<',
     '▼' => 'v',
-    '▲' => '^'
+    '▲' => '^',
+    '→' => '->',
+    '⚠️' => '!',
+    '⚠' => '!'
   }.freeze
 
   # Initialize the ASCII wrapper.
@@ -48,7 +51,7 @@ class Judges::AsciiLoog
     UNICODE_TO_ASCII.each do |unicode, ascii|
       result = result.gsub(unicode, ascii)
     end
-    result
+    result.encode(Encoding::ASCII, invalid: :replace, undef: :replace, replace: '?')
   end
 
   # Log an info message, converting Unicode to ASCII.
