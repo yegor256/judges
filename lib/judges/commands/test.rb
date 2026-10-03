@@ -275,7 +275,7 @@ class Judges::Test
   # rubocop:disable Lint/RescueException
   rescue Exception => e
     # rubocop:enable Lint/RescueException
-    e
+    e unless e.is_a?(RuntimeError) && e.message == 'skip'
   end
 
   def assert(judge, tname, fb, yaml)
