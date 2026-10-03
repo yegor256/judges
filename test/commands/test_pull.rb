@@ -42,6 +42,7 @@ class TestPull < Minitest::Test
       )
       fb = Factbase.new
       fb.import(File.binread(file))
+      assert_equal('42', File.binread(Judges::Impex.marker(file)))
     end
   end
 
