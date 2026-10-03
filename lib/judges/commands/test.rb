@@ -249,7 +249,7 @@ class Judges::Test
       caught = capture(fbx, judge, options, timeout)
       if failure
         raise(StandardError, 'Exception expected but not raised') if caught.nil?
-        if failure.is_a?(Array) && failure.none? { |s| caught.message.include?(s) }
+        if failure != true && Array(failure).none? { |s| caught.message.include?(s) }
           raise(
             StandardError,
             "Exception #{caught.class} raised with #{caught.message.inspect}, but this is not what was expected"
