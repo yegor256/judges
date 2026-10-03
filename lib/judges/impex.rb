@@ -99,7 +99,13 @@ class Judges::Impex
     raise(StandardError, "The factbase path is a directory: #{@file.to_rel}") if File.directory?(@file)
     elapsed(@loog, level: Logger::INFO) do
       FileUtils.mkdir_p(File.dirname(@file))
-      File.binwrite(@file, fb.export)
+      temp = "#{@file}.#{Process.pid}.tmp"
+      begin
+        File.binwrite(temp, fb.export)
+        File.rename(temp, @file)
+      ensure
+        FileUtils.rm_f(temp)
+      end
       throw(:"Factbase exported to #{@file.to_rel} (#{File.size(@file)} bytes, #{fb.size} facts)")
     end
   end
