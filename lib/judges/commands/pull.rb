@@ -45,11 +45,12 @@ class Judges::Pull
         baza.lock(name, opts['owner'])
         begin
           jid = baza.recent(name)
+          wait(name, baza, jid, opts['wait'])
           unless baza.exit_code(jid).zero?
             @loog.warn("STDOUT of the job ##{jid} (from the server):\n#{baza.stdout(jid)}")
             raise(StandardError, "The job ##{jid} ('#{name}') is broken, maybe you should expire it")
           end
-          fb.import(baza.pull(wait(name, baza, jid, opts['wait'])))
+          fb.import(baza.pull(jid))
           Judges::Impex.new(@loog, args[1]).export(fb)
         ensure
           baza.unlock(name, opts['owner'])
