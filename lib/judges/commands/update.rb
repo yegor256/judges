@@ -292,7 +292,7 @@ class Judges::Update
       else
         @loog.error("Terminated due to --timeout=#{opts['timeout']}")
         errors << "Judge #{judge.name} stopped by timeout after #{format('%.2f', @clock.duration(start))}s: " \
-                  "#{e.message}"
+          "#{e.message}"
       end
     end
     fb.churn
