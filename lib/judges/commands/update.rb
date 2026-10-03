@@ -228,8 +228,10 @@ class Judges::Update
     start = Time.now
     result = 'OK'
     impact = nil
+    before = errors.size
     elapsed(@loog, level: Logger::INFO) do
       impact = one_judge(opts, fb, judge, global, options, errors)
+      result = 'TIMEOUT' if errors.size > before
       churn.append(impact.inserted, impact.deleted, impact.added)
       throw(:"👍 The '#{judge.name}' judge made zero changes to #{fb.size} facts") if impact.zero?
       throw(:"👍 The '#{judge.name}' judge #{impact} out of #{fb.size} facts")
@@ -275,16 +277,13 @@ class Judges::Update
   # @param [Array<String>] errors List of errors
   # @return [Factbase::Churn] How many modifications have been made
   def one_judge(opts, fb, judge, global, options, errors)
-    local = {}
     start = Time.now
     fb = Factbase::Tallied.new(fb)
     begin
       if opts['lifetime'] && Time.now - @start > opts['lifetime']
         throw(:"👎 The '#{judge.name}' judge skipped, no time left")
       end
-      Timeout.timeout(opts['timeout']) do
-        judge.run(fb, global, local, options)
-      end
+      Timeout.timeout(opts['timeout']) { judge.run(fb, global, {}, options) }
     rescue Timeout::Error, Timeout::ExitException => e
       if opts['lifetime'] && Time.now - @start >= opts['lifetime']
         @loog.info("Had to stop '#{judge.name}' due to the --lifetime=#{opts['lifetime']}")
