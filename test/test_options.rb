@@ -141,4 +141,12 @@ class TestOptions < Minitest::Test
     assert_equal(42, opts.max, opts)
     assert_equal(0, opts.zero, opts)
   end
+
+  def test_reads_pairs_given_at_creation_only
+    pairs = ['a=1']
+    opts = Judges::Options.new(pairs)
+    pairs << 'b=2'
+    assert_equal(1, opts.a)
+    assert_nil(opts.b)
+  end
 end
