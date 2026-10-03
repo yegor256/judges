@@ -66,10 +66,7 @@ class Judges::Push
         return if e.message.match?(/Invalid response code #303.*doesn't have any not-yet-expired jobs/)
         raise
       end
-      raise(
-        StandardError,
-        "No pulled snapshot is recorded for #{name.inspect}; run 'judges pull' before pushing"
-      )
+      raise StandardError, "No pulled snapshot is recorded for #{name.inspect}; run 'judges pull' before pushing"
     end
     expected = File.binread(marker).strip
     return if expected == baza.recent(name).to_s
