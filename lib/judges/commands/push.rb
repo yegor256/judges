@@ -63,7 +63,9 @@ class Judges::Push
       begin
         baza.recent(name)
       rescue BazaRb::ServerFailure => e
-        return if e.message.match?(/Invalid response code #303.*doesn't have any not-yet-expired jobs/)
+        return if e.message.match?(
+          /Invalid response code #303.*(?:doesn't have any not-yet-expired jobs|has no jobs, can't find recent one)/
+        )
         raise
       end
       raise StandardError, "No pulled snapshot is recorded for #{name.inspect}; run 'judges pull' before pushing"

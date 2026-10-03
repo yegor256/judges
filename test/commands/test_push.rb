@@ -137,27 +137,32 @@ class TestPush < Minitest::Test
   end
 
   def test_pushes_a_new_name_without_a_pulled_snapshot
-    sent = false
-    fake = Object.new
-    fake.define_singleton_method(:lock) { |*| true }
-    fake.define_singleton_method(:unlock) { |*| true }
-    fake.define_singleton_method(:name_exists?) { |_name| true }
-    fake.define_singleton_method(:recent) do |_name|
-      raise(BazaRb::ServerFailure, "Invalid response code #303: the product doesn't have any not-yet-expired jobs")
-    end
-    fake.define_singleton_method(:push) { |*| sent = true }
-    maker = ->(*_args, **_kwargs) { fake }
-    Dir.mktmpdir do |d|
-      file = File.join(d, 'base.fb')
-      File.binwrite(file, Factbase.new.export)
-      BazaRb.stub(:new, maker) do
-        Judges::Push.new(Loog::NULL).run(
-          { 'token' => '000', 'host' => 'example.org', 'port' => 443, 'ssl' => true, 'owner' => 'none' },
-          ['foo', file]
-        )
+    [
+      "Invalid response code #303: the product doesn't have any not-yet-expired jobs",
+      "Invalid response code #303 at GET /recent/foo.txt (Flash: The product \"foo\" has no jobs, can't find recent one)"
+    ].each do |message|
+      sent = false
+      fake = Object.new
+      fake.define_singleton_method(:lock) { |*| true }
+      fake.define_singleton_method(:unlock) { |*| true }
+      fake.define_singleton_method(:name_exists?) { |_name| true }
+      fake.define_singleton_method(:recent) do |_name|
+        raise(BazaRb::ServerFailure, message)
       end
+      fake.define_singleton_method(:push) { |*| sent = true }
+      maker = ->(*_args, **_kwargs) { fake }
+      Dir.mktmpdir do |d|
+        file = File.join(d, 'base.fb')
+        File.binwrite(file, Factbase.new.export)
+        BazaRb.stub(:new, maker) do
+          Judges::Push.new(Loog::NULL).run(
+            { 'token' => '000', 'host' => 'example.org', 'port' => 443, 'ssl' => true, 'owner' => 'none' },
+            ['foo', file]
+          )
+        end
+      end
+      assert(sent, 'a new remote name has no snapshot that could be stale')
     end
-    assert(sent, 'a new remote name has no snapshot that could be stale')
   end
 
   def test_rejects_missing_snapshot_marker
