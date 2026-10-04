@@ -3,6 +3,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require_relative '../judges'
+
 # A marker for durables that have been placed but not yet saved.
 module Judges::DurablePlaceholder
   CONTENT = "\x00JUDGES_DURABLE_UPLOAD_INCOMPLETE\x00".b.freeze
