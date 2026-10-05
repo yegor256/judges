@@ -141,6 +141,10 @@ class Judges::Test
   end
 
   def run_single_test(judge, buf, opts, judges, yaml, badge)
+    timeout = yaml['timeout']
+    if timeout.is_a?(Numeric) && !timeout.finite?
+      raise(ArgumentError, "A finite timeout is expected, but #{timeout.inspect} provided")
+    end
     fb = Factbase.new
     prepare(fb, yaml)
     yaml['before']&.each do |n|

@@ -239,6 +239,23 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_refuses_an_infinite_timeout
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        timeout: .inf
+        YAML
+      )
+      error = assert_raises(ArgumentError) do
+        Judges::Test.new(Loog::NULL).run({}, [d])
+      end
+      assert_includes(error.message, 'finite timeout')
+    end
+  end
+
   def test_with_timeout_failure
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), 'sleep(10)')
