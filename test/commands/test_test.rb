@@ -250,10 +250,12 @@ class TestTest < Minitest::Test
         YAML
       )
       loog = Loog::Buffer.new
-      error = assert_raises(StandardError) do
-        Judges::Test.new(loog).run({}, [d])
-      end
-      assert_includes(error.message, '1 tests failed')
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Test.new(loog).run({}, [d])
+        end.message,
+        '1 tests failed'
+      )
       assert_includes(loog.to_s, 'A finite timeout is expected')
     end
   end
