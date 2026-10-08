@@ -29,7 +29,8 @@ global variables available to it:
   line flag or the `.yml` file during testing;
 * `$local` — a hash map that is cleaned up when the execution of
   a judge is finished;
-* `$global` — a hash map that is never cleaned up;
+* `$global` — a hash map that is never cleaned up, except the `:fb` key,
+  which is reserved and removed before every judge starts;
 * `$judge` — the basename of the directory, where the `.rb` script is located;
 * `$epoch` — the time moment when the plugin was started;
 * `$kickoff` — the time moment when a judge was started.
