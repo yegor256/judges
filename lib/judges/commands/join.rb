@@ -31,7 +31,7 @@ class Judges::Join
   #
   # @param [Hash] _opts Command line options (not used)
   # @param [Array] args List of command line arguments
-  # @raise [RuntimeError] If not exactly two arguments provided
+  # @raise [ArgumentError] If not exactly two arguments provided
   def run(_opts, args)
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     master = Judges::Impex.new(@loog, args[0])

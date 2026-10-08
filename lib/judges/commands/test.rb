@@ -34,7 +34,7 @@ class Judges::Test
   # Run the test command (called by the +bin/judges+ script).
   # @param [Hash] opts Command line options (start with '--')
   # @param [Array] args List of command line arguments
-  # @raise [RuntimeError] If not exactly one argument provided
+  # @raise [ArgumentError] If not exactly one argument provided
   # rubocop:disable Metrics/MethodLength
   def run(opts, args)
     raise(ArgumentError, 'Exactly one argument required') unless args.size == 1
