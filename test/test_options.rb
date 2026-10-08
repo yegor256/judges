@@ -141,4 +141,9 @@ class TestOptions < Minitest::Test
     assert_equal(42, opts.max, opts)
     assert_equal(0, opts.zero, opts)
   end
+
+  def test_refuses_non_string_option
+    e = assert_raises(ArgumentError) { Judges::Options.new(['a=1', 2]).to_h }
+    assert_includes(e.message, 'The option 2 is not a String', e.message)
+  end
 end
