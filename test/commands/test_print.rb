@@ -112,6 +112,25 @@ class TestPrint < Minitest::Test
     assert_equal('w50', cols.last['class'], 'Last col should have class="w50"')
   end
 
+  def test_spans_empty_row_over_every_header
+    fb = Factbase.new
+    fb.insert
+    Dir.mktmpdir do |d|
+      factbase = File.join(d, 'base.fb')
+      html = File.join(d, 'base.html')
+      File.binwrite(factbase, fb.export)
+      Judges::Print.new(Loog::NULL).run(
+        { 'format' => 'html', 'offline' => true, 'columns' => 'when,what,' }, [factbase, html]
+      )
+      doc = Nokogiri::HTML(File.read(html))
+      assert_equal(
+        doc.css('table#facts thead th').size.to_s,
+        doc.at_css('table#facts td.empty')['colspan'],
+        doc.to_html
+      )
+    end
+  end
+
   def test_refuses_an_unknown_format
     Dir.mktmpdir do |d|
       f = File.join(d, 'base.fb')
