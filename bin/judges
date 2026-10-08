@@ -221,7 +221,7 @@ class JudgesGLI extend GLI::App
     c.flag([:runs], type: Integer)
     c.desc 'Location of a Ruby library (directory with .rb files to include)'
     c.flag([:lib])
-    c.desc 'Suppress output even if tests fail or none are executed'
+    c.desc 'Exit with zero code even if tests fail or none are executed, while still printing the output'
     c.switch([:quiet], default_value: false)
     c.desc 'Use default logging facility'
     c.switch([:log], default_value: true)
