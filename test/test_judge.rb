@@ -78,6 +78,19 @@ class TestJudge < Minitest::Test
     end
   end
 
+  def test_clears_globals_when_the_script_is_missing
+    Dir.mktmpdir do |d|
+      dir = File.join(d, 'broken')
+      Dir.mkdir(dir)
+      assert_raises(StandardError) do
+        Judges::Judge.new(dir, nil, Loog::NULL).run(Factbase.new, {}, {}, {})
+      end
+      assert_nil($fb, 'the factbase of the failed judge stays in $fb')
+      assert_nil($judge, 'the name of the failed judge stays in $judge')
+      assert_nil($options, 'the options of the failed judge stay in $options')
+    end
+  end
+
   def test_with_broken_ruby_syntax
     assert_raises(StandardError) do
       Dir.mktmpdir do |d|
