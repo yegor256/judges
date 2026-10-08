@@ -174,6 +174,13 @@ class TestPrint < Minitest::Test
     end
   end
 
+  def test_html_cache_uses_renderer_version
+    printer = Judges::Print.new(Loog::NULL)
+    stamp = ->(format, version) { printer.__send__(:stamp, {}, format, version:) }
+    refute_equal(stamp.call('html', '1.0'), stamp.call('html', '2.0'))
+    assert_equal(stamp.call('yaml', '1.0'), stamp.call('yaml', '2.0'))
+  end
+
   def test_no_integrity_when_the_asset_fails
     WebMock.disable_net_connect!
     stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(status: 500)

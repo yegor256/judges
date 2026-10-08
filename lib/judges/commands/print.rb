@@ -91,10 +91,10 @@ class Judges::Print
     false
   end
 
-  def stamp(opts, fmt)
-    Digest::SHA256.hexdigest(
-      OUTPUT_OPTIONS.map { |key| "#{key}=#{key == 'format' ? fmt : opts[key].inspect}" }.join("\n")
-    )
+  def stamp(opts, fmt, version: Judges::VERSION)
+    options = OUTPUT_OPTIONS.map { |key| "#{key}=#{key == 'format' ? fmt : opts[key].inspect}" }
+    options << "version=#{version}" if fmt == 'html'
+    Digest::SHA256.hexdigest(options.join("\n"))
   end
 
   def cached?(output, sidecar, stamp)
