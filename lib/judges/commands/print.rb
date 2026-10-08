@@ -51,10 +51,12 @@ class Judges::Print
       o = "#{o}.#{fmt}"
     end
     FileUtils.mkdir_p(File.dirname(o))
+    assets = fingerprint(opts, fmt)
     stamp = stamp(opts, fmt)
+    stamp = Digest::SHA256.hexdigest([stamp, *assets.values].join("\n")) unless assets.empty?
     sidecar = "#{o}.judges-options"
     return if skip?(opts, f, o, sidecar, stamp)
-    elapsed(@loog, level: Logger::INFO) { write(o, sidecar, stamp, fmt, opts, fb) }
+    elapsed(@loog, level: Logger::INFO) { write(o, sidecar, stamp, fmt, opts.merge(assets), fb) }
   end
 
   private
@@ -101,6 +103,14 @@ class Judges::Print
     File.exist?(output) && File.exist?(sidecar) && File.binread(sidecar) == stamp
   end
 
+  def fingerprint(opts, fmt)
+    return {} unless fmt == 'html'
+    {
+      'css_hash' => sha256(opts, 'index.css'),
+      'js_hash' => sha256(opts, 'index.js')
+    }
+  end
+
   def to_html(opts, fb)
     require('factbase/to_xml')
     Nokogiri::XSLT(File.read(File.join(__dir__, '../../../assets/index.xsl'))).apply_to(
@@ -112,8 +122,8 @@ class Judges::Print
         'hidden' => opts['hidden'] || '_id,_version,_time,_job',
         'highlighted' => opts['highlighted'] || 'stale,tombstone',
         'version' => Judges::VERSION,
-        'css_hash' => sha256(opts, 'index.css'),
-        'js_hash' => sha256(opts, 'index.js')
+        'css_hash' => opts['css_hash'] || sha256(opts, 'index.css'),
+        'js_hash' => opts['js_hash'] || sha256(opts, 'index.js')
       )
     )
   end
