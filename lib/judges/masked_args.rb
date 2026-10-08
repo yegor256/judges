@@ -19,7 +19,7 @@ class Judges::MaskedArgs
 
   OPTIONS = %w[-o --option].freeze
 
-  SENSITIVE = /\A(?<key>[a-z_0-9]*(?:token|secret|password|key))=(?<value>.+)\z/i
+  SENSITIVE = /\A(?<key>[a-z_0-9-]*(?:token|secret|password|key))=(?<value>.+)\z/im
 
   # Initialize.
   # @param [Array<String>] args The arguments, as they arrived
