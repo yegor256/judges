@@ -228,7 +228,7 @@ class JudgesGLI extend GLI::App
     run_it(c, 'test')
   end
 
-  desc 'Push the factbase to the server and unlock it remotely'
+  desc 'Push the factbase if the remote still matches the last pull'
   arg_name '<name> <factbase>'
   command :push do |c|
     c.desc 'Authentication token'
@@ -252,7 +252,7 @@ class JudgesGLI extend GLI::App
     run_it(c, 'push')
   end
 
-  desc 'Pull the factbase from the server and lock it remotely'
+  desc 'Pull the factbase and record the snapshot for the next push'
   arg_name '<name> <factbase>'
   command :pull do |c|
     c.desc 'Authentication token'
