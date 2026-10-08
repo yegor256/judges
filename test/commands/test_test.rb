@@ -330,4 +330,12 @@ class TestTest < Minitest::Test
       Judges::Test.new(Loog::NULL).run({}, [d])
     end
   end
+
+  def test_rejects_invalid_repeat
+    [0, -1, 'many'].each do |repeat|
+      assert_raises(ArgumentError) do
+        Judges::Test.new(Loog::NULL).__send__(:prepare, Factbase.new, { 'input' => [], 'repeat' => repeat })
+      end.then { |error| assert_includes(error.message, 'The repeat value must be at least 1') }
+    end
+  end
 end
