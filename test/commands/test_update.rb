@@ -105,6 +105,17 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_reports_statistics_when_judge_fails
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'raise "boom"')
+      loog = Loog::Buffer.new
+      assert_raises(StandardError) do
+        Judges::Update.new(loog).run({ 'statistics' => true, 'max-cycles' => 1 }, [d, File.join(d, 'base.fb')])
+      end
+      assert_match(%r{foo\s+\d\.\d{3}\s+1\s+N/A\s+ERROR}, loog.to_s)
+    end
+  end
+
   def test_exports_fb_only_once
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1;')
