@@ -15,14 +15,13 @@ require_relative '../test__helper'
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
 class TestPull < Minitest::Test
-  def test_pull_simple_factbase
+  def test_waits_for_job_before_reading_exit_code
     WebMock.disable_net_connect!
     stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
     stub_request(:post, %r{http://example.org/lock/foo}).to_return(status: 302)
     stub_request(:get, 'http://example.org/exists/foo').to_return(body: 'yes')
     stub_request(:get, 'http://example.org/recent/foo.txt').to_return(body: '42')
-    stub_request(:get, 'http://example.org/finished/42').to_return(body: 'yes')
-    stub_request(:get, 'http://example.org/exit/42.txt').to_return(body: '0')
+    finished, status = responses
     stub_request(:post, %r{http://example.org/unlock/foo}).to_return(status: 302)
     fb = Factbase.new
     fb.insert.foo = 42
@@ -43,6 +42,8 @@ class TestPull < Minitest::Test
       fb = Factbase.new
       fb.import(File.binread(file))
     end
+    assert_requested(finished, times: 2)
+    assert_requested(status, times: 1)
   end
 
   def test_unlocks_baza_on_success
@@ -101,5 +102,21 @@ class TestPull < Minitest::Test
         end
       assert_includes(e.message, 'expire it', e)
     end
+  end
+
+  private
+
+  def responses
+    finishes = 0
+    finished =
+      stub_request(:get, 'http://example.org/finished/42').to_return do
+        finishes += 1
+        { body: finishes == 1 ? 'no' : 'yes' }
+      end
+    status =
+      stub_request(:get, 'http://example.org/exit/42.txt').to_return do
+        finishes.zero? ? { status: 404 } : { body: '0' }
+      end
+    [finished, status]
   end
 end
