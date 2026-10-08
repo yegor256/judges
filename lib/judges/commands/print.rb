@@ -119,7 +119,7 @@ class Judges::Print
   end
 
   def sha256(opts, asset)
-    return 'sha256-offline' if opts['offline']
+    return '' if opts['offline']
     with_retries do
       url = "https://yegor256.github.io/judges/assets/#{asset}"
       http = Typhoeus::Request.get(url)
