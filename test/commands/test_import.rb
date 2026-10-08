@@ -38,6 +38,19 @@ class TestImport < Minitest::Test
     end
   end
 
+  def test_imports_dates_and_aliases
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      yaml = File.join(d, 'input.yml')
+      File.write(yaml, "- &base {when: 2024-03-04, foo: 1}\n- {<<: *base, bar: 2}\n")
+      Judges::Import.new(Loog::NULL).run({}, [yaml, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_equal(2, fb.query('(eq when 2024-03-04T00:00:00Z)').each.to_a.size)
+      assert_equal(1, fb.query('(and (eq foo 1) (eq bar 2))').each.to_a.size)
+    end
+  end
+
   def test_refuses_an_empty_file
     Dir.mktmpdir do |d|
       yaml = File.join(d, 'input.yml')
