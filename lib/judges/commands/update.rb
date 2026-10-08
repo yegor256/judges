@@ -128,7 +128,9 @@ class Judges::Update
           end
           @loog.info("\nStarting cycle ##{c}#{" (out of #{opts['max-cycles']})" if opts['max-cycles']}...")
         end
-        delta = cycle(opts, judges, fb, churn, options, errors, statistics)
+        recent = []
+        delta = cycle(opts, judges, fb, churn, options, recent, statistics)
+        errors |= recent
         ch += delta
         if delta.zero?
           @loog.info("The update cycle ##{c} has made no changes to the factbase, let's stop")
@@ -282,9 +284,7 @@ class Judges::Update
       if opts['lifetime'] && Time.now - @start > opts['lifetime']
         throw(:"👎 The '#{judge.name}' judge skipped, no time left")
       end
-      Timeout.timeout(opts['timeout']) do
-        judge.run(fb, global, local, options)
-      end
+      Timeout.timeout(opts['timeout']) { judge.run(fb, global, local, options) }
     rescue Timeout::Error, Timeout::ExitException => e
       if opts['lifetime'] && Time.now - @start >= opts['lifetime']
         @loog.info("Had to stop '#{judge.name}' due to the --lifetime=#{opts['lifetime']}")
