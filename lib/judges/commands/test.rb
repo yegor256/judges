@@ -215,15 +215,15 @@ class Judges::Test
       inputs&.each do |i|
         f = fb.insert
         i.each do |k, vv|
+          if k == '_id'
+            vv = id
+            id += 1
+          end
           if vv.is_a?(Array)
             vv.each do |v|
               f.public_send(:"#{k}=", v)
             end
           else
-            if k == '_id'
-              vv = id
-              id += 1
-            end
             f.public_send(:"#{k}=", vv)
           end
         end
