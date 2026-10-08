@@ -8,6 +8,7 @@ require 'elapsed'
 require 'iri'
 require 'typhoeus'
 require_relative '../../judges'
+require_relative '../durable_placeholder'
 
 # The +upload+ command, to send a durable to Zerocracy.
 #
@@ -48,7 +49,7 @@ class Judges::Upload
         tmp = Dir.mktmpdir
         begin
           f = File.join(tmp, name)
-          File.write(f, 'placeholder')
+          Judges::DurablePlaceholder.write(f)
           id = baza.durable_place(jname, f)
           @loog.info("Placed a placeholder to new durable '#{name}' in '#{jname}' (ID: #{id})")
         ensure

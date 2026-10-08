@@ -90,6 +90,39 @@ class TestUpload < Minitest::Test
     end
   end
 
+  def test_failed_save_leaves_marker
+    placed = nil
+    client = Object.new
+    client.define_singleton_method(:durable_find) { |*| '' }
+    client.define_singleton_method(:durable_place) do |_pname, path|
+      placed = File.binread(path)
+      42
+    end
+    client.define_singleton_method(:durable_lock) { |*| true }
+    client.define_singleton_method(:durable_save) { |*| raise(StandardError, 'save failed') }
+    client.define_singleton_method(:durable_unlock) { |*| true }
+    maker = ->(*_args, **_opts) { client }
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'test.txt')
+      File.write(file, 'content')
+      BazaRb.stub(:new, maker) do
+        assert_raises(StandardError) do
+          Judges::Upload.new(Loog::NULL).run(
+            {
+              'token' => '000',
+              'host' => 'example.org',
+              'port' => 80,
+              'ssl' => false,
+              'owner' => 'none'
+            },
+            ['somejudge', file]
+          )
+        end
+      end
+    end
+    assert_equal(Judges::DurablePlaceholder::CONTENT, placed)
+  end
+
   def test_fails_with_wrong_number_of_arguments
     assert_raises(ArgumentError) do
       Judges::Upload.new(Loog::NULL).run({}, ['only_one_arg'])
