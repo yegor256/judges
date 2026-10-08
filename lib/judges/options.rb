@@ -127,7 +127,6 @@ class Judges::Options
     pp = parse_pairs
     pp
       .reject { |k, _| k.nil? }
-      .compact
       .reject { |k, _| k.is_a?(String) && k.empty? }
       .to_h
       .transform_values { |v| v.nil? ? 'true' : v }
