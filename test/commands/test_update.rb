@@ -105,6 +105,18 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_records_timeout_in_statistics
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'sleep 10')
+      loog = Loog::Buffer.new
+      Judges::Update.new(loog).run(
+        { 'timeout' => 0.1, 'quiet' => true, 'statistics' => true, 'max-cycles' => 1 },
+        [d, File.join(d, 'base.fb')]
+      )
+      assert_match(/foo\s+\d\.\d{3}\s+1\s+nothing\s+TIMEOUT/, loog.to_s)
+    end
+  end
+
   def test_exports_fb_only_once
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1;')
