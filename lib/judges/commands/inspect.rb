@@ -34,7 +34,15 @@ class Judges::Inspect
     if sum.empty?
       @loog.info('Summary fact not found')
     else
-      @loog.info("Summary fact found:\n\t#{Factbase::FactAsYaml.new(sum.first).to_s.gsub("\n", "\n\t")}")
+      @loog.info("Summary fact found:\n\t#{summarize(sum)}")
     end
+  end
+
+  private
+
+  def summarize(facts)
+    Factbase::FactAsYaml.new(
+      facts.max_by { |fact| fact['when']&.last || Time.at(0) }
+    ).to_s.gsub("\n", "\n\t")
   end
 end
