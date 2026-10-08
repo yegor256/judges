@@ -10,6 +10,7 @@ require 'factbase'
 require 'fileutils'
 require 'nokogiri'
 require 'retries'
+require 'tempfile'
 require 'time'
 require 'typhoeus'
 require_relative '../../judges'
@@ -60,9 +61,20 @@ class Judges::Print
   private
 
   def write(output, sidecar, stamp, fmt, opts, fb)
-    File.binwrite(output, render(fmt, opts, fb))
-    File.binwrite(sidecar, stamp)
+    replace(output, render(fmt, opts, fb))
+    replace(sidecar, stamp)
     throw(:"👍 Factbase printed to #{output.to_rel} (#{File.size(output)} bytes)")
+  end
+
+  def replace(path, content)
+    mode = File.exist?(path) ? File.stat(path).mode & 0o777 : 0o666 & ~File.umask
+    Tempfile.create([File.basename(path), '.tmp'], File.dirname(path)) do |file|
+      file.binmode
+      file.write(content)
+      file.close
+      File.chmod(mode, file.path)
+      File.rename(file.path, path)
+    end
   end
 
   def render(fmt, opts, fb)
