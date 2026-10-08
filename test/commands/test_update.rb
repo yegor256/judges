@@ -105,6 +105,17 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_names_failed_judge_in_summary
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'raise "boom"')
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::NULL).run({ 'quiet' => true, 'summary' => 'add', 'max-cycles' => 1 }, [d, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_equal(['Judge foo failed: boom'], fb.query('(eq what "judges-summary")').each.to_a.first['error'])
+    end
+  end
+
   def test_exports_fb_only_once
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1;')
