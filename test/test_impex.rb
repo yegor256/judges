@@ -31,6 +31,32 @@ class TestImpex < Minitest::Test
     end
   end
 
+  def test_keeps_the_previous_factbase_if_export_fails
+    skip('No process file-size limit') unless Process.const_defined?(:RLIMIT_FSIZE) && Process.respond_to?(:fork)
+    Dir.mktmpdir do |d|
+      path = File.join(d, 'base.fb')
+      File.binwrite(path, 'previous valid factbase')
+      fb = Factbase.new
+      fb.insert.what = 'new content'
+      assert_predicate(
+        Process.wait2(
+          Process.fork do
+            Signal.trap('XFSZ', 'IGNORE')
+            Process.setrlimit(Process::RLIMIT_FSIZE, 1, 1)
+            begin
+              Judges::Impex.new(Loog::NULL, path).export(fb)
+            rescue Errno::EFBIG
+              exit!(0)
+            end
+            exit!(1)
+          end
+        ).last,
+        :success?
+      )
+      assert_equal('previous valid factbase', File.binread(path))
+    end
+  end
+
   def test_refuses_a_nil_file
     assert_includes(assert_raises(ArgumentError) { Judges::Impex.new(Loog::NULL, nil) }.message, 'The file is nil')
   end
