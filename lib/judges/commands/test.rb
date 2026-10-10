@@ -142,6 +142,9 @@ class Judges::Test
 
   def run_single_test(judge, buf, opts, judges, yaml, badge)
     timeout = yaml['timeout']
+    if timeout.is_a?(Numeric) && !timeout.finite?
+      raise(ArgumentError, "A finite timeout is expected, but #{timeout.inspect} provided")
+    end
     unless timeout.nil? || (timeout.is_a?(Numeric) && timeout.positive?)
       raise(ArgumentError, 'The timeout must be a positive number')
     end
