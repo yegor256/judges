@@ -68,7 +68,7 @@ class Judges::Judge
     $local = local
     $epoch = @epoch
     $kickoff = Time.now
-    options.to_h.each { |k, v| ENV.store(k.to_s, v.to_s) }
+    saved = expose(options)
     unless @lib.nil?
       raise(StandardError, "Lib dir #{@lib.to_rel} is absent") unless File.exist?(@lib)
       raise(StandardError, "Lib #{@lib.to_rel} is not a directory") unless File.directory?(@lib)
@@ -93,6 +93,8 @@ class Judges::Judge
     ensure
       $fb = $judge = $options = $loog = $epoch = $kickoff = nil
     end
+  ensure
+    restore(saved)
   end
   # rubocop:enable Metrics/MethodLength
 
@@ -127,5 +129,25 @@ class Judges::Judge
   # @return [Array<String>] Array of absolute paths to all .yml files in the judge directory
   def tests
     Dir.glob(File.join(@dir, '*.yml')).sort_by { |path| File.basename(path) }
+  end
+
+  private
+
+  # Puts the options into the environment of the process.
+  # @param [Judges::Options] options Options of the run
+  # @return [Hash] Previous values of the touched variables, nil if absent
+  def expose(options)
+    saved = {}
+    options.to_h.each do |k, v|
+      saved[k.to_s] = ENV.fetch(k.to_s, nil) unless saved.key?(k.to_s)
+      ENV.store(k.to_s, v.to_s)
+    end
+    saved
+  end
+
+  # Brings the environment back to what it was before {#expose}.
+  # @param [Hash] saved Previous values, nil if the variable was absent
+  def restore(saved)
+    saved&.each { |k, v| v.nil? ? ENV.delete(k) : ENV.store(k, v) }
   end
 end
