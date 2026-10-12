@@ -247,6 +247,18 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_counts_the_churn_in_the_summary
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '3.times { |i| $fb.insert.foo = i }')
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::NULL).run({ 'quiet' => true, 'summary' => 'add', 'max-cycles' => 1 }, [d, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      sum = fb.query('(eq what "judges-summary")').each.first
+      assert_equal([3, 0], [sum.inserted, sum.deleted], sum.to_s)
+    end
+  end
+
   def test_runs_no_cycle_when_none_is_allowed
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
