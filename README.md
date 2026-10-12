@@ -42,6 +42,7 @@ before:
 category: slow
 runs: 1
 skip: false
+timeout: 30
 repeat: 20
 input:
   -
@@ -73,6 +74,11 @@ The `repeat` (default: `1`) makes the `input` to be repeated multiple times
 
 The `runs` (default: `1`) is the number of times the `.rb` script should
 be executed. After each execution, all expected XPath expressions are validated.
+
+The `skip` (default: `false`) turns the test off, it is not executed at all.
+
+The `timeout` (default: none) is the number of seconds each run of the judge
+may take, the test fails when a run takes longer.
 
 The `before` (default: `[]`) is a list of judges that must be executed before
 the current one.
