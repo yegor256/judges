@@ -173,9 +173,9 @@ class Judges::Update
     s.version = Judges::VERSION
     s.seconds = Time.now - @start
     s.cycles = cycles
-    s.inserted = churn.inserted.size
-    s.deleted = churn.deleted.size
-    s.added = churn.added.size
+    s.inserted = churn.inserted
+    s.deleted = churn.deleted
+    s.added = churn.added
     if errors.empty?
       @loog.info('No errors added to the summary')
     else
