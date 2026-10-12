@@ -89,8 +89,9 @@ be present in the message of the exception being raised.
 The core data structure is a
   [Factbase](https://github.com/yegor256/factbase) — a flat, schemaless,
   binary-serialized collection of facts (records with named attributes)
-  held in memory during a run. Facts are queried via
-  [XPath](https://www.w3.org/TR/xpath/) expressions rather than SQL.
+  held in memory during a run. Facts are queried with factbase
+  S-expressions rather than SQL, while XPath is used only by the
+  assertions of test packs.
   There is no schema to migrate, no ORM layer, and no database process
   to manage. The factbase binary file is read at the start of each
   `update` run and written back on exit, making state portable and
