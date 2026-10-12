@@ -195,7 +195,7 @@ class JudgesGLI extend GLI::App
     c.flag([:highlighted], default_value: 'stale,tombstone')
     c.desc 'Comma-separated list of columns to hide from rendering (no spaces)'
     c.flag([:hidden], default_value: '_id,_time,_version,_job')
-    c.desc 'Force printing even if the target file exists and is older than the factbase'
+    c.desc 'Force printing even if the target file exists and is newer than the factbase (up to date)'
     c.switch([:force], default_value: false)
     run_it(c, 'print')
   end
