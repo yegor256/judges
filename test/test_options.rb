@@ -80,6 +80,11 @@ class TestOptions < Minitest::Test
     assert_nil(opts.xxx)
   end
 
+  def test_rejects_whitespace_only_hash_keys
+    assert_empty(Judges::Options.new('   ' => 'value').to_h)
+    assert_empty(Judges::Options.new((' ' * 3).to_sym => 'value').to_h)
+  end
+
   def test_with_nil_values
     assert_nil(Judges::Options.new('foo' => nil).foo)
   end
