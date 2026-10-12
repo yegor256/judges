@@ -15,6 +15,28 @@ require_relative '../test__helper'
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
 class TestPull < Minitest::Test
+  def test_wait_uses_monotonic_time
+    checks = 0
+    baza = Object.new
+    baza.define_singleton_method(:finished?) do |_id|
+      checks += 1
+      checks > 3
+    end
+    pull = Judges::Pull.new(Loog::NULL)
+    tick = 0
+    wall = Time.now
+    Process.stub(:clock_gettime, ->(_clock) { tick += 1 }) do
+      Time.stub(:now, -> { wall -= 3600 }) do
+        pull.stub(:sleep, ->(_seconds) {}) do
+          assert_includes(
+            assert_raises(StandardError) { pull.__send__(:wait, 'foo', baza, 42, 1.5) }.message,
+            'Time is over'
+          )
+        end
+      end
+    end
+  end
+
   def test_pull_simple_factbase
     WebMock.disable_net_connect!
     stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
