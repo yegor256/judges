@@ -346,6 +346,27 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_names_misspelled_judge
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'good/good.rb'), '$fb.insert')
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Update.new(Loog::NULL).run({ 'judge' => ['goood'], 'expect-judges' => true }, [d, "#{d}/x.fb"])
+        end.message,
+        'No judge matches --judge=goood, while these are available: good'
+      )
+    end
+  end
+
+  def test_warns_about_misspelled_judge
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'good/good.rb'), '$fb.insert')
+      loog = Loog::Buffer.new
+      Judges::Update.new(loog).run({ 'judge' => ['goood'], 'expect-judges' => false }, [d, File.join(d, 'x.fb')])
+      assert_includes(loog.to_s, 'No judge matches --judge=goood')
+    end
+  end
+
   def test_no_failure_when_expect_judges_false
     Dir.mktmpdir do |d|
       file = File.join(d, 'base.fb')
