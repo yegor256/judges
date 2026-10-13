@@ -71,11 +71,13 @@ class TestDownload < Minitest::Test
     )
     stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
     stub_request(:post, %r{http://example.org/durables/99/lock}).to_return(status: 302)
-    stub_request(:get, 'http://example.org/durables/99').to_return(status: 404)
+    stub_request(:get, 'http://example.org/durables/99').to_return(
+      status: 404, headers: { 'Content-Type' => 'text/plain' }
+    )
     stub_request(:post, %r{http://example.org/durables/99/unlock}).to_return(status: 302)
     Dir.mktmpdir do |d|
       file = File.join(d, 'test.txt')
-      assert_raises(StandardError) do
+      assert_raises(BazaRb::ServerFailure) do
         Judges::Download.new(Loog::NULL).run(
           {
             'token' => '000',
