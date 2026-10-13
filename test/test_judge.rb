@@ -79,32 +79,24 @@ class TestJudge < Minitest::Test
   end
 
   def test_with_broken_ruby_syntax
-    assert_raises(StandardError) do
-      Dir.mktmpdir do |d|
-        dir = File.join(d, 'judges')
-        save_it(File.join(dir, "#{File.basename(d)}.rb"), 'this$is$broken$syntax')
-        Judges::Judge.new(dir, lib, Loog::NULL).run(Factbase.new, {}, {}, {})
-      end
-    end
+    assert_includes(failure('this$is$broken$syntax'), 'syntax')
   end
 
   def test_with_runtime_ruby_error
-    assert_raises(StandardError) do
-      Dir.mktmpdir do |d|
-        dir = File.join(d, 'judges')
-        save_it(File.join(dir, "#{File.basename(d)}.rb"), 'a < 1')
-        Judges::Judge.new(dir, lib, Loog::NULL).run(Factbase.new, {}, {}, {})
-      end
-    end
+    assert_includes(failure('a < 1'), "undefined local variable or method 'a'")
   end
 
   def test_with_standard_error
-    assert_raises(StandardError) do
-      Dir.mktmpdir do |d|
-        dir = File.join(d, 'judges')
-        save_it(File.join(dir, "#{File.basename(d)}.rb"), 'raise "intentional"')
-        Judges::Judge.new(dir, lib, Loog::NULL).run(Factbase.new, {}, {}, {})
-      end
+    assert_includes(failure('raise "intentional"'), 'intentional')
+  end
+
+  private
+
+  def failure(script)
+    Dir.mktmpdir do |d|
+      dir = File.join(d, 'judges')
+      save_it(File.join(dir, 'judges.rb'), script)
+      assert_raises(StandardError) { Judges::Judge.new(dir, nil, Loog::NULL).run(Factbase.new, {}, {}, {}) }.message
     end
   end
 end
