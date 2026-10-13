@@ -346,6 +346,19 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_fails_when_directory_is_absent
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Update.new(Loog::NULL).run({}, [File.join(d, 'absent'), file])
+        end.message,
+        'The directory is absent'
+      )
+      refute_path_exists(file, 'The factbase must not be touched')
+    end
+  end
+
   def test_no_failure_when_expect_judges_false
     Dir.mktmpdir do |d|
       file = File.join(d, 'base.fb')
