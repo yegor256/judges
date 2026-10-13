@@ -111,6 +111,7 @@ class Judges::Update
     c = 0
     ch = Factbase::Churn.new
     errors = []
+    global = {}
     statistics = opts['statistics'] ? Judges::Statistics.new : nil
     log_summary(opts, fb)
     elapsed(@loog, level: Logger::INFO) do
@@ -128,7 +129,7 @@ class Judges::Update
           end
           @loog.info("\nStarting cycle ##{c}#{" (out of #{opts['max-cycles']})" if opts['max-cycles']}...")
         end
-        delta = cycle(opts, judges, fb, churn, options, errors, statistics)
+        delta = cycle(opts, judges, fb, churn, options, errors, global, statistics)
         ch += delta
         if delta.zero?
           @loog.info("The update cycle ##{c} has made no changes to the factbase, let's stop")
@@ -192,11 +193,11 @@ class Judges::Update
   # @param [Factbase::Churn] churn All modifications
   # @param [Judges::Options] options The options
   # @param [Array<String>] errors List of errors
+  # @param [Hash] global The global hash, shared by all cycles of a run
   # @param [Judges::Statistics] statistics Statistics tracking object (optional)
   # @return [Factbase::Churn] How many modifications have been made in current cycle
-  def cycle(opts, judges, fb, churn, options, errors, statistics = nil)
+  def cycle(opts, judges, fb, churn, options, errors, global, statistics = nil)
     delta = Factbase::Churn.new
-    global = {}
     used = 0
     elapsed(@loog, level: Logger::INFO) do
       done = 0
