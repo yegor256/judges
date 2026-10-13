@@ -48,7 +48,8 @@ Cucumber::Rake::Task.new(:features) do |t|
   t.cucumber_opts = %w[--no-color --retry=2 --fail-fast --backtrace --order=random]
 end
 Cucumber::Rake::Task.new(:'features:html') do |t|
-  t.profile = 'html_report'
+  FileUtils.mkdir_p('temp')
+  t.cucumber_opts = %w[--format html --out temp/features.html]
 end
 
 require 'yard'
