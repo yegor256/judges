@@ -76,7 +76,9 @@ class Judges::Impex
   #   # ... populate fb with some data ...
   #   impex.import_to(fb) # Adds data from file to existing facts
   def import_to(fb)
-    raise(StandardError, "The factbase is absent at #{@file.to_rel}") unless File.exist?(@file) && !File.directory?(@file)
+    unless File.exist?(@file) && !File.directory?(@file)
+      raise(StandardError, "The factbase is absent at #{@file.to_rel}")
+    end
     elapsed(@loog, level: Logger::INFO) do
       fb.import(File.binread(@file))
       throw(:"The factbase loaded from #{@file.to_rel} (#{File.size(@file)} bytes, #{fb.size} facts)")
