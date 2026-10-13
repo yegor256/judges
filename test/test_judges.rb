@@ -189,8 +189,10 @@ class TestJudges < Minitest::Test
       names.each do |n|
         save_it(File.join(File.join(d, n), "#{n}.rb"), 'puts 1')
       end
-      plain = Judges::Judges.new(d, nil, Loog::NULL).each.to_a.map(&:name)[-2..]
-      refute_equal(%w[zzz_delta zzz_gamma], plain.sort, 'the zzz judges are last even without demotion')
+      refute_equal(
+        %w[zzz_delta zzz_gamma], Judges::Judges.new(d, nil, Loog::NULL).each.to_a.map(&:name)[-2..].sort,
+        'the zzz judges are last even without demotion'
+      )
       demoted = Judges::Judges.new(d, nil, Loog::NULL, demote: ['zzz*']).each.to_a.map(&:name)[-2..]
       assert_includes(demoted, 'zzz_gamma')
       assert_includes(demoted, 'zzz_delta')
