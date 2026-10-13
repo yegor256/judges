@@ -128,6 +128,24 @@ class TestPrint < Minitest::Test
     end
   end
 
+  def test_empty_columns_render_default_ones
+    WebMock.disable_net_connect!
+    stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(body: 'nothing')
+    stub_request(:get, 'https://yegor256.github.io/judges/assets/index.js').to_return(body: 'nothing')
+    Dir.mktmpdir do |d|
+      factbase = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert.then do |f|
+        f.what = 'a'
+        f.who = 42
+      end
+      File.binwrite(factbase, fb.export)
+      html = File.join(d, 'x.html')
+      Judges::Print.new(Loog::NULL).run({ 'format' => 'html', 'columns' => '' }, [factbase, html])
+      assert_equal(%w[when what], Nokogiri::HTML(File.read(html)).css('table#facts th.sorter').map(&:text))
+    end
+  end
+
   def test_html_table_has_colgroup
     WebMock.disable_net_connect!
     stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(body: 'nothing')
