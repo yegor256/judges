@@ -65,7 +65,7 @@ class Judges::Print
 
   def write(output, sidecar, stamp, fmt, opts, fb)
     File.binwrite(output, render(fmt, opts, fb))
-    File.binwrite(sidecar, stamp)
+    File.binwrite(sidecar, stamp) if File.file?(output)
     throw(:"👍 Factbase printed to #{output.to_rel} (#{File.size(output)} bytes)")
   end
 
