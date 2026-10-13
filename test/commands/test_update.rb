@@ -221,6 +221,15 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_ignores_timeout_given_as_option
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), "$loog.info 'timeout=' + $options.timeout.to_s")
+      log = Loog::Buffer.new
+      Judges::Update.new(log).run({ 'timeout' => 2, 'option' => ['timeout=600'] }, [d, File.join(d, 'base.fb')])
+      assert_includes(log.to_s, 'timeout=2.0')
+    end
+  end
+
   def test_update_with_error_no_quiet
     assert_raises(StandardError) do
       Dir.mktmpdir do |d|
