@@ -107,4 +107,15 @@ class TestJudge < Minitest::Test
       end
     end
   end
+
+  def test_fails_on_uncaught_throw
+    Dir.mktmpdir do |d|
+      dir = File.join(d, 'foo')
+      save_it(File.join(dir, 'foo.rb'), 'throw :done')
+      assert_includes(
+        assert_raises(StandardError) { Judges::Judge.new(dir, nil, Loog::NULL).run(Factbase.new, {}, {}, {}) }.message,
+        'uncaught throw'
+      )
+    end
+  end
 end
