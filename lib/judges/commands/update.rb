@@ -89,13 +89,12 @@ class Judges::Update
       )
       @loog.debug("Options loaded from #{opts['options-file']}")
     end
-    options += budget
     if options.empty?
       @loog.debug('No options provided by the --option flag')
     else
       @loog.debug("The following options provided:\n\t#{options.to_s.gsub("\n", "\n\t")}")
     end
-    options
+    options + budget
   end
 
   def log_summary(opts, fb)
