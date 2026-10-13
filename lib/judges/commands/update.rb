@@ -52,7 +52,7 @@ class Judges::Update
       dir, opts['lib'], @loog,
       epoch: @start, shuffle: opts['shuffle'], boost: opts['boost'],
       demote: opts['demote'], seed: opts['seed']
-    )
+    ).known(opts['judge'], strict: opts['expect-judges'])
     churn = Factbase::Churn.new
     begin
       Timeout.timeout(opts['lifetime']) do
