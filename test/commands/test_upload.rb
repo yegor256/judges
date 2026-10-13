@@ -39,6 +39,9 @@ class TestUpload < Minitest::Test
         ['myjudge', file]
       )
     end
+    assert_requested(:put, %r{https://example.org/durables/42}, times: 1)
+    assert_requested(:post, %r{https://example.org/durables/42/lock}, times: 1)
+    assert_requested(:post, %r{https://example.org/durables/42/unlock}, times: 1)
   end
 
   def test_upload_with_custom_owner
@@ -65,6 +68,9 @@ class TestUpload < Minitest::Test
         ['judge1', file]
       )
     end
+    assert_requested(:put, 'http://example.org/durables/123', times: 1)
+    assert_requested(:post, %r{http://example.org/durables/123/lock}, body: /owner=custom/, times: 1)
+    assert_requested(:post, %r{http://example.org/durables/123/unlock}, body: /owner=custom/, times: 1)
   end
 
   def test_fails_on_http_error
