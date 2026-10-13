@@ -197,7 +197,7 @@ class Judges::Test
     throw(:'👍 No judges tested') if tested.zero?
     throw(:"👍 All #{tested} judge(s) but no tests passed") if tests.zero?
     throw(:"👍 All #{tested} judge(s) and #{tests} tests passed") if errors.empty?
-    throw(:"❌ #{tested} judge(s) tested, #{errors.size} of them failed")
+    throw(:"❌ #{tested} judge(s) and #{tests + errors.size} tests run, #{errors.size} tests failed")
   end
 
   def include?(opts, name, tname = nil)
