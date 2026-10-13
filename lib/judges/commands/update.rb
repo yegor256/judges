@@ -143,6 +143,7 @@ class Judges::Update
       throw(:"👍 Update completed in #{c} cycle(s), did #{ch}")
     end
     statistics&.report(@loog)
+  ensure
     summarize(fb, ch, errors, c, opts['summary']) if %w[add append].include?(opts['summary'])
   end
   # rubocop:enable Metrics/MethodLength
