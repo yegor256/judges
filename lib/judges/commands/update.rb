@@ -72,14 +72,14 @@ class Judges::Update
   private
 
   def build_options(opts)
-    options = Judges::Options.new(timeout: opts['timeout']&.to_f, lifetime: opts['lifetime']&.to_f)
-    if options.lifetime && options.timeout && options.lifetime < options.timeout * 1.1
+    budget = Judges::Options.new(timeout: opts['timeout']&.to_f, lifetime: opts['lifetime']&.to_f)
+    if budget.lifetime && budget.timeout && budget.lifetime < budget.timeout * 1.1
       raise(
         StandardError,
-        "The --timeout=#{options.timeout} must be at least 10 percent smaller than --lifetime=#{options.lifetime}"
+        "The --timeout=#{budget.timeout} must be at least 10 percent smaller than --lifetime=#{budget.lifetime}"
       )
     end
-    options += Judges::Options.new(opts['option'])
+    options = Judges::Options.new(opts['option'])
     if opts['options-file']
       options += Judges::Options.new(
         File.readlines(opts['options-file'])
@@ -89,6 +89,7 @@ class Judges::Update
       )
       @loog.debug("Options loaded from #{opts['options-file']}")
     end
+    options += budget
     if options.empty?
       @loog.debug('No options provided by the --option flag')
     else
