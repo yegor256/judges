@@ -148,7 +148,7 @@ class Judges::Test
     fb = Factbase.new
     prepare(fb, yaml)
     global = {}
-    yaml['before']&.each do |n|
+    Array(yaml['before']).each do |n|
       j = judges.get(n).with_loog(buf)
       buf.info("Running #{j.script} judge as a pre-condition...")
       test_one(fb, opts, j, n, yaml, global:, assert: false)
@@ -160,7 +160,7 @@ class Judges::Test
   end
 
   def run_after_assertions(judge, buf, fb, yaml)
-    yaml['after']&.each do |rb|
+    Array(yaml['after']).each do |rb|
       buf.info("Running #{rb} assertion script...")
       previous = [$fb, $loog]
       begin
@@ -210,6 +210,7 @@ class Judges::Test
   def prepare(fb, yaml)
     id = 1
     inputs = yaml['input']
+    inputs = [inputs] if inputs.is_a?(Hash)
     repeat = yaml['repeat']&.to_i || 1
     raise(ArgumentError, 'The repeat value must be at least 1') if repeat < 1
     repeat.times do
@@ -289,7 +290,7 @@ class Judges::Test
     xpaths = yaml['expected']
     return if xpaths.nil?
     xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
-    xpaths.each do |xp|
+    Array(xpaths).each do |xp|
       raise(StandardError, "#{judge.name}/#{tname} doesn't match '#{xp}':\n#{xml}") if xml.xpath(xp).empty?
     end
   end
