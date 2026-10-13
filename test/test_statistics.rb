@@ -44,6 +44,15 @@ class TestStatistics < Minitest::Test
     assert_includes(output, '2xOK, 1xERROR')
   end
 
+  def test_counts_cycles_of_one_judge
+    stats = Judges::Statistics.new
+    stats.record('test-judge', 1.0, 'OK')
+    stats.record('test-judge', 2.0, 'OK')
+    buffer = Loog::Buffer.new
+    stats.report(buffer)
+    assert_match(/\s3\.000\t\s+2\t/, buffer.to_s)
+  end
+
   def test_record_multiple_judges
     stats = Judges::Statistics.new
     stats.record('judge-a', 2.0, 'OK')
