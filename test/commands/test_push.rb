@@ -47,6 +47,8 @@ class TestPush < Minitest::Test
         ['foo', file]
       )
     end
+    assert_requested(:post, %r{https://example.org/lock/foo}, times: 2)
+    assert_requested(:post, %r{https://example.org/unlock/foo}, times: 2)
   end
 
   def test_keeps_a_fractional_timeout
@@ -106,5 +108,7 @@ class TestPush < Minitest::Test
         )
       end
     end
+    assert_requested(:post, %r{http://example.org/lock/foo}, times: 1)
+    assert_requested(:post, %r{http://example.org/unlock/foo}, times: 1)
   end
 end
