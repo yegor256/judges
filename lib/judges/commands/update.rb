@@ -158,12 +158,11 @@ class Judges::Update
     if mode == 'add'
       @loog.info('Summary fact deleted') unless before.empty?
     elsif !before.empty?
-      old = before.first
-      kept = old['error'].to_a
+      kept = before.first['error'].to_a
       errs = kept.size
       @loog.info(
         "A summary found, with #{errs.positive? || 'no'} error#{'s' if errs > 1 || errs.zero?}: " \
-        "#{%w[when cycles version inserted deleted added].map { |a| "#{a}=#{old[a]&.first}" }.join(', ')}"
+        "#{%w[when cycles version inserted deleted added].map { |a| "#{a}=#{before.first[a]&.first}" }.join(', ')}"
       )
     end
     fb.query('(eq what "judges-summary")').delete!
