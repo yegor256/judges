@@ -279,6 +279,21 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_records_errors_in_summary_without_quiet
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'raise "boom"')
+      file = File.join(d, 'base.fb')
+      assert_raises(StandardError) do
+        Judges::Update.new(Loog::NULL).run({ 'summary' => 'add', 'max-cycles' => 1 }, [d, file])
+      end
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      sums = fb.query('(eq what "judges-summary")').each.to_a
+      assert_equal(1, sums.size)
+      assert_includes(sums.first['error'].first, 'boom', sums.first.to_s)
+    end
+  end
+
   def test_appends_to_existing_summary
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), 'mistake here')
