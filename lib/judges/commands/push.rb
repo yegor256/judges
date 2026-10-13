@@ -38,7 +38,7 @@ class Judges::Push
       ssl: opts['ssl'],
       timeout: (opts['timeout'] || 30).to_f,
       loog: @loog,
-      retries: (opts['retries'] || 3).to_i,
+      retries: (opts['retries'] || 3).to_i.clamp(0..) + 1,
       compress: opts.fetch('zip', true)
     )
     elapsed(@loog, level: Logger::INFO) do
