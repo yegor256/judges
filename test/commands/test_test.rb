@@ -323,6 +323,20 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_accepts_single_values_instead_of_lists
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.what = "x"')
+      save_it(File.join(d, 'bar/bar.rb'), '$fb.insert.what = "bar"')
+      save_it(File.join(d, 'foo/check.rb'), 'raise "empty" if $fb.size.zero?')
+      save_it(File.join(d, 'foo/se.yml'), "expected: /fb/f[what='x']")
+      save_it(File.join(d, 'foo/sb.yml'), "before: bar\nexpected: /fb/f[what='bar']")
+      save_it(File.join(d, 'foo/sa.yml'), 'after: check.rb')
+      save_it(File.join(d, 'foo/si.yml'), "input:\n  what: hello\nexpected: /fb/f[what='hello']")
+      Judges::Test.new(Loog::NULL).run({}, [d])
+      assert_path_exists(d)
+    end
+  end
+
   def test_accepts_a_correct_layout
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
