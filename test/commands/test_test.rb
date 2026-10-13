@@ -380,4 +380,14 @@ class TestTest < Minitest::Test
       Judges::Test.new(Loog::NULL).run({}, [d])
     end
   end
+
+  def test_rejects_zero_repeat
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(File.join(d, 'foo/x.yml'), "input: []\nrepeat: 0")
+      loog = Loog::Buffer.new
+      assert_raises(StandardError) { Judges::Test.new(loog).run({}, [d]) }
+      assert_includes(loog.to_s, 'The repeat value must be at least 1', loog.to_s)
+    end
+  end
 end
