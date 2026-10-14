@@ -25,15 +25,15 @@ require_relative '../test__helper'
 # License:: MIT
 class TestPrint < Minitest::Test
   def test_prints_only_the_facts_selected_by_head
-    assert_equal([3], selected_values('(head 1 (always))'))
+    assert_equal([3], print_values('(head 1 (always))'))
   end
 
   def test_prints_no_facts_for_zero_head
-    assert_empty(selected_values('(head 0 (always))'))
+    assert_empty(print_values('(head 0 (always))'))
   end
 
   def test_prints_the_head_of_a_sorted_selection
-    assert_equal([1], selected_values('(head 1 (sorted x (always)))'))
+    assert_equal([1], print_values('(head 1 (sorted x (always)))'))
   end
 
   def test_simple_print
@@ -228,7 +228,7 @@ class TestPrint < Minitest::Test
 
   private
 
-  def selected_values(query)
+  def print_values(query)
     Dir.mktmpdir do |dir|
       input = File.join(dir, 'input.fb')
       output = File.join(dir, 'output.json')
