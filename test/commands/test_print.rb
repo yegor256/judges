@@ -128,6 +128,23 @@ class TestPrint < Minitest::Test
     end
   end
 
+  def test_rejects_extra_positional_arguments
+    Dir.mktmpdir do |d|
+      factbase = File.join(d, 'base.fb')
+      File.binwrite(factbase, Factbase.new.export)
+      output = File.join(d, 'result.json')
+      assert_includes(
+        assert_raises(ArgumentError) do
+          Judges::Print.new(Loog::NULL).run(
+            { 'format' => 'json' }, [factbase, output, File.join(d, 'unexpected.txt')]
+          )
+        end.message,
+        'At most two arguments accepted'
+      )
+      refute_path_exists(output)
+    end
+  end
+
   def test_print_all_formats
     WebMock.disable_net_connect!
     stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(body: 'nothing')
