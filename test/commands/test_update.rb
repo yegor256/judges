@@ -474,4 +474,38 @@ class TestUpdate < Minitest::Test
       refute_match('PrettyException', out)
     end
   end
+
+  def test_cli_option_overrides_options_file
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.then { |f| f.foo = $options.foo; f.bar = $options.bar }')
+      file = File.join(d, 'base.fb')
+      opts = File.join(d, 'opts.txt')
+      save_it(opts, "foo=from_file\nbar=from_file_bar\n")
+      Judges::Update.new(Loog::NULL).run(
+        { 'quiet' => true, 'max-cycles' => 1, 'options-file' => opts, 'option' => ['foo=from_cli'] },
+        [d, file]
+      )
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      f = fb.query('(always)').each.first
+      assert_equal('from_cli', f.foo)
+      assert_equal('from_file_bar', f.bar)
+    end
+  end
+
+  def test_cli_option_overrides_numeric_in_file
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.amount = $options.amount')
+      file = File.join(d, 'base.fb')
+      opts = File.join(d, 'opts.txt')
+      save_it(opts, "amount=10\n")
+      Judges::Update.new(Loog::NULL).run(
+        { 'quiet' => true, 'max-cycles' => 1, 'options-file' => opts, 'option' => ['amount=99'] },
+        [d, file]
+      )
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_equal(99, fb.query('(always)').each.first.amount)
+    end
+  end
 end
