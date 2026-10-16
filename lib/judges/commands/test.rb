@@ -250,6 +250,7 @@ class Judges::Test
         fbx = Factbase::Logged.new(fb, @loog)
       end
       failure = yaml['expected_failure']
+      failure = nil if failure == []
       caught = capture(fbx, judge, options, timeout)
       if failure
         raise(StandardError, 'Exception expected but not raised') if caught.nil?
