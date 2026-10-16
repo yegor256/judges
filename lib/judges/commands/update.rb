@@ -235,14 +235,12 @@ class Judges::Update
       throw(:"👍 The '#{judge.name}' judge #{impact} out of #{fb.size} facts")
     end
     impact
-  rescue StandardError, SyntaxError => e
-    if e.is_a?(RuntimeError) && e.message == 'skip'
-      result = 'SKIPPED'
-    else
-      @loog.warn(Backtrace.new(e))
-      errors << e.message
-      result = 'ERROR'
-    end
+  rescue StandardError, SyntaxError, Judges::Skip => e
+    skip = e.is_a?(Judges::Skip) || (e.is_a?(RuntimeError) && e.message == 'skip')
+    @loog.info("The '#{judge.name}' judge skipped itself in #{start.ago}") if skip
+    @loog.warn(Backtrace.new(e)) unless skip
+    errors << e.message unless skip
+    result = skip ? 'SKIPPED' : 'ERROR'
     impact || true
   ensure
     statistics&.record(judge.name, Time.now - start, result, impact) if start
