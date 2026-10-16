@@ -240,7 +240,7 @@ class Judges::Update
       result = 'SKIPPED'
     else
       @loog.warn(Backtrace.new(e))
-      errors << e.message
+      errors << (e.message.to_s.strip.empty? ? e.class.name : e.message)
       result = 'ERROR'
     end
     impact || true
