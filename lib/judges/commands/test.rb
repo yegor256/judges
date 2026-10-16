@@ -221,9 +221,7 @@ class Judges::Test
             id += 1
           end
           if vv.is_a?(Array)
-            vv.each do |v|
-              f.public_send(:"#{k}=", v)
-            end
+            vv.each { |v| f.public_send(:"#{k}=", v) }
           else
             f.public_send(:"#{k}=", vv)
           end
@@ -242,7 +240,10 @@ class Judges::Test
   # @param [Boolean] assert Whether to check the expected XPaths after the runs
   # @return [Range] The range of runs that were made
   def test_one(fb, opts, judge, tname, yaml, global:, assert: true)
-    options = Judges::Options.new(opts['option']) + Judges::Options.new(yaml['options'])
+    options =
+      Judges::Options.new(yaml.slice('timeout').compact.transform_values(&:to_f)) +
+      Judges::Options.new(opts['option']) +
+      Judges::Options.new(yaml['options'])
     runs = opts['runs'] || yaml['runs'] || 1
     timeout = yaml['timeout']
     (1..runs).each do |r|
@@ -251,22 +252,23 @@ class Judges::Test
         require('factbase/logged')
         fbx = Factbase::Logged.new(fb, @loog)
       end
-      failure = yaml['expected_failure']
-      failure = nil if failure == []
-      caught = capture(fbx, judge, options, timeout, global)
-      if failure
-        raise(StandardError, 'Exception expected but not raised') if caught.nil?
-        if failure.is_a?(Array) && failure.none? { |s| caught.message.include?(s) }
-          raise(
-            StandardError,
-            "Exception #{caught.class} raised with #{caught.message.inspect}, but this is not what was expected"
-          )
-        end
-      elsif caught
-        raise(caught)
-      end
+      verify(capture(fbx, judge, options, timeout, global), yaml['expected_failure'])
       next unless assert
       assert(judge, tname, fb, yaml) if r == runs || yaml['assert_once'].is_a?(FalseClass)
+    end
+  end
+
+  def verify(caught, failure)
+    failure = nil if failure == []
+    if failure
+      raise(StandardError, 'Exception expected but not raised') if caught.nil?
+      return unless failure.is_a?(Array) && failure.none? { |s| caught.message.include?(s) }
+      raise(
+        StandardError,
+        "Exception #{caught.class} raised with #{caught.message.inspect}, but this is not what was expected"
+      )
+    elsif caught
+      raise(caught)
     end
   end
 
