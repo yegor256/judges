@@ -107,4 +107,56 @@ class TestJudge < Minitest::Test
       end
     end
   end
+
+  def test_finds_tests_in_directory_with_brackets
+    Dir.mktmpdir do |d|
+      dir = File.join(d, 'judge[special]path')
+      FileUtils.mkdir_p(dir)
+      File.write(File.join(dir, 'judge[special]path.rb'), '$fb.insert.foo = 42')
+      File.write(File.join(dir, 'test1.yml'), 'before: []')
+      File.write(File.join(dir, 'test2.yml'), 'before: []')
+      tests = Judges::Judge.new(dir, nil, Loog::NULL).tests
+      assert_equal(2, tests.size)
+      assert_includes(tests.map { |t| File.basename(t) }, 'test1.yml')
+      assert_includes(tests.map { |t| File.basename(t) }, 'test2.yml')
+    end
+  end
+
+  def test_finds_script_in_directory_with_brackets
+    Dir.mktmpdir do |d|
+      name = 'judge[v1]'
+      dir = File.join(d, name)
+      FileUtils.mkdir_p(dir)
+      File.write(File.join(dir, "#{name}.rb"), '$fb.insert.bar = 1')
+      assert_equal("#{name}.rb", Judges::Judge.new(dir, nil, Loog::NULL).script)
+    end
+  end
+
+  def test_tests_are_sorted_in_directory_with_brackets
+    Dir.mktmpdir do |d|
+      name = 'judge[0-9]'
+      dir = File.join(d, name)
+      FileUtils.mkdir_p(dir)
+      File.write(File.join(dir, "#{name}.rb"), '$fb.insert')
+      File.write(File.join(dir, 'c.yml'), '')
+      File.write(File.join(dir, 'a.yml'), '')
+      File.write(File.join(dir, 'b.yml'), '')
+      assert_equal(%w[a.yml b.yml c.yml], Judges::Judge.new(dir, nil, Loog::NULL).tests.map { |f| File.basename(f) })
+    end
+  end
+
+  def test_runs_with_lib_in_bracket_path
+    Dir.mktmpdir do |d|
+      name = 'judge[custom]'
+      dir = File.join(d, name)
+      lib = File.join(dir, 'lib')
+      FileUtils.mkdir_p(lib)
+      File.write(File.join(lib, 'helper.rb'), 'module CustomHelper; VALUE = 99; end')
+      File.write(File.join(dir, "#{name}.rb"), '$fb.insert.num = CustomHelper::VALUE')
+      fb = Factbase.new
+      Judges::Judge.new(dir, lib, Loog::NULL).run(fb, {}, {}, {})
+      assert_equal(1, fb.size)
+      assert_equal(99, fb.query('(always)').each.first.num)
+    end
+  end
 end
