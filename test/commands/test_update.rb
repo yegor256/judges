@@ -596,4 +596,43 @@ class TestUpdate < Minitest::Test
       assert_empty(xml.xpath('/fb/f[foo]'), xml)
     end
   end
+
+  def test_options_file_with_bom
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.token = $options.token')
+      opts = File.join(d, 'opts.txt')
+      File.write(opts, "\xEF\xBB\xBFtoken=my-secret\ncolor=blue\n")
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::NULL).run({ 'quiet' => true, 'max-cycles' => 1, 'options-file' => opts }, [d, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_equal(['my-secret'], fb.query('(always)').each.to_a.first['token'])
+    end
+  end
+
+  def test_options_file_with_bom_and_empty_lines
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.alpha = $options.alpha')
+      opts = File.join(d, 'opts.txt')
+      File.write(opts, "\xEF\xBB\xBF\n\nalpha=first\n")
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::NULL).run({ 'quiet' => true, 'max-cycles' => 1, 'options-file' => opts }, [d, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_equal(['first'], fb.query('(always)').each.to_a.first['alpha'])
+    end
+  end
+
+  def test_options_file_keys_without_bom_artifact
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.has_token = $options.token == "abc" ? "yes" : "no"')
+      opts = File.join(d, 'opts.txt')
+      File.write(opts, "\xEF\xBB\xBFtoken=abc\n")
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::NULL).run({ 'quiet' => true, 'max-cycles' => 1, 'options-file' => opts }, [d, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_equal(['yes'], fb.query('(always)').each.to_a.first['has_token'])
+    end
+  end
 end
