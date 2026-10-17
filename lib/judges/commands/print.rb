@@ -70,16 +70,23 @@ class Judges::Print
     case fmt
       when 'yaml'
         require('factbase/to_yaml')
-        Factbase::ToYAML.new(fb).yaml
+        Factbase::ToYAML.new(filter(fb, opts['hidden'])).yaml
       when 'json'
         require('factbase/to_json')
-        Factbase::ToJSON.new(fb).json
+        Factbase::ToJSON.new(filter(fb, opts['hidden'])).json
       when 'xml'
         require('factbase/to_xml')
-        Factbase::ToXML.new(fb).xml
+        Factbase::ToXML.new(filter(fb, opts['hidden'])).xml
       else
         to_html(opts, fb)
     end
+  end
+
+  def filter(fb, hidden)
+    props = Array(hidden).join(',').split(',').map(&:strip).reject(&:empty?)
+    return fb if props.empty?
+    fb.each { |m| props.each { |p| m.delete(p) } }
+    fb
   end
 
   def skip?(opts, factbase, output, sidecar, stamp)
