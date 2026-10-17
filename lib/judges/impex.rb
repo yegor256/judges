@@ -6,6 +6,7 @@
 require 'elapsed'
 require 'factbase'
 require 'fileutils'
+require 'tempfile'
 require_relative '../judges'
 require_relative '../judges/to_rel'
 
@@ -99,8 +100,21 @@ class Judges::Impex
     raise(StandardError, "The factbase path is a directory: #{@file.to_rel}") if File.directory?(@file)
     elapsed(@loog, level: Logger::INFO) do
       FileUtils.mkdir_p(File.dirname(@file))
-      File.binwrite(@file, fb.export)
+      replace(@file, fb.export)
       throw(:"Factbase exported to #{@file.to_rel} (#{File.size(@file)} bytes, #{fb.size} facts)")
+    end
+  end
+
+  private
+
+  def replace(path, content)
+    mode = File.exist?(path) ? File.stat(path).mode & 0o777 : 0o666 & ~File.umask
+    Tempfile.create([File.basename(path), '.tmp'], File.dirname(path)) do |file|
+      file.binmode
+      file.write(content)
+      file.close
+      File.chmod(mode, file.path)
+      File.rename(file.path, path)
     end
   end
 end
