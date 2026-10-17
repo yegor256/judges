@@ -3,6 +3,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require 'date'
 require 'elapsed'
 require 'time'
 require_relative '../../judges'
@@ -44,6 +45,7 @@ class Judges::Import
         f = fb.insert
         i.each do |p, v|
           (v.is_a?(Array) ? v : [v]).each do |value|
+            value = Time.utc(value.year, value.month, value.day) if value.is_a?(Date)
             f.public_send(:"#{p}=", value)
           end
         end
@@ -59,7 +61,12 @@ class Judges::Import
   # @param [String] file The path of the file to read
   # @return [Array] The list of facts found in it
   def facts(file)
-    yaml = YAML.load_file(file, permitted_classes: [Time])
+    yaml =
+      begin
+        YAML.load_file(file, permitted_classes: [Time, Date], aliases: true)
+      rescue Psych::Exception => e
+        raise(StandardError, "The file #{file.to_rel} is not a YAML we can read: #{e.message}")
+      end
     raise(StandardError, "The file #{file.to_rel} is empty, nothing to import") if yaml.nil?
     unless yaml.is_a?(Array)
       raise(StandardError, "The file #{file.to_rel} must hold an array of facts, while #{yaml.class} found")
