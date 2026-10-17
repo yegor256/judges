@@ -55,7 +55,7 @@ class Judges::Update
     )
     churn = Factbase::Churn.new
     begin
-      Timeout.timeout(opts['lifetime']) do
+      Timeout.timeout(opts['lifetime'] ? [opts['lifetime'] - (Time.now - @start), 0.001].max : nil) do
         loop_them(judges, fb, churn, opts, options)
       end
     rescue Timeout::Error, Timeout::ExitException
