@@ -91,6 +91,16 @@ class TestJudges < Minitest::Test
     end
   end
 
+  def test_warns_about_misnamed_script
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'alpha/alpha.rb'), '')
+      save_it(File.join(d, 'typo/typoo.rb'), '')
+      loog = Loog::Buffer.new
+      assert_equal(['alpha'], Judges::Judges.new(d, nil, loog).each.to_a.map(&:name))
+      assert_includes(loog.to_s, 'typo.rb', loog.to_s)
+    end
+  end
+
   def test_list_with_empty_dir
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'wrong.rb'), '')
