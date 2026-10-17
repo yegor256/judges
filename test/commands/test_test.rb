@@ -330,4 +330,26 @@ class TestTest < Minitest::Test
       Judges::Test.new(Loog::NULL).run({}, [d])
     end
   end
+
+  def test_renumbers_id_given_as_array
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 1')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        repeat: 2
+        input:
+          -
+            _id: [7]
+            foo: 1
+        expected:
+          - /fb[count(f[_id=1])=1]
+          - /fb[count(f[_id=2])=1]
+          - /fb[not(f[_id=7])]
+        YAML
+      )
+      Judges::Test.new(Loog::NULL).run({}, [d])
+      assert_path_exists(d)
+    end
+  end
 end
