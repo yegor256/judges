@@ -30,6 +30,7 @@ class Judges::Download
   # @raise [RuntimeError] If not exactly two arguments provided
   def run(opts, args)
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
+    raise(StandardError, 'The download command needs the network, while --offline is set') if opts['offline']
     jname = args[0]
     path = args[1]
     name = File.basename(path)

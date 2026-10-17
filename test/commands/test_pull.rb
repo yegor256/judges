@@ -124,4 +124,14 @@ class TestPull < Minitest::Test
       assert_includes(e.message, 'expire it', e)
     end
   end
+
+  def test_fails_when_offline
+    WebMock.disable_net_connect!
+    assert_equal(
+      'The pull command needs the network, while --offline is set',
+      assert_raises(StandardError) do
+        Judges::Pull.new(Loog::NULL).run({ 'offline' => true }, ['foo', 'file.fb'])
+      end.message
+    )
+  end
 end
