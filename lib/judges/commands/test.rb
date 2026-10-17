@@ -63,6 +63,7 @@ class Judges::Test
           "No judge matches --judge=#{opts['judge'].join(',')}, while these are available: #{visible.join(', ')}"
         )
       end
+      unmatched(opts, visible)
       print_test_summary(times, errors, tested, tests)
     end
     unless errors.empty?
@@ -102,6 +103,20 @@ class Judges::Test
       "The layout of #{dir.to_rel} is wrong, every judge directory must hold " \
       "a script named after it: #{bad.join('; ')}"
     )
+  end
+
+  # Check that every --judge=<judge>/<test> matches at least one test.
+  #
+  # A typo in the judge half is caught above, since no judge is tested,
+  # while a typo in the test half skips every test and nothing says why.
+  #
+  # @param [Hash] opts The command line options
+  # @param [Array<String>] visible Names of all judges and tests seen
+  # @raise [StandardError] If at least one test filter matches nothing
+  def unmatched(opts, visible)
+    bad = Array(opts['judge']).select { |j| j.include?('/') && !visible.include?("  #{j}") }
+    return if bad.empty?
+    raise(StandardError, "No test matches --judge=#{bad.join(',')}, while these are available: #{visible.join(', ')}")
   end
 
   def run_judge_tests(judge, buf, opts, judges, visible, times, errors)
