@@ -72,7 +72,11 @@ The `repeat` (default: `1`) makes the `input` to be repeated multiple times
 (mostly useful for speed measuring on big data inputs).
 
 The `runs` (default: `1`) is the number of times the `.rb` script should
-be executed. After each execution, all expected XPath expressions are validated.
+be executed. The expected XPath expressions are validated only once,
+after the last execution.
+
+The `assert_once` (default: `true`), when set to `false`, makes the
+expected XPath expressions to be validated after each execution.
 
 The `before` (default: `[]`) is a list of judges that must be executed before
 the current one.
