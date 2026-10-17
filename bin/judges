@@ -126,9 +126,9 @@ class JudgesGLI extend GLI::App
     c.desc 'Demote a judge to run after all others (supports wildcards with *)'
     c.flag([:demote], multiple: true)
     c.desc 'Maximum time in seconds for the entire update cycle'
-    c.flag([:lifetime], default_value: 300, type: Integer)
+    c.flag([:lifetime], default_value: 300, type: Float)
     c.desc 'Maximum time in seconds for each judge (forcefully terminates if exceeded)'
-    c.flag([:timeout], default_value: 30, type: Integer)
+    c.flag([:timeout], default_value: 30, type: Float)
     c.desc 'Maximum number of update cycles to run'
     c.flag([:'max-cycles'], default_value: 8, type: Integer)
     c.desc 'Suppress errors even when judges fail'
@@ -238,7 +238,7 @@ class JudgesGLI extend GLI::App
     c.desc 'Server TCP port number'
     c.flag([:port], default_value: 443, type: Integer)
     c.desc 'Connection and read timeout in seconds'
-    c.flag([:timeout], default_value: 30, type: Integer)
+    c.flag([:timeout], default_value: 30, type: Float)
     c.desc 'Enable SSL connection'
     c.switch([:ssl], default_value: true)
     c.desc 'Unique identifier for lock/unlock operations'
@@ -264,7 +264,7 @@ class JudgesGLI extend GLI::App
     c.desc 'Server TCP port number'
     c.flag([:port], default_value: 443, type: Integer)
     c.desc 'Connection and read timeout in seconds'
-    c.flag([:timeout], default_value: 30, type: Integer)
+    c.flag([:timeout], default_value: 30, type: Float)
     c.desc 'Enable SSL connection'
     c.switch([:ssl], default_value: true)
     c.desc 'Unique identifier for lock/unlock operations'
@@ -284,7 +284,7 @@ class JudgesGLI extend GLI::App
     c.desc 'Server TCP port number'
     c.flag([:port], default_value: 443, type: Integer)
     c.desc 'Connection and read timeout in seconds'
-    c.flag([:timeout], default_value: 30, type: Integer)
+    c.flag([:timeout], default_value: 30, type: Float)
     c.desc 'Enable SSL connection'
     c.switch([:ssl], default_value: true)
     c.desc 'Unique identifier for the operation'
@@ -304,7 +304,7 @@ class JudgesGLI extend GLI::App
     c.desc 'Server TCP port number'
     c.flag([:port], default_value: 443, type: Integer)
     c.desc 'Connection and read timeout in seconds'
-    c.flag([:timeout], default_value: 30, type: Integer)
+    c.flag([:timeout], default_value: 30, type: Float)
     c.desc 'Enable SSL connection'
     c.switch([:ssl], default_value: true)
     c.desc 'Unique identifier for the operation'
