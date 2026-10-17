@@ -38,6 +38,8 @@ class TestDownload < Minitest::Test
       )
       assert_equal(content, File.read(file))
     end
+    assert_requested(:post, %r{https://example.org/durables/42/lock}, times: 1)
+    assert_requested(:post, %r{https://example.org/durables/42/unlock}, times: 1)
   end
 
   def test_download_with_custom_owner
@@ -88,6 +90,7 @@ class TestDownload < Minitest::Test
         )
       end
     end
+    assert_requested(:post, %r{http://example.org/durables/99/unlock}, times: 1)
   end
 
   def test_fails_with_wrong_number_of_arguments
