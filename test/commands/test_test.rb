@@ -323,6 +323,24 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_matches_dot_in_test_name_literally
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'x/x.rb'), 'raise "must not run"')
+      save_it(File.join(d, 'x/v1.2.yml'), 'input: []')
+      Judges::Test.new(Loog::NULL).run({ 'judge' => ['x/v1X2'] }, [d])
+      assert_path_exists(d)
+    end
+  end
+
+  def test_accepts_parenthesis_in_test_name
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'x/x.rb'), '$fb.insert.foo = 1')
+      save_it(File.join(d, 'x/a(b.yml'), 'input: []')
+      Judges::Test.new(Loog::NULL).run({ 'judge' => ['x'] }, [d])
+      assert_path_exists(d)
+    end
+  end
+
   def test_accepts_a_correct_layout
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
