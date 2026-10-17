@@ -90,6 +90,21 @@ class TestDownload < Minitest::Test
     end
   end
 
+  def test_refuses_a_directory
+    WebMock.disable_net_connect!
+    Dir.mktmpdir do |d|
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Download.new(Loog::NULL).run(
+            { 'token' => '000', 'host' => 'example.org', 'port' => 443, 'ssl' => true },
+            ['myjudge', d]
+          )
+        end.message,
+        'is a directory'
+      )
+    end
+  end
+
   def test_fails_with_wrong_number_of_arguments
     assert_raises(ArgumentError) do
       Judges::Download.new(Loog::NULL).run({}, ['only_one_arg'])
