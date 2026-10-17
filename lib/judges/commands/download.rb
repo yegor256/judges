@@ -3,6 +3,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require 'English'
 require 'baza-rb'
 require 'elapsed'
 require 'iri'
@@ -28,6 +29,7 @@ class Judges::Download
   # @param [Hash] opts Command line options (start with '--')
   # @param [Array] args List of command line arguments
   # @raise [RuntimeError] If not exactly two arguments provided
+  # rubocop:disable Metrics/MethodLength
   def run(opts, args)
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     jname = args[0]
@@ -52,8 +54,17 @@ class Judges::Download
         baza.durable_load(id, path)
         throw(:"👍 Downloaded durable ##{id} to #{path} (#{File.size(path)} bytes)")
       ensure
-        baza.durable_unlock(id, opts['owner'] || 'default')
+        inflight = $ERROR_INFO
+        begin
+          baza.durable_unlock(id, opts['owner'] || 'default')
+        rescue StandardError => e
+          raise if inflight.nil? || inflight.is_a?(UncaughtThrowError)
+          msg = "Failed to unlock durable ##{id}: #{e.message}"
+          @loog&.warn(msg)
+          $loog&.warn(msg) if $loog && $loog != @loog
+        end
       end
     end
   end
+  # rubocop:enable Metrics/MethodLength
 end
