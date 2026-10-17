@@ -13,8 +13,8 @@ Gem::Specification.new do |s|
   s.license = 'MIT'
   s.summary = 'Command-Line Tool for a Factbase'
   s.description =
-    'A command-line tool that runs a collection of \"judges\" ' \
-    'against a \"factbase,\" modifying ' \
+    'A command-line tool that runs a collection of "judges" ' \
+    'against a "factbase," modifying ' \
     'it and updating. Also, helps printing a factbase, merge with ' \
     'another one, inspect, and so on. Also, helps run automated tests ' \
     'for a set of judges.'
