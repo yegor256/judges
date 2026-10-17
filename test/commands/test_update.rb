@@ -29,6 +29,20 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_refuses_an_absent_lib_once
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'alpha/alpha.rb'), '$fb.insert.a = 1')
+      save_it(File.join(d, 'beta/beta.rb'), '$fb.insert.b = 1')
+      log = Loog::Buffer.new
+      error =
+        assert_raises(StandardError) do
+          Judges::Update.new(log).run({ 'lib' => File.join(d, 'nosuch') }, [d, File.join(d, 'base.fb')])
+        end
+      assert_includes(error.message, 'is absent', error.message)
+      refute_includes(log.to_s, 'Running alpha', log.to_s)
+    end
+  end
+
   def test_sets_epoch_to_update_start
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), "$loog.info(\"captured-epoch=\#{$epoch.class}\")")
