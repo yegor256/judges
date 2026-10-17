@@ -87,6 +87,29 @@ class TestPrint < Minitest::Test
     end
   end
 
+  def test_reprints_when_remote_assets_change
+    WebMock.disable_net_connect!
+    stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css')
+      .to_return({ body: 'css-v1' }, { body: 'css-v2' })
+    stub_request(:get, 'https://yegor256.github.io/judges/assets/index.js')
+      .to_return({ body: 'js-v1' }, { body: 'js-v2' })
+    fb = Factbase.new
+    fb.insert.what = 'test'
+    printer = Judges::Print.new(Loog::NULL)
+    Dir.mktmpdir do |d|
+      factbase = File.join(d, 'base.fb')
+      output = File.join(d, 'base.html')
+      File.binwrite(factbase, fb.export)
+      printer.run({ 'format' => 'html' }, [factbase, output])
+      future = Time.now + 5
+      File.utime(future, future, output)
+      printer.run({ 'format' => 'html' }, [factbase, output])
+      html = File.read(output)
+      assert_includes(html, "sha256-#{Base64.strict_encode64(Digest::SHA256.digest('css-v2'))}")
+      assert_includes(html, "sha256-#{Base64.strict_encode64(Digest::SHA256.digest('js-v2'))}")
+    end
+  end
+
   def test_html_table_has_colgroup
     WebMock.disable_net_connect!
     stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(body: 'nothing')
