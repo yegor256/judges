@@ -51,6 +51,7 @@ class Judges::Pull
           end
           fb.import(baza.pull(wait(name, baza, jid, opts['wait'])))
           Judges::Impex.new(@loog, args[1]).export(fb)
+          File.binwrite(Judges::Impex.marker(args[1]), jid.to_s)
         ensure
           baza.unlock(name, opts['owner'])
         end
