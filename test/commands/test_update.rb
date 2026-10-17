@@ -162,6 +162,17 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_keeps_global_across_cycles
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$global[:n] = ($global[:n] || 0) + 1; $fb.insert.seen = $global[:n]')
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::NULL).run({ 'max-cycles' => 3 }, [d, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_equal(1, fb.query('(eq seen 3)').each.to_a.size)
+    end
+  end
+
   def test_extend_existing_factbase
     Dir.mktmpdir do |d|
       file = File.join(d, 'base.fb')
