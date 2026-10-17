@@ -64,6 +64,26 @@ class TestPull < Minitest::Test
       )
       fb = Factbase.new
       fb.import(File.binread(file))
+      assert_equal(1, fb.query('(eq foo 42)').each.to_a.size)
+    end
+    assert_requested(:post, %r{http://example.org/lock/foo}, times: 1)
+  end
+
+  def test_gives_up_waiting_at_once_with_zero_limit
+    checks = 0
+    baza = Object.new
+    baza.define_singleton_method(:finished?) do |_id|
+      checks += 1
+      checks > 2
+    end
+    pull = Judges::Pull.new(Loog::NULL)
+    Process.stub(:clock_gettime, ->(_clock) { 0 }) do
+      pull.stub(:sleep, ->(_seconds) {}) do
+        assert_includes(
+          assert_raises(StandardError) { pull.__send__(:wait, 'foo', baza, 42, 0) }.message,
+          'Time is over'
+        )
+      end
     end
   end
 
