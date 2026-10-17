@@ -40,7 +40,7 @@ class Judges::Upload
       ssl: opts['ssl'],
       timeout: (opts['timeout'] || 30).to_f,
       loog: @loog,
-      retries: (opts['retries'] || 3).to_i
+      retries: (opts['retries'] || 3).to_i.clamp(0..) + 1
     )
     elapsed(@loog, level: Logger::INFO) do
       id = baza.durable_find(jname, name)
