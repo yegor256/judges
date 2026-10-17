@@ -116,4 +116,62 @@ class TestDownload < Minitest::Test
       refute_path_exists(file)
     end
   end
+
+  def test_original_error_on_unlock_failure
+    WebMock.disable_net_connect!
+    stub_request(:get, %r{http://example.org/durable-find}).to_return(status: 200, body: '99')
+    stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
+    stub_request(:post, %r{http://example.org/durables/99/lock}).to_return(status: 302)
+    stub_request(:get, %r{http://example.org/durables/99}).to_return(status: 404)
+    stub_request(:post, %r{http://example.org/durables/99/unlock}).to_return(status: 503)
+    loog = Loog::Buffer.new
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'test.txt')
+      e =
+        assert_raises(StandardError) do
+          Judges::Download.new(loog).run(
+            {
+              'token' => '000',
+              'host' => 'example.org',
+              'port' => 80,
+              'ssl' => false,
+              'owner' => 'none',
+              'retries' => 1
+            },
+            ['somejudge', file]
+          )
+        end
+      assert_includes(e.message, '404')
+      refute_includes(e.message, '503')
+      assert_includes(loog.to_s, 'Failed to unlock')
+    end
+  end
+
+  def test_unlock_error_on_clean_success
+    WebMock.disable_net_connect!
+    stub_request(:get, %r{http://example.org/durable-find}).to_return(status: 200, body: '99')
+    stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
+    stub_request(:post, %r{http://example.org/durables/99/lock}).to_return(status: 302)
+    stub_request(:get, %r{http://example.org/durables/99}).to_return(status: 200, body: 'content', headers: {})
+    stub_request(:post, %r{http://example.org/durables/99/unlock}).to_return(status: 503)
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'test.txt')
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Download.new(Loog::NULL).run(
+            {
+              'token' => '000',
+              'host' => 'example.org',
+              'port' => 80,
+              'ssl' => false,
+              'owner' => 'none',
+              'retries' => 1
+            },
+            ['somejudge', file]
+          )
+        end.message,
+        '503'
+      )
+    end
+  end
 end

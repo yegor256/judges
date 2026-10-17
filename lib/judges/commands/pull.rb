@@ -3,6 +3,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require 'English'
 require 'baza-rb'
 require 'elapsed'
 require 'iri'
@@ -29,6 +30,7 @@ class Judges::Pull
   # @param [Hash] opts Command line options (start with '--')
   # @param [Array] args List of command line arguments
   # @raise [RuntimeError] If not exactly two arguments provided
+  # rubocop:disable Metrics/MethodLength
   def run(opts, args)
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     fb = Factbase.new
@@ -52,7 +54,15 @@ class Judges::Pull
           fb.import(baza.pull(wait(name, baza, jid, opts['wait'])))
           Judges::Impex.new(@loog, args[1]).export(fb)
         ensure
-          baza.unlock(name, opts['owner'])
+          inflight = $ERROR_INFO
+          begin
+            baza.unlock(name, opts['owner'])
+          rescue StandardError => e
+            raise if inflight.nil? || inflight.is_a?(UncaughtThrowError)
+            msg = "Failed to unlock '#{name}': #{e.message}"
+            @loog&.warn(msg)
+            $loog&.warn(msg) if $loog && $loog != @loog
+          end
         end
         throw(:"👍 Pulled #{fb.size} facts by name '#{name}'")
       else
@@ -60,6 +70,7 @@ class Judges::Pull
       end
     end
   end
+  # rubocop:enable Metrics/MethodLength
 
   private
 
