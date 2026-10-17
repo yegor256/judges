@@ -149,9 +149,11 @@ class TestTest < Minitest::Test
           - /fb[count(f)=1]
         YAML
       )
-      assert_raises(StandardError) do
-        Judges::Test.new(Loog::NULL).run({ 'judge' => [File.basename(dir)] }, [d])
-      end
+      e =
+        assert_raises(StandardError) do
+          Judges::Test.new(Loog::NULL).run({ 'judge' => ['foo'] }, [d])
+        end
+      assert_includes(e.message, 'failed', e.message)
     end
   end
 
