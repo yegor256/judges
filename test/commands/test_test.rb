@@ -330,4 +330,20 @@ class TestTest < Minitest::Test
       Judges::Test.new(Loog::NULL).run({}, [d])
     end
   end
+
+  def test_expects_timeout_error_from_judge
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), "require 'timeout'\nTimeout.timeout(0.01) { sleep(1) }")
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        expected_failure:
+          - execution expired
+        YAML
+      )
+      Judges::Test.new(Loog::NULL).run({}, [d])
+      assert_path_exists(d)
+    end
+  end
 end

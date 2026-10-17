@@ -274,7 +274,8 @@ class Judges::Test
       judge.run(fbx, {}, {}, options)
     end
     nil
-  rescue Timeout::Error
+  rescue Timeout::Error => e
+    return e if timeout.nil?
     raise(StandardError, "Test timed out after #{timeout} seconds")
   # rubocop:disable Lint/RescueException
   rescue Exception => e
