@@ -145,6 +145,12 @@ class Judges::Test
     if timeout.is_a?(Numeric) && !timeout.finite?
       raise(ArgumentError, "A finite timeout is expected, but #{timeout.inspect} provided")
     end
+    timeout = timeout&.to_i
+    raise(ArgumentError, 'The timeout value must be at least 1') if timeout && timeout < 1
+    yaml['timeout'] = timeout
+    runs = (opts['runs'] || yaml['runs'])&.to_i || 1
+    raise(ArgumentError, 'The runs value must be at least 1') if runs < 1
+    yaml['runs'] = runs
     fb = Factbase.new
     prepare(fb, yaml)
     yaml['before']&.each do |n|
@@ -166,9 +172,7 @@ class Judges::Test
         $fb = fb
         $loog = buf
         if yaml['timeout']
-          Timeout.timeout(yaml['timeout']) do
-            load(File.join(judge.dir, rb), true)
-          end
+          Timeout.timeout(yaml['timeout']) { load(File.join(judge.dir, rb), true) }
         else
           load(File.join(judge.dir, rb), true)
         end
@@ -216,9 +220,7 @@ class Judges::Test
         f = fb.insert
         i.each do |k, vv|
           if vv.is_a?(Array)
-            vv.each do |v|
-              f.public_send(:"#{k}=", v)
-            end
+            vv.each { |v| f.public_send(:"#{k}=", v) }
           else
             if k == '_id'
               vv = id
@@ -241,7 +243,7 @@ class Judges::Test
   # @return [nil] Always NIL
   def test_one(fb, opts, judge, tname, yaml, assert: true)
     options = Judges::Options.new(opts['option']) + Judges::Options.new(yaml['options'])
-    runs = opts['runs'] || yaml['runs'] || 1
+    runs = (yaml['runs'] || opts['runs'] || 1).to_i
     timeout = yaml['timeout']
     (1..runs).each do |r|
       fbx = fb
