@@ -14,6 +14,7 @@ require 'logger'
 require 'tago'
 require 'timeout'
 require_relative '../../judges'
+require_relative '../../judges/clock'
 require_relative '../../judges/impex'
 require_relative '../../judges/judges'
 require_relative '../../judges/options'
@@ -33,7 +34,7 @@ class Judges::Update
   # @param [Loog] loog Logging facility
   def initialize(loog)
     @loog = loog
-    @start = Time.now
+    @clock = Judges::Clock.new
   end
 
   # Run the update command (called by the +bin/judges+ script).
@@ -50,7 +51,7 @@ class Judges::Update
     options = build_options(opts)
     judges = Judges::Judges.new(
       dir, opts['lib'], @loog,
-      epoch: @start, shuffle: opts['shuffle'], boost: opts['boost'],
+      epoch: @clock.epoch, shuffle: opts['shuffle'], boost: opts['boost'],
       demote: opts['demote'], seed: opts['seed']
     )
     churn = Factbase::Churn.new
@@ -121,7 +122,7 @@ class Judges::Update
         end
         c += 1
         if c > 1
-          if opts['lifetime'] && Time.now - @start > opts['lifetime'] * 0.51
+          if opts['lifetime'] && @clock.elapsed > opts['lifetime'] * 0.51
             @loog.info("Not starting cycle ##{c}, no time left")
             c -= 1
             break
@@ -171,7 +172,7 @@ class Judges::Update
     s.what = 'judges-summary'
     s.when = Time.now
     s.version = Judges::VERSION
-    s.seconds = Time.now - @start
+    s.seconds = @clock.elapsed
     s.cycles = cycles
     s.inserted = churn.inserted.size
     s.deleted = churn.deleted.size
@@ -224,8 +225,8 @@ class Judges::Update
   def run_judge_in_cycle(judge, idx, opts, fb, churn, options, errors, global, statistics)
     return if skip_judge?(judge, idx, opts, errors, statistics)
     return unless include?(opts, judge.name)
-    @loog.info("\n👉 Running #{judge.name} (##{idx}) at #{judge.dir.to_rel} (#{@start.ago} already)...")
-    start = Time.now
+    @loog.info("\n👉 Running #{judge.name} (##{idx}) at #{judge.dir.to_rel} (#{@clock.elapsed.round(2)}s already)...")
+    start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     result = 'OK'
     impact = nil
     elapsed(@loog, level: Logger::INFO) do
@@ -245,7 +246,7 @@ class Judges::Update
     end
     impact || true
   ensure
-    statistics&.record(judge.name, Time.now - start, result, impact) if start
+    statistics&.record(judge.name, @clock.duration(start), result, impact) if start
   end
 
   def skip_judge?(judge, _idx, opts, errors, statistics)
@@ -255,7 +256,7 @@ class Judges::Update
       return true
     end
     if opts['lifetime'] && opts['timeout']
-      remained = @start + opts['lifetime'] - Time.now
+      remained = opts['lifetime'] - @clock.elapsed
       if remained < opts['timeout'].to_f / 16
         @loog.info("Not running #{judge.name.inspect}, not enough time left (just #{remained.seconds})")
         statistics&.record(judge.name, 0, 'SKIPPED (timeout)') if include?(opts, judge.name)
@@ -276,29 +277,27 @@ class Judges::Update
   # @return [Factbase::Churn] How many modifications have been made
   def one_judge(opts, fb, judge, global, options, errors)
     local = {}
-    start = Time.now
+    start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     fb = Factbase::Tallied.new(fb)
     begin
-      if opts['lifetime'] && Time.now - @start > opts['lifetime']
+      if opts['lifetime'] && @clock.elapsed > opts['lifetime']
         throw(:"👎 The '#{judge.name}' judge skipped, no time left")
       end
       Timeout.timeout(opts['timeout']) do
         judge.run(fb, global, local, options)
       end
     rescue Timeout::Error, Timeout::ExitException => e
-      if opts['lifetime'] && Time.now - @start >= opts['lifetime']
+      if opts['lifetime'] && @clock.elapsed >= opts['lifetime']
         @loog.info("Had to stop '#{judge.name}' due to the --lifetime=#{opts['lifetime']}")
       else
         @loog.error("Terminated due to --timeout=#{opts['timeout']}")
-        errors << "Judge #{judge.name} stopped by timeout after #{start.ago}: #{e.message}"
+        errors << "Judge #{judge.name} timed out after #{format('%.2f', @clock.duration(start))}s: #{e.message}"
       end
     end
     fb.churn
   end
 
   def include?(opts, name)
-    judges = opts['judge'] || []
-    return true if judges.empty?
-    judges.any?(name)
+    opts['judge'].nil? || opts['judge'].empty? || opts['judge'].any?(name)
   end
 end

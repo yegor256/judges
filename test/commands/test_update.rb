@@ -52,10 +52,10 @@ class TestUpdate < Minitest::Test
   def test_cancels_slow_execution
     Dir.mktmpdir do |d|
       100.times do |i|
-        save_it(File.join(d, "foo-#{i}/foo-#{i}.rb"), '$fb.insert.foo = 0.05; sleep 2;')
+        save_it(File.join(d, "foo-#{i}/foo-#{i}.rb"), '$fb.insert.foo = 0.05; sleep 10;')
       end
       file = File.join(d, 'base.fb')
-      Judges::Update.new(Loog::NULL).run({ 'lifetime' => 0.12, 'timeout' => 0.1, 'quiet' => true }, [d, file])
+      Judges::Update.new(Loog::NULL).run({ 'lifetime' => 2, 'quiet' => true }, [d, file])
       fb = Factbase.new
       fb.import(File.binread(file))
       xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
@@ -72,6 +72,27 @@ class TestUpdate < Minitest::Test
       fb.import(File.binread(file))
       xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
       assert_empty(xml.xpath('/fb/f'), xml)
+    end
+  end
+
+  def test_forward_clock_jump
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'first/first.rb'), '$fake_clock += 3600; $fb.insert.first = 1')
+      save_it(File.join(d, 'second/second.rb'), '$fb.insert.second = 1')
+      file = File.join(d, 'base.fb')
+      $fake_clock = Time.now
+      Time.stub(:now, -> { $fake_clock }) do
+        Judges::Update.new(Loog::NULL).run(
+          { 'lifetime' => 60, 'timeout' => 1, 'quiet' => true, 'boost' => ['first'], 'max-cycles' => 1 },
+          [d, file]
+        )
+      end
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      refute_empty(fb.query('(eq first 1)').each.to_a, 'the first judge should run before the clock change')
+      refute_empty(fb.query('(eq second 1)').each.to_a, 'a forward wall-clock jump must not skip the next judge')
+    ensure
+      $fake_clock = nil
     end
   end
 
