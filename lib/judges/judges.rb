@@ -129,7 +129,7 @@ class Judges::Judges
   end
 
   def discover_judges
-    Dir.glob(File.join(@dir, '*')).each.to_a.filter_map do |d|
+    Dir.glob('*', base: @dir).map { |n| File.join(@dir, n) }.filter_map do |d|
       next unless File.directory?(d)
       next unless File.exist?(File.join(d, "#{File.basename(d)}.rb"))
       Judges::Judge.new(File.absolute_path(d), @lib, @loog, epoch: @epoch)
