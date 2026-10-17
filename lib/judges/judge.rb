@@ -88,6 +88,7 @@ class Judges::Judge
       e = Judges::PrettyException.new(e) if e.is_a?(Octokit::ServerError)
       @loog.error(Backtrace.new(e))
       raise(e) if e.is_a?(StandardError)
+      raise(e) if e.is_a?(SystemExit)
       raise(e) if e.is_a?(Timeout::ExitException)
       raise(StandardError, "#{e.message} (#{e.class.name})")
     ensure
