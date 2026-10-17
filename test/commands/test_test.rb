@@ -64,13 +64,15 @@ class TestTest < Minitest::Test
             foo: 42
         expected:
           - /fb[count(f)=1]
-          - /fb/f[foo/v='42']
-          - /fb/f[bar/v='5']
+          - /fb/f[foo='42']
+          - /fb/f[bar='5']
         YAML
       )
+      loog = Loog::Buffer.new
       assert_raises(StandardError) do
-        Judges::Test.new(Loog::NULL).run({}, [d])
+        Judges::Test.new(loog).run({}, [d])
       end
+      assert_includes(loog.to_s, "/fb/f[bar='5']", loog.to_s)
     end
   end
 
