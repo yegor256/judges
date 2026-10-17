@@ -31,7 +31,17 @@ class TestImpex < Minitest::Test
     end
   end
 
-  def test_refuses_a_nil_file
-    assert_includes(assert_raises(ArgumentError) { Judges::Impex.new(Loog::NULL, nil) }.message, 'The file is nil')
+  def test_rejects_directory_on_import
+    Dir.mktmpdir do |d|
+      impex = Judges::Impex.new(Loog::NULL, d)
+      assert_includes(assert_raises(ArgumentError) { impex.import(strict: false) }.message, 'must be a regular file')
+    end
+  end
+
+  def test_rejects_directory_on_export
+    Dir.mktmpdir do |d|
+      impex = Judges::Impex.new(Loog::NULL, d)
+      assert_includes(assert_raises(ArgumentError) { impex.export(Factbase.new) }.message, 'must be a regular file')
+    end
   end
 end
