@@ -52,9 +52,7 @@ class Judges::Test
         visible << judge.name
         next unless include?(opts, judge.name)
         @loog.info("👉 Testing #{judge.script} (##{i}) in #{judge.dir.to_rel}...")
-        buf = Loog::Buffer.new
-        judge = judge.with_loog(buf)
-        tests += run_judge_tests(judge, buf, opts, judges, visible, times, errors)
+        tests += run_judge_tests(judge, opts, judges, visible, times, errors)
         tested += 1
       end
       if tested.zero? && !visible.empty? && !(opts['judge'] || []).empty?
@@ -104,7 +102,7 @@ class Judges::Test
     )
   end
 
-  def run_judge_tests(judge, buf, opts, judges, visible, times, errors)
+  def run_judge_tests(judge, opts, judges, visible, times, errors)
     count = 0
     judge.tests.each do |f|
       tname = File.basename(f).gsub(/\.yml$/, '')
@@ -112,11 +110,12 @@ class Judges::Test
       next unless include?(opts, judge.name, tname)
       badge = "#{judge.name}/#{tname}"
       start = Time.now
+      buf = Loog::Buffer.new
       begin
         yaml = YAML.load_file(f, permitted_classes: [Time])
         next if skip_test?(buf, f, yaml, opts)
         buf.info("🛠️ Testing #{f.to_rel}:")
-        count += run_single_test(judge, buf, opts, judges, yaml, badge)
+        count += run_single_test(judge.with_loog(buf), buf, opts, judges, yaml, badge)
       rescue StandardError => e
         @loog.info(buf.to_s)
         @loog.warn(Backtrace.new(e))

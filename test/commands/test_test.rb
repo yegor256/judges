@@ -114,6 +114,17 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_prints_only_own_output_of_failed_test
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'raise "boom"')
+      save_it(File.join(d, 'foo/one.yml'), 'input: []')
+      save_it(File.join(d, 'foo/two.yml'), 'input: []')
+      loog = Loog::Buffer.new
+      assert_raises(StandardError) { Judges::Test.new(loog).run({}, [d]) }
+      assert_equal(1, loog.to_s.scan(/Testing .*one\.yml:/).size, loog.to_s)
+    end
+  end
+
   def test_with_before
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'first/first.rb'), 'x = $fb.size; $fb.insert.foo = x')
