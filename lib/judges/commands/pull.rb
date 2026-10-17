@@ -31,6 +31,7 @@ class Judges::Pull
   # @raise [RuntimeError] If not exactly two arguments provided
   def run(opts, args)
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
+    raise(StandardError, 'The pull command needs the network, while --offline is set') if opts['offline']
     fb = Factbase.new
     baza = BazaRb.new(
       opts['host'], opts['port'].to_i, opts['token'],
