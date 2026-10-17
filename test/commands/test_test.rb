@@ -330,4 +330,17 @@ class TestTest < Minitest::Test
       Judges::Test.new(Loog::NULL).run({}, [d])
     end
   end
+
+  def test_names_pack_and_key_of_a_date_value
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 1')
+      save_it(File.join(d, 'foo/dated.yml'), "input:\n  -\n    when: 2024-01-01\n")
+      loog = Loog::Buffer.new
+      assert_raises(StandardError) do
+        Judges::Test.new(loog).run({}, [d])
+      end
+      assert_includes(loog.to_s, 'dated.yml', loog.to_s)
+      assert_includes(loog.to_s, "'when'", loog.to_s)
+    end
+  end
 end

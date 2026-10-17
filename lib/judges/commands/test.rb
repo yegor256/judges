@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: MIT
 
 require 'backtrace'
+require 'date'
 require 'elapsed'
 require 'ellipsized'
 require 'factbase'
@@ -113,7 +114,7 @@ class Judges::Test
       badge = "#{judge.name}/#{tname}"
       start = Time.now
       begin
-        yaml = YAML.load_file(f, permitted_classes: [Time])
+        yaml = YAML.load_file(f, permitted_classes: [Time, Date])
         next if skip_test?(buf, f, yaml, opts)
         buf.info("🛠️ Testing #{f.to_rel}:")
         count += run_single_test(judge, buf, opts, judges, yaml, badge)
