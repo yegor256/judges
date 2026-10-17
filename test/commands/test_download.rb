@@ -64,6 +64,27 @@ class TestDownload < Minitest::Test
     end
   end
 
+  def test_keeps_local_file_on_failure
+    WebMock.disable_net_connect!
+    stub_request(:get, 'http://example.org/durable-find?file=data.fb&pname=myjob').to_return(body: '7')
+    stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
+    stub_request(:post, %r{http://example.org/durables/7/lock}).to_return(status: 302)
+    stub_request(:get, 'http://example.org/durables/7').to_return(status: 500)
+    stub_request(:post, %r{http://example.org/durables/7/unlock}).to_return(status: 302)
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'data.fb')
+      File.write(file, 'good local copy')
+      assert_raises(StandardError) do
+        Judges::Download.new(Loog::NULL).run(
+          { 'token' => '000', 'host' => 'example.org', 'port' => 80, 'ssl' => false, 'retries' => 1 },
+          ['myjob', file]
+        )
+      end
+      assert_equal('good local copy', File.read(file))
+      assert_equal(['data.fb'], Dir.children(d))
+    end
+  end
+
   def test_fails_on_http_error
     WebMock.disable_net_connect!
     stub_request(:get, 'http://example.org/durable-find?file=test.txt&pname=somejudge').to_return(

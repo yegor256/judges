@@ -5,6 +5,7 @@
 
 require 'baza-rb'
 require 'elapsed'
+require 'fileutils'
 require 'iri'
 require 'typhoeus'
 require_relative '../../judges'
@@ -48,10 +49,13 @@ class Judges::Download
       end
       @loog.info("Durable ##{id} ('#{name}') found in '#{jname}'")
       baza.durable_lock(id, opts['owner'] || 'default')
+      tmp = "#{path}.part"
       begin
-        baza.durable_load(id, path)
+        baza.durable_load(id, tmp)
+        FileUtils.mv(tmp, path)
         throw(:"👍 Downloaded durable ##{id} to #{path} (#{File.size(path)} bytes)")
       ensure
+        FileUtils.rm_f(tmp)
         baza.durable_unlock(id, opts['owner'] || 'default')
       end
     end
