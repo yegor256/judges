@@ -163,7 +163,7 @@ class JudgesGLI extend GLI::App
   end
 
   desc 'Import YAML into a factbase'
-  arg_name '<factbase> <yaml>'
+  arg_name '<yaml> <factbase>'
   command :import do |c|
     c.desc 'Use default logging facility'
     c.switch([:log], default_value: true)
