@@ -103,7 +103,16 @@ class TestJudge < Minitest::Test
       Dir.mktmpdir do |d|
         dir = File.join(d, 'judges')
         save_it(File.join(dir, "#{File.basename(d)}.rb"), 'raise "intentional"')
-        Judges::Judge.new(dir, lib, Loog::NULL).run(Factbase.new, {}, {}, {})
+        Judges::Judge.new(dir, nil, Loog::NULL).run(Factbase.new, {}, {}, {})
+      end
+    end
+  end
+
+  def test_with_skip
+    assert_raises(Judges::Skip) do
+      Dir.mktmpdir do |d|
+        save_it(File.join(d, "#{File.basename(d)}.rb"), "raise 'skip'")
+        Judges::Judge.new(d, nil, Loog::NULL).run(Factbase.new, {}, {}, {})
       end
     end
   end
