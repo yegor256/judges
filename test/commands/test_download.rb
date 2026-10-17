@@ -99,6 +99,25 @@ class TestDownload < Minitest::Test
     end
   end
 
+  def test_handles_empty_durable_id_as_not_found
+    calls = []
+    baza = Object.new
+    baza.define_singleton_method(:durable_find) { |*| '' }
+    %i[durable_lock durable_load durable_unlock].each do |m|
+      baza.define_singleton_method(m) { |*a| calls << [m, *a] }
+    end
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'empty.txt')
+      BazaRb.stub(:new, baza) do
+        Judges::Download.new(Loog::NULL).run(
+          { 'token' => '000', 'host' => 'example.org', 'port' => 80, 'ssl' => false },
+          ['empty', file]
+        )
+      end
+      assert_empty(calls, 'a durable with an empty ID is locked and loaded')
+    end
+  end
+
   def test_handles_not_found_durable
     WebMock.disable_net_connect!
     stub_request(:get, 'http://example.org/durable-find?file=missing.txt&pname=notfound').to_return(status: 404)

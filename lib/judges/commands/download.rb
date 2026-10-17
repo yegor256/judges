@@ -42,10 +42,11 @@ class Judges::Download
     )
     elapsed(@loog, level: Logger::INFO) do
       id = baza.durable_find(jname, name)
-      if id.nil?
+      if id.nil? || id.to_s.strip.empty?
         @loog.info("Durable '#{name}' not found in '#{jname}'")
         return
       end
+      id = id.to_i
       @loog.info("Durable ##{id} ('#{name}') found in '#{jname}'")
       baza.durable_lock(id, opts['owner'] || 'default')
       begin
