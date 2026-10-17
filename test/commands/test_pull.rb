@@ -15,6 +15,17 @@ require_relative '../test__helper'
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
 class TestPull < Minitest::Test
+  def test_refuses_zero_timeout
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      File.binwrite(file, Factbase.new.export)
+      assert_includes(
+        assert_raises(ArgumentError) { Judges::Pull.new(Loog::NULL).run({ 'timeout' => 0 }, ['foo', file]) }.message,
+        '--timeout'
+      )
+    end
+  end
+
   def test_wait_uses_monotonic_time
     checks = 0
     baza = Object.new

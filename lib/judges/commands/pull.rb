@@ -32,6 +32,7 @@ class Judges::Pull
   def run(opts, args)
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     fb = Factbase.new
+    raise(ArgumentError, "The --timeout must be positive: #{opts['timeout']}") if (opts['timeout'] || 30).to_f <= 0
     baza = BazaRb.new(
       opts['host'], opts['port'].to_i, opts['token'],
       ssl: opts['ssl'],

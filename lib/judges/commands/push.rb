@@ -33,6 +33,7 @@ class Judges::Push
     raise(ArgumentError, 'Exactly two arguments required: <name> and <path>') unless args.size == 2
     name = args[0]
     fb = Judges::Impex.new(@loog, args[1]).import
+    raise(ArgumentError, "The --timeout must be positive: #{opts['timeout']}") if (opts['timeout'] || 30).to_f <= 0
     baza = BazaRb.new(
       opts['host'], opts['port'].to_i, opts['token'],
       ssl: opts['ssl'],
