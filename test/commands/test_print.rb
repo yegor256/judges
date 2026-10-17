@@ -112,6 +112,24 @@ class TestPrint < Minitest::Test
     assert_equal('w50', cols.last['class'], 'Last col should have class="w50"')
   end
 
+  def test_refuses_value_forbidden_in_xml
+    fb = Factbase.new
+    fb.insert.what = "a\u0001b"
+    Dir.mktmpdir do |d|
+      factbase = File.join(d, 'base.fb')
+      File.binwrite(factbase, fb.export)
+      %w[html xml].each do |fmt|
+        error =
+          assert_raises(StandardError) do
+            Judges::Print.new(Loog::NULL).run(
+              { 'format' => fmt, 'offline' => true }, [factbase, File.join(d, "base.#{fmt}")]
+            )
+          end
+        assert_includes(error.message, 'what', error.message)
+      end
+    end
+  end
+
   def test_refuses_an_unknown_format
     Dir.mktmpdir do |d|
       f = File.join(d, 'base.fb')
