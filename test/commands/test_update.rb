@@ -105,6 +105,16 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_counts_only_selected_judges
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      save_it(File.join(d, 'bar/bar.rb'), '$fb.insert.bar = 1')
+      loog = Loog::Buffer.new
+      Judges::Update.new(loog).run({ 'judge' => ['bar'], 'max-cycles' => 1 }, [d, File.join(d, 'base.fb')])
+      assert_includes(loog.to_s, '1 judge(s) processed')
+    end
+  end
+
   def test_exports_fb_only_once
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1;')
