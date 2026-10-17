@@ -24,6 +24,18 @@ require_relative '../test__helper'
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
 class TestPrint < Minitest::Test
+  def test_prints_only_the_facts_selected_by_head
+    assert_equal([3], values('(head 1 (always))'))
+  end
+
+  def test_prints_no_facts_for_zero_head
+    assert_empty(values('(head 0 (always))'))
+  end
+
+  def test_prints_the_head_of_a_sorted_selection
+    assert_equal([1], values('(head 1 (sorted x (always)))'))
+  end
+
   def test_simple_print
     Dir.mktmpdir do |d|
       f = File.join(d, 'base.fb')
@@ -212,5 +224,19 @@ class TestPrint < Minitest::Test
       assert_nil(script['integrity'])
     end
     assert_includes(loog.to_s, 'without integrity check')
+  end
+
+  private
+
+  def values(query)
+    Dir.mktmpdir do |dir|
+      input = File.join(dir, 'input.fb')
+      output = File.join(dir, 'output.json')
+      fb = Factbase.new
+      [3, 1, 2].each { |value| fb.insert.x = value }
+      File.binwrite(input, fb.export)
+      Judges::Print.new(Loog::NULL).run({ 'format' => 'json', 'query' => query }, [input, output])
+      JSON.parse(File.read(output)).map { |fact| fact.fetch('x') }
+    end
   end
 end
