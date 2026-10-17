@@ -330,4 +330,61 @@ class TestTest < Minitest::Test
       Judges::Test.new(Loog::NULL).run({}, [d])
     end
   end
+
+  def test_summary_shows_skipped_when_skip_true
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 4')
+      save_it(
+        File.join(d, 'foo/skipped.yml'),
+        "skip: true\nexpected:\n  - /fb/f[bar='99']"
+      )
+      save_it(
+        File.join(d, 'foo/passed.yml'),
+        "input: []\nexpected:\n  - /fb/f[bar='4']"
+      )
+      loog = Loog::Buffer.new
+      Judges::Test.new(loog).run({}, [d])
+      assert_match(%r{foo/skipped\s+[\d.]+\s+SKIPPED}, loog.to_s)
+      assert_match(%r{foo/passed\s+[\d.]+\s+OK}, loog.to_s)
+      refute_match(%r{foo/skipped\s+[\d.]+\s+OK}, loog.to_s)
+    end
+  end
+
+  def test_summary_shows_skipped_on_disable
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 4')
+      save_it(
+        File.join(d, 'foo/slow.yml'),
+        "category: slow\nexpected:\n  - /fb/f[bar='99']"
+      )
+      save_it(
+        File.join(d, 'foo/fast.yml'),
+        "category: fast\ninput: []\nexpected:\n  - /fb/f[bar='4']"
+      )
+      loog = Loog::Buffer.new
+      Judges::Test.new(loog).run({ 'disable' => ['slow'] }, [d])
+      assert_match(%r{foo/slow\s+[\d.]+\s+SKIPPED}, loog.to_s)
+      assert_match(%r{foo/fast\s+[\d.]+\s+OK}, loog.to_s)
+      refute_match(%r{foo/slow\s+[\d.]+\s+OK}, loog.to_s)
+    end
+  end
+
+  def test_summary_shows_skipped_alongside_error
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 4')
+      save_it(
+        File.join(d, 'foo/skipped.yml'),
+        "skip: true\nexpected:\n  - /fb/f[bar='99']"
+      )
+      save_it(
+        File.join(d, 'foo/failed.yml'),
+        "input: []\nexpected:\n  - /fb/f[bar='99']"
+      )
+      loog = Loog::Buffer.new
+      Judges::Test.new(loog).run({ 'quiet' => true }, [d])
+      assert_match(%r{foo/skipped\s+[\d.]+\s+SKIPPED}, loog.to_s)
+      assert_match(%r{foo/failed\s+[\d.]+\s+ERROR}, loog.to_s)
+      refute_match(%r{foo/skipped\s+[\d.]+\s+OK}, loog.to_s)
+    end
+  end
 end
