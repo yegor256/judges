@@ -51,7 +51,7 @@ class Judges::Impex
     fb = Factbase.new
     if File.file?(@file)
       elapsed(@loog, level: Logger::INFO) do
-        fb.import(File.binread(@file))
+        fill(fb)
         throw(:"The factbase imported from #{@file.to_rel} (#{File.size(@file)} bytes, #{fb.size} facts)")
       end
     else
@@ -78,7 +78,7 @@ class Judges::Impex
   def import_to(fb)
     raise(StandardError, "The factbase is absent at #{@file.to_rel}") unless File.file?(@file)
     elapsed(@loog, level: Logger::INFO) do
-      fb.import(File.binread(@file))
+      fill(fb)
       throw(:"The factbase loaded from #{@file.to_rel} (#{File.size(@file)} bytes, #{fb.size} facts)")
     end
   end
@@ -102,5 +102,16 @@ class Judges::Impex
       File.binwrite(@file, fb.export)
       throw(:"Factbase exported to #{@file.to_rel} (#{File.size(@file)} bytes, #{fb.size} facts)")
     end
+  end
+
+  private
+
+  # Read the file into the factbase, naming the file if its content is broken.
+  #
+  # @param [Factbase] fb The factbase to read into
+  def fill(fb)
+    fb.import(File.binread(@file))
+  rescue StandardError => e
+    raise(StandardError, "Can't read the factbase from #{@file.to_rel}: #{e.message}")
   end
 end
