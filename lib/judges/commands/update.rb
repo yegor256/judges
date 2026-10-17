@@ -3,6 +3,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require 'English'
 require 'backtrace'
 require 'elapsed'
 require 'factbase'
@@ -28,6 +29,7 @@ require_relative '../../judges/to_rel'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
+# rubocop:disable Metrics/ClassLength
 class Judges::Update
   # Initialize.
   # @param [Loog] loog Logging facility
@@ -44,6 +46,7 @@ class Judges::Update
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     dir = args[0]
     raise(StandardError, "The directory is absent: #{dir.to_rel}") unless File.directory?(dir)
+    validate(opts['churn']) if opts['churn']
     impex = Judges::Impex.new(@loog, args[1])
     fb = impex.import(strict: false)
     fb = Factbase::Logged.new(fb, @loog) if opts['log']
@@ -62,10 +65,7 @@ class Judges::Update
       @loog.info("Had to stop due to the --lifetime=#{opts['lifetime']}")
     ensure
       impex.export(fb)
-      if opts['churn'] && churn
-        FileUtils.mkdir_p(File.dirname(opts['churn'])).tap { File.write(opts['churn'], churn.to_s) }
-        @loog.info("Churn written to #{opts['churn']}: #{churn}")
-      end
+      flush(churn, opts['churn'], $ERROR_INFO) if opts['churn'] && churn
     end
   end
 
@@ -301,4 +301,26 @@ class Judges::Update
     return true if judges.empty?
     judges.any?(name)
   end
+
+  def validate(churn)
+    raise(StandardError, "The churn path is a directory: #{churn.to_rel}") if File.directory?(churn)
+    FileUtils.mkdir_p(File.dirname(churn))
+    if File.exist?(churn)
+      FileUtils.touch(churn)
+    else
+      FileUtils.touch(churn)
+      File.delete(churn)
+    end
+  rescue SystemCallError => e
+    raise(StandardError, "The churn path cannot be written: #{churn.to_rel} (#{e.message})")
+  end
+
+  def flush(churn, path, flight = nil)
+    FileUtils.mkdir_p(File.dirname(path)).tap { File.write(path, churn.to_s) }
+    @loog.info("Churn written to #{path}: #{churn}")
+  rescue StandardError => e
+    raise unless flight
+    @loog.error("Failed to write churn to #{path}: #{e.message}")
+  end
 end
+# rubocop:enable Metrics/ClassLength
