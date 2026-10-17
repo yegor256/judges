@@ -474,4 +474,76 @@ class TestUpdate < Minitest::Test
       refute_match('PrettyException', out)
     end
   end
+
+  def test_lifetime_timer_accounts_for_start
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      timeouts = []
+      fake =
+        lambda do |sec, &block|
+          timeouts << sec
+          block.call
+        end
+      Timeout.stub(:timeout, fake) do
+        update = Judges::Update.new(Loog::NULL)
+        update.instance_variable_set(:@start, Time.now - 1.5)
+        update.run({ 'lifetime' => 4.0, 'max-cycles' => 0, 'quiet' => true }, [d, file])
+      end
+      assert_equal(1, timeouts.size)
+      assert_in_delta(2.5, timeouts.first, 0.2)
+      assert_operator(timeouts.first, :<, 4.0)
+    end
+  end
+
+  def test_lifetime_timer_floors_at_minimum
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      timeouts = []
+      fake =
+        lambda do |sec, &block|
+          timeouts << sec
+          block.call
+        end
+      Timeout.stub(:timeout, fake) do
+        update = Judges::Update.new(Loog::NULL)
+        update.instance_variable_set(:@start, Time.now - 10.0)
+        update.run({ 'lifetime' => 2.0, 'max-cycles' => 0, 'quiet' => true }, [d, file])
+      end
+      assert_equal(1, timeouts.size)
+      assert_in_delta(0.001, timeouts.first, 0.0001)
+    end
+  end
+
+  def test_lifetime_timer_nil_when_unset
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      timeouts = []
+      fake =
+        lambda do |sec, &block|
+          timeouts << sec
+          block.call
+        end
+      Timeout.stub(:timeout, fake) do
+        Judges::Update.new(Loog::NULL).run({ 'max-cycles' => 0, 'quiet' => true }, [d, file])
+      end
+      assert_equal(1, timeouts.size)
+      assert_nil(timeouts.first)
+    end
+  end
+
+  def test_terminates_early_when_time_spent
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'sleep 0.4; $fb.insert.foo = 1')
+      file = File.join(d, 'base.fb')
+      log = Loog::Buffer.new
+      update = Judges::Update.new(Loog::Tee.new(log, Loog::NULL))
+      update.instance_variable_set(:@start, Time.now - 0.2)
+      update.run({ 'lifetime' => 0.35, 'quiet' => true }, [d, file])
+      assert_includes(log.to_s, 'due to the --lifetime=0.35')
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
+      assert_empty(xml.xpath('/fb/f[foo]'), xml)
+    end
+  end
 end
