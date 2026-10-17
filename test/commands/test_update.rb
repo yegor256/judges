@@ -474,4 +474,47 @@ class TestUpdate < Minitest::Test
       refute_match('PrettyException', out)
     end
   end
+
+  def test_lifetime_spent_before_first_judge_quiet
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      file = File.join(d, 'base.fb')
+      log = Loog::Buffer.new
+      up = Judges::Update.new(Loog::Tee.new(log, Loog::NULL))
+      refute_nil(up)
+      sleep(0.15)
+      up.run({ 'lifetime' => 0.12, 'timeout' => 0.1, 'quiet' => true }, [d, file])
+      assert_includes(log.to_s, 'Lifetime is over before any judge could run')
+      assert_path_exists(file)
+    end
+  end
+
+  def test_lifetime_spent_before_first_judge_no_quiet
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      file = File.join(d, 'base.fb')
+      log = Loog::Buffer.new
+      up = Judges::Update.new(Loog::Tee.new(log, Loog::NULL))
+      refute_nil(up)
+      sleep(0.15)
+      up.run({ 'lifetime' => 0.12, 'timeout' => 0.1, 'quiet' => false }, [d, file])
+      assert_includes(log.to_s, 'Lifetime is over before any judge could run')
+      assert_path_exists(file)
+    end
+  end
+
+  def test_lifetime_spent_skips_multiple_judges
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      save_it(File.join(d, 'bar/bar.rb'), '$fb.insert.bar = 2')
+      file = File.join(d, 'base.fb')
+      log = Loog::Buffer.new
+      up = Judges::Update.new(Loog::Tee.new(log, Loog::NULL))
+      refute_nil(up)
+      sleep(0.15)
+      up.run({ 'lifetime' => 0.12, 'timeout' => 0.1, 'quiet' => true }, [d, file])
+      assert_includes(log.to_s, 'Lifetime is over before any judge could run (2 judge(s) skipped); not failing')
+      assert_path_exists(file)
+    end
+  end
 end

@@ -28,6 +28,7 @@ require_relative '../../judges/to_rel'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
+# rubocop:disable Metrics/ClassLength
 class Judges::Update
   # Initialize.
   # @param [Loog] loog Logging facility
@@ -198,20 +199,25 @@ class Judges::Update
     delta = Factbase::Churn.new
     global = {}
     used = 0
+    skipped = 0
     elapsed(@loog, level: Logger::INFO) do
       done = 0
       judges.each_with_index do |judge, idx|
         done += 1
         result = run_judge_in_cycle(judge, idx, opts, fb, churn, options, errors, global, statistics)
-        next unless result
+        skipped += 1 if result == :no_time
+        next unless result && result != :no_time
         used += 1
         delta += result if result.is_a?(Factbase::Churn)
       end
       throw(:"👍 #{done} judge(s) processed") if errors.empty?
       throw(:"❌ #{done} judge(s) processed with #{errors.size} errors")
     end
-    if used.zero?
-      raise(StandardError, 'No judges were used, while at least one expected to run') if opts['expect-judges']
+    if used.zero? && skipped.positive?
+      @loog.info("Lifetime is over before any judge could run (#{skipped} judge(s) skipped); not failing")
+    elsif used.zero? && opts['expect-judges']
+      raise(StandardError, 'No judges were used, while at least one expected to run')
+    elsif used.zero?
       @loog.info('No judges were used (looks like an error); not failing because of --no-expect-judges')
     end
     unless errors.empty?
@@ -222,8 +228,10 @@ class Judges::Update
   end
 
   def run_judge_in_cycle(judge, idx, opts, fb, churn, options, errors, global, statistics)
-    return if skip_judge?(judge, idx, opts, errors, statistics)
     return unless include?(opts, judge.name)
+    skip = skip_judge?(judge, idx, opts, errors, statistics)
+    return :no_time if skip == :no_time
+    return if skip
     @loog.info("\n👉 Running #{judge.name} (##{idx}) at #{judge.dir.to_rel} (#{@start.ago} already)...")
     start = Time.now
     result = 'OK'
@@ -234,6 +242,7 @@ class Judges::Update
       throw(:"👍 The '#{judge.name}' judge made zero changes to #{fb.size} facts") if impact.zero?
       throw(:"👍 The '#{judge.name}' judge #{impact} out of #{fb.size} facts")
     end
+    return :no_time if impact.nil? && opts['lifetime'] && Time.now - @start >= opts['lifetime'].to_f
     impact
   rescue StandardError, SyntaxError => e
     if e.is_a?(RuntimeError) && e.message == 'skip'
@@ -254,12 +263,12 @@ class Judges::Update
       statistics&.record(judge.name, 0, 'SKIPPED (fail-fast)') if include?(opts, judge.name)
       return true
     end
-    if opts['lifetime'] && opts['timeout']
-      remained = @start + opts['lifetime'] - Time.now
-      if remained < opts['timeout'].to_f / 16
+    if opts['lifetime']
+      remained = @start + opts['lifetime'].to_f - Time.now
+      if remained <= 0 || (opts['timeout'] && remained < opts['timeout'].to_f / 16)
         @loog.info("Not running #{judge.name.inspect}, not enough time left (just #{remained.seconds})")
         statistics&.record(judge.name, 0, 'SKIPPED (timeout)') if include?(opts, judge.name)
-        return true
+        return :no_time
       end
     end
     false
@@ -302,3 +311,4 @@ class Judges::Update
     judges.any?(name)
   end
 end
+# rubocop:enable Metrics/ClassLength
