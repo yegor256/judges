@@ -261,6 +261,7 @@
   <xsl:template name="value">
     <xsl:param name="v"/>
     <xsl:choose>
+      <xsl:when test="not($v)"/>
       <xsl:when test="$v/v">
         <xsl:text>[</xsl:text>
         <xsl:for-each select="$v/v">
