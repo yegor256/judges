@@ -150,7 +150,7 @@ class Judges::Test
     yaml['before']&.each do |n|
       j = judges.get(n).with_loog(buf)
       buf.info("Running #{j.script} judge as a pre-condition...")
-      test_one(fb, opts, j, n, yaml, assert: false)
+      test_one(fb, opts, j, n, yaml.slice('options'), assert: false)
     end
     tname = badge.split('/').last
     test_one(fb, opts, judge, tname, yaml)
