@@ -107,4 +107,17 @@ class TestJudge < Minitest::Test
       end
     end
   end
+
+  def test_turns_broken_lib_into_standard_error
+    Dir.mktmpdir do |d|
+      dir = File.join(d, 'foo')
+      save_it(File.join(dir, 'foo.rb'), '$fb.insert')
+      lib = File.join(d, 'lib')
+      save_it(File.join(lib, 'broken.rb'), 'this is (( broken')
+      assert_includes(
+        assert_raises(StandardError) { Judges::Judge.new(dir, lib, Loog::NULL).run(Factbase.new, {}, {}, {}) }.message,
+        'broken.rb'
+      )
+    end
+  end
 end
