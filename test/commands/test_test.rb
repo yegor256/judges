@@ -330,4 +330,54 @@ class TestTest < Minitest::Test
       Judges::Test.new(Loog::NULL).run({}, [d])
     end
   end
+
+  def test_passes_pack_timeout_to_judge_options
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.then { |f| f.tout = $options.timeout }')
+      save_it(
+        File.join(d, 'foo/pack.yml'),
+        <<-YAML
+        input: []
+        timeout: 5
+        expected:
+          - /fb/f[tout='5.0']
+        YAML
+      )
+      Judges::Test.new(Loog::NULL).run({}, [d])
+    end
+  end
+
+  def test_pack_options_override_pack_timeout
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.then { |f| f.tout = $options.timeout }')
+      save_it(
+        File.join(d, 'foo/pack.yml'),
+        <<-YAML
+        input: []
+        timeout: 5
+        options:
+          - timeout=15
+        expected:
+          - /fb/f[tout='15']
+        YAML
+      )
+      Judges::Test.new(Loog::NULL).run({}, [d])
+    end
+  end
+
+  def test_cli_options_override_pack_timeout
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.then { |f| f.tout = $options.timeout }')
+      save_it(
+        File.join(d, 'foo/pack.yml'),
+        <<-YAML
+        input: []
+        timeout: 5
+        expected:
+          - /fb/f[tout='25']
+        YAML
+      )
+      Judges::Test.new(Loog::NULL).run({ 'option' => ['timeout=25'] }, [d])
+    end
+  end
 end

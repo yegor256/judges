@@ -240,7 +240,10 @@ class Judges::Test
   # @param [Boolean] assert Should we assert (TRUE) or simply skip (FALSE)?
   # @return [nil] Always NIL
   def test_one(fb, opts, judge, tname, yaml, assert: true)
-    options = Judges::Options.new(opts['option']) + Judges::Options.new(yaml['options'])
+    options =
+      Judges::Options.new(timeout: yaml['timeout']&.to_f) +
+      Judges::Options.new(opts['option']) +
+      Judges::Options.new(yaml['options'])
     runs = opts['runs'] || yaml['runs'] || 1
     timeout = yaml['timeout']
     (1..runs).each do |r|
