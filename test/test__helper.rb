@@ -32,7 +32,7 @@ require 'minitest/reporters'
 Minitest::Reporters.use!([Minitest::Reporters::SpecReporter.new])
 Minitest.load(:minitest_reporter)
 
-if ENV['RACK_RUN']
+if ENV['RACK_ENV'] == 'test'
   require 'minitest/retry'
   Minitest::Retry.use!
 end
