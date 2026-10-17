@@ -221,6 +221,22 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_fails_when_expected_failure_never_happens
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        expected_failure: true
+        YAML
+      )
+      loog = Loog::Buffer.new
+      assert_raises(StandardError) { Judges::Test.new(loog).run({}, [d]) }
+      assert_includes(loog.to_s, 'Exception expected but not raised', loog.to_s)
+    end
+  end
+
   def test_with_timeout_success
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
