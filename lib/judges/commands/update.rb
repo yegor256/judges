@@ -222,8 +222,8 @@ class Judges::Update
   end
 
   def run_judge_in_cycle(judge, idx, opts, fb, churn, options, errors, global, statistics)
-    return if skip_judge?(judge, idx, opts, errors, statistics)
     return unless include?(opts, judge.name)
+    return if skip_judge?(judge, idx, opts, errors, statistics)
     @loog.info("\n👉 Running #{judge.name} (##{idx}) at #{judge.dir.to_rel} (#{@start.ago} already)...")
     start = Time.now
     result = 'OK'
@@ -251,14 +251,14 @@ class Judges::Update
   def skip_judge?(judge, _idx, opts, errors, statistics)
     if opts['fail-fast'] && !errors.empty?
       @loog.info("Not running #{judge.name.inspect} due to #{errors.count} errors above, in --fail-fast mode")
-      statistics&.record(judge.name, 0, 'SKIPPED (fail-fast)') if include?(opts, judge.name)
+      statistics&.record(judge.name, 0, 'SKIPPED (fail-fast)')
       return true
     end
     if opts['lifetime'] && opts['timeout']
       remained = @start + opts['lifetime'] - Time.now
       if remained < opts['timeout'].to_f / 16
         @loog.info("Not running #{judge.name.inspect}, not enough time left (just #{remained.seconds})")
-        statistics&.record(judge.name, 0, 'SKIPPED (timeout)') if include?(opts, judge.name)
+        statistics&.record(judge.name, 0, 'SKIPPED (timeout)')
         return true
       end
     end

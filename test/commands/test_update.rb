@@ -105,6 +105,19 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_fail_fast_ignores_unselected_judges
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'zzz/zzz.rb'), 'raise "boom"')
+      save_it(File.join(d, 'aaa/aaa.rb'), '$fb.insert')
+      loog = Loog::Buffer.new
+      Judges::Update.new(loog).run(
+        { 'judge' => ['zzz'], 'fail-fast' => true, 'quiet' => true, 'boost' => 'zzz', 'max-cycles' => 1 },
+        [d, File.join(d, 'base.fb')]
+      )
+      refute_includes(loog.to_s, 'Not running "aaa"')
+    end
+  end
+
   def test_exports_fb_only_once
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1;')
