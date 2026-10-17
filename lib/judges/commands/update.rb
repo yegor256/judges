@@ -142,8 +142,9 @@ class Judges::Update
       end
       throw(:"👍 Update completed in #{c} cycle(s), did #{ch}")
     end
-    statistics&.report(@loog)
     summarize(fb, ch, errors, c, opts['summary']) if %w[add append].include?(opts['summary'])
+  ensure
+    statistics&.report(@loog)
   end
   # rubocop:enable Metrics/MethodLength
 
@@ -282,9 +283,7 @@ class Judges::Update
       if opts['lifetime'] && Time.now - @start > opts['lifetime']
         throw(:"👎 The '#{judge.name}' judge skipped, no time left")
       end
-      Timeout.timeout(opts['timeout']) do
-        judge.run(fb, global, local, options)
-      end
+      Timeout.timeout(opts['timeout']) { judge.run(fb, global, local, options) }
     rescue Timeout::Error, Timeout::ExitException => e
       if opts['lifetime'] && Time.now - @start >= opts['lifetime']
         @loog.info("Had to stop '#{judge.name}' due to the --lifetime=#{opts['lifetime']}")
