@@ -112,6 +112,22 @@ class TestPrint < Minitest::Test
     assert_equal('w50', cols.last['class'], 'Last col should have class="w50"')
   end
 
+  def test_hides_a_column
+    fb = Factbase.new
+    fb.insert.what = 'boom'
+    Dir.mktmpdir do |d|
+      factbase = File.join(d, 'base.fb')
+      html = File.join(d, 'base.html')
+      File.binwrite(factbase, fb.export)
+      Judges::Print.new(Loog::NULL).run(
+        { 'format' => 'html', 'offline' => true, 'columns' => 'what', 'hidden' => 'what' }, [factbase, html]
+      )
+      td = Nokogiri::HTML(File.read(html)).at_css('table#facts tbody td')
+      refute_nil(td.at_css('span.hidden'), td.to_html)
+      refute_includes(td.text, 'boom', td.to_html)
+    end
+  end
+
   def test_refuses_an_unknown_format
     Dir.mktmpdir do |d|
       f = File.join(d, 'base.fb')
