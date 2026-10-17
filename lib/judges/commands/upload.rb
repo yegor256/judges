@@ -27,7 +27,7 @@ class Judges::Upload
   # Run the upload command (called by the +bin/judges+ script).
   # @param [Hash] opts Command line options (start with '--')
   # @param [Array] args List of command line arguments
-  # @raise [RuntimeError] If not exactly two arguments provided
+  # @raise [ArgumentError] If not exactly two arguments provided
   # rubocop:disable Metrics/MethodLength
   def run(opts, args)
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
