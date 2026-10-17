@@ -125,7 +125,7 @@ class JudgesGLI extend GLI::App
     c.flag([:boost], multiple: true)
     c.desc 'Demote a judge to run after all others (supports wildcards with *)'
     c.flag([:demote], multiple: true)
-    c.desc 'Maximum time in seconds for the entire update cycle'
+    c.desc 'Maximum time in seconds for the entire update, across all cycles'
     c.flag([:lifetime], default_value: 300, type: Integer)
     c.desc 'Maximum time in seconds for each judge (forcefully terminates if exceeded)'
     c.flag([:timeout], default_value: 30, type: Integer)
