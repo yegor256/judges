@@ -330,4 +330,17 @@ class TestTest < Minitest::Test
       Judges::Test.new(Loog::NULL).run({}, [d])
     end
   end
+
+  def test_reports_failure_when_every_test_fails
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'raise "boom"')
+      save_it(File.join(d, 'foo/x.yml'), "input: []\n")
+      loog = Loog::Buffer.new
+      assert_raises(StandardError) do
+        Judges::Test.new(loog).run({}, [d])
+      end
+      refute_includes(loog.to_s, 'no tests passed', loog.to_s)
+      assert_includes(loog.to_s, '1 judge(s) tested, 1 of them failed', loog.to_s)
+    end
+  end
 end
