@@ -37,6 +37,37 @@ class TestPull < Minitest::Test
     end
   end
 
+  def test_pull_when_job_finishes_inside_wait_budget
+    WebMock.disable_net_connect!
+    stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
+    stub_request(:post, %r{http://example.org/lock/foo}).to_return(status: 302)
+    stub_request(:get, 'http://example.org/exists/foo').to_return(body: 'yes')
+    stub_request(:get, 'http://example.org/recent/foo.txt').to_return(body: '42')
+    stub_request(:get, 'http://example.org/finished/42').to_return({ body: 'no' }, { body: 'yes' })
+    stub_request(:get, 'http://example.org/exit/42.txt').to_return(body: '0')
+    stub_request(:post, %r{http://example.org/unlock/foo}).to_return(status: 302)
+    fb = Factbase.new
+    fb.insert.foo = 42
+    stub_request(:get, 'http://example.org/pull/42.fb').to_return(body: fb.export, headers: {})
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      Judges::Pull.new(Loog::NULL).run(
+        {
+          'token' => '000',
+          'host' => 'example.org',
+          'port' => 80,
+          'ssl' => false,
+          'wait' => 1,
+          'owner' => 'none'
+        },
+        ['foo', file]
+      )
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_equal(1, fb.query('(eq foo 42)').each.to_a.size)
+    end
+  end
+
   def test_pull_simple_factbase
     WebMock.disable_net_connect!
     stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
