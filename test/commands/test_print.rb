@@ -213,4 +213,31 @@ class TestPrint < Minitest::Test
     end
     assert_includes(loog.to_s, 'without integrity check')
   end
+
+  def test_retries_the_asset_after_a_failure
+    WebMock.disable_net_connect!
+    stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css')
+      .to_return({ status: 500 }, { status: 200, body: 'body { color: red; }' })
+    stub_request(:get, 'https://yegor256.github.io/judges/assets/index.js')
+      .to_return({ status: 500 }, { status: 200, body: 'console.log(1);' })
+    fb = Factbase.new
+    fb.insert.what = 'test'
+    loog = Loog::Buffer.new
+    Dir.mktmpdir do |d|
+      factbase = File.join(d, 'base.fb')
+      html = File.join(d, 'base.html')
+      File.binwrite(factbase, fb.export)
+      Judges::Print.new(loog).run({ 'format' => 'html' }, [factbase, html])
+      doc = Nokogiri::HTML(File.read(html))
+      assert_equal(
+        "sha256-#{Base64.strict_encode64(Digest::SHA256.digest('body { color: red; }'))}",
+        doc.at_css('link[href="https://yegor256.github.io/judges/assets/index.css"]')['integrity']
+      )
+      assert_equal(
+        "sha256-#{Base64.strict_encode64(Digest::SHA256.digest('console.log(1);'))}",
+        doc.at_css('script[src="https://yegor256.github.io/judges/assets/index.js"]')['integrity']
+      )
+    end
+    refute_includes(loog.to_s, 'without integrity check')
+  end
 end

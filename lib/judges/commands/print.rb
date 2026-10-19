@@ -127,9 +127,9 @@ class Judges::Print
       raise(StandardError, "Timeout at #{url.inspect}") if http.timed_out?
       raise(StandardError, "Failed to load #{url.inspect}") unless http.code == 200
       "sha256-#{Base64.strict_encode64(Digest::SHA256.digest(http.body))}"
-    rescue StandardError => e
-      @loog.warn("Failed to fetch #{asset.inspect}, the page will load it without integrity check: #{e.message}")
-      ''
     end
+  rescue StandardError => e
+    @loog.warn("Failed to fetch #{asset.inspect}, the page will load it without integrity check: #{e.message}")
+    ''
   end
 end
