@@ -28,7 +28,7 @@ require_relative '../../judges/to_rel'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
-class Judges::Update
+class Judges::Update # rubocop:disable Metrics/ClassLength
   # Initialize.
   # @param [Loog] loog Logging facility
   def initialize(loog)
@@ -44,6 +44,7 @@ class Judges::Update
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     dir = args[0]
     raise(StandardError, "The directory is absent: #{dir.to_rel}") unless File.directory?(dir)
+    guard(opts['churn'], args[1]) if opts['churn']
     impex = Judges::Impex.new(@loog, args[1])
     fb = impex.import(strict: false)
     fb = Factbase::Logged.new(fb, @loog) if opts['log']
@@ -70,6 +71,11 @@ class Judges::Update
   end
 
   private
+
+  def guard(churn, input)
+    return unless File.expand_path(churn) == File.expand_path(input) || File.identical?(churn, input)
+    raise(ArgumentError, 'The churn file must differ from the input factbase')
+  end
 
   def build_options(opts)
     options = Judges::Options.new(timeout: opts['timeout']&.to_f, lifetime: opts['lifetime']&.to_f)
