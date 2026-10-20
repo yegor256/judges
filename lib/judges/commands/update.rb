@@ -28,7 +28,7 @@ require_relative '../../judges/to_rel'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
-class Judges::Update
+class Judges::Update # rubocop:disable Metrics/ClassLength
   # Initialize.
   # @param [Loog] loog Logging facility
   def initialize(loog)
@@ -73,7 +73,9 @@ class Judges::Update
 
   def build_options(opts)
     options = Judges::Options.new(timeout: opts['timeout']&.to_f, lifetime: opts['lifetime']&.to_f)
-    if options.lifetime && options.timeout && options.lifetime < options.timeout * 1.1
+    lifetime = options.lifetime && Rational(options.lifetime.to_s)
+    timeout = options.timeout && Rational(options.timeout.to_s)
+    if lifetime && timeout && lifetime * 10 < timeout * 11
       raise(
         StandardError,
         "The --timeout=#{options.timeout} must be at least 10 percent smaller than --lifetime=#{options.lifetime}"

@@ -17,6 +17,31 @@ require_relative '../test__helper'
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
 class TestUpdate < Minitest::Test
+  def test_accepts_exact_timeout_lifetime_boundaries
+    [[40, 44], [50, 55], [90, 99], [100, 110], [6000, 6600], [0.5, 0.55]].each do |timeout, lifetime|
+      Dir.mktmpdir do |dir|
+        save_it(File.join(dir, 'sample/sample.rb'), '$fb.insert.value = 42')
+        file = File.join(dir, 'base.fb')
+        Judges::Update.new(Loog::NULL).run(
+          { 'timeout' => timeout, 'lifetime' => lifetime, 'max-cycles' => 1, 'summary' => 'off' }, [dir, file]
+        )
+        fb = Factbase.new
+        fb.import(File.binread(file))
+        assert_equal(42, fb.query('(always)').each.first.value)
+      end
+    end
+  end
+
+  def test_rejects_lifetime_below_timeout_boundary
+    Dir.mktmpdir do |dir|
+      file = File.join(dir, 'base.fb')
+      assert_raises(StandardError) do
+        Judges::Update.new(Loog::NULL).run({ 'timeout' => 50, 'lifetime' => 54 }, [dir, file])
+      end
+      refute_path_exists(file)
+    end
+  end
+
   def test_build_factbase_from_scratch
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), 'return if $fb.size > 2; $fb.insert.zzz = $options.foo_bar + 1')
