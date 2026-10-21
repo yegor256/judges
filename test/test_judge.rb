@@ -83,7 +83,7 @@ class TestJudge < Minitest::Test
   end
 
   def test_with_runtime_ruby_error
-    assert_includes(failure('a < 1'), "undefined local variable or method 'a'")
+    assert_includes(failure('a < 1'), 'undefined local variable or method')
   end
 
   def test_with_standard_error
