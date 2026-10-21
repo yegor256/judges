@@ -31,10 +31,18 @@ class TestUpdate < Minitest::Test
 
   def test_sets_epoch_to_update_start
     Dir.mktmpdir do |d|
-      save_it(File.join(d, 'foo/foo.rb'), "$loog.info(\"captured-epoch=\#{$epoch.class}\")")
+      %w[foo bar].each do |name|
+        save_it(File.join(d, "#{name}/#{name}.rb"), '$loog.info($judge + " epoch=" + $epoch.to_r.to_s); $fb.insert')
+      end
       log = Loog::Buffer.new
-      Judges::Update.new(log).run({}, [d, File.join(d, 'base.fb')])
-      assert_includes(log.to_s, 'captured-epoch=Time')
+      time = Time.at(42, 123_456_789, :nanosecond)
+      update = Time.stub(:now, time) { Judges::Update.new(log) }
+      Time.stub(:now, time + Rational(1, 1_000_000_000)) do
+        update.run({ 'max-cycles' => 2 }, [d, File.join(d, 'base.fb')])
+      end
+      %w[foo bar].each do |name|
+        assert_equal([time.to_r.to_s] * 2, log.to_s.scan(/#{name} epoch=(\S+)/).flatten)
+      end
     end
   end
 
