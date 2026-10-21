@@ -351,9 +351,9 @@ class TestUpdate < Minitest::Test
       save_it(File.join(d, 'good/good.rb'), '$fb.insert')
       assert_includes(
         assert_raises(StandardError) do
-          Judges::Update.new(Loog::NULL).run({ 'judge' => ['goood'], 'expect-judges' => true }, [d, "#{d}/x.fb"])
+          Judges::Update.new(Loog::NULL).run({ 'judge' => ['absent'], 'expect-judges' => true }, [d, "#{d}/x.fb"])
         end.message,
-        'No judge matches --judge=goood, while these are available: good'
+        'No judge matches --judge=absent, while these are available: good'
       )
     end
   end
@@ -362,8 +362,8 @@ class TestUpdate < Minitest::Test
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'good/good.rb'), '$fb.insert')
       loog = Loog::Buffer.new
-      Judges::Update.new(loog).run({ 'judge' => ['goood'], 'expect-judges' => false }, [d, File.join(d, 'x.fb')])
-      assert_includes(loog.to_s, 'No judge matches --judge=goood')
+      Judges::Update.new(loog).run({ 'judge' => ['absent'], 'expect-judges' => false }, [d, File.join(d, 'x.fb')])
+      assert_includes(loog.to_s, 'No judge matches --judge=absent')
     end
   end
 
