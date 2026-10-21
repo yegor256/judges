@@ -84,8 +84,9 @@ class TestPrint < Minitest::Test
       fb = Factbase.new
       fb.insert.foo = 1
       File.binwrite(f, fb.export)
-      Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml' }, [f, File::NULL])
-      refute_path_exists("#{File::NULL}.judges-options")
+      loog = Loog::Buffer.new
+      Judges::Print.new(loog).run({ 'format' => 'yaml' }, [f, File::NULL])
+      assert_includes(loog.to_s, 'Factbase printed')
     end
   end
 
