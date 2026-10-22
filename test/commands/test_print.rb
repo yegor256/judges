@@ -37,6 +37,29 @@ class TestPrint < Minitest::Test
     end
   end
 
+  def test_auto_keeps_distinct_hidden_input_names
+    names = {
+      '.first' => '.first.json', '.second' => '.second.json', '.hidden.fb' => '.hidden.json',
+      'plain' => 'plain.json', 'ordinary.fb' => 'ordinary.json', 'many.parts.fb' => 'many.parts.json'
+    }
+    Dir.mktmpdir do |dir|
+      names.each_key do |name|
+        fb = Factbase.new
+        fb.insert.source = name
+        input = File.join(dir, name)
+        File.binwrite(input, fb.export)
+        Judges::Print.new(Loog::NULL).run({ 'format' => 'json', 'auto' => true, 'force' => true }, [input])
+      end
+      names.each do |name, output|
+        path = File.join(dir, output)
+        assert_path_exists(path)
+        assert_equal([{ 'source' => name }], JSON.parse(File.read(path)))
+        assert_path_exists("#{path}.judges-options")
+      end
+      refute_path_exists(File.join(dir, '.json'))
+    end
+  end
+
   def test_print_to_html
     WebMock.disable_net_connect!
     stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(body: 'nothing')
