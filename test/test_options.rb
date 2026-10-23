@@ -153,4 +153,55 @@ class TestOptions < Minitest::Test
     assert_equal(-42, opts.offset, opts)
     assert_equal(0, opts.zero, opts)
   end
+
+  def test_hash_option_reaches_value
+    assert_equal('4f2a9c1', Judges::Options.new(['hash=4f2a9c1']).hash)
+  end
+
+  def test_method_option_reaches_value
+    assert_equal('POST', Judges::Options.new(['method=POST']).method)
+  end
+
+  def test_display_option_reaches_value
+    assert_equal('wide', Judges::Options.new(['display=wide']).display)
+  end
+
+  def test_class_option_reaches_value
+    opts = Judges::Options.new(['class=xl', 'token=abc'])
+    assert_equal('xl', opts.class)
+    assert_equal('abc', opts.token)
+  end
+
+  def test_common_object_method_options
+    opts = Judges::Options.new(%w[clone=shallow dup=deep freeze=true tap=beer then=done])
+    assert_equal('shallow', opts.clone)
+    assert_equal('deep', opts.dup)
+    assert_equal('true', opts.freeze)
+    assert_equal('beer', opts.tap)
+    assert_equal('done', opts.then)
+  end
+
+  def test_bracket_access
+    opts = Judges::Options.new(['hash=4f2a9c1', 'method=GET'])
+    assert_equal('4f2a9c1', opts[:hash])
+    assert_equal('4f2a9c1', opts['hash'])
+    assert_equal('GET', opts[:method])
+    assert_nil(opts[:missing])
+  end
+
+  def test_object_methods_fallback_when_absent
+    opts = Judges::Options.new(nil)
+    assert_kind_of(Integer, opts.hash)
+    assert_same(Judges::Options, opts.class)
+    assert_same(opts, opts.freeze)
+  end
+
+  def test_all_conflicting_object_method_options
+    opts = Judges::Options.new(%w[hash=4f2a9c1 method=POST display=wide class=xl format=json])
+    assert_equal('4f2a9c1', opts.hash)
+    assert_equal('POST', opts.method)
+    assert_equal('wide', opts.display)
+    assert_equal('xl', opts.class)
+    assert_equal('json', opts.format)
+  end
 end
