@@ -213,4 +213,44 @@ class TestPrint < Minitest::Test
     end
     assert_includes(loog.to_s, 'without integrity check')
   end
+
+  def test_refuses_output_path_that_is_directory
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'base.fb')
+      File.binwrite(f, Factbase.new.export)
+      out = File.join(d, 'out_dir')
+      FileUtils.mkdir_p(out)
+      err =
+        assert_raises(StandardError) do
+          Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml' }, [f, out])
+        end
+      assert_includes(err.message, 'The output path is a directory:', err.message)
+    end
+  end
+
+  def test_refuses_directory_output_before_reading
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'missing.fb')
+      out = File.join(d, 'out_dir')
+      FileUtils.mkdir_p(out)
+      err =
+        assert_raises(StandardError) do
+          Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml' }, [f, out])
+        end
+      assert_includes(err.message, 'The output path is a directory:', err.message)
+    end
+  end
+
+  def test_refuses_auto_output_path_that_is_directory
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'base.fb')
+      File.binwrite(f, Factbase.new.export)
+      FileUtils.mkdir_p(File.join(d, 'base.yaml'))
+      err =
+        assert_raises(StandardError) do
+          Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml', 'auto' => true }, [f])
+        end
+      assert_includes(err.message, 'The output path is a directory:', err.message)
+    end
+  end
 end

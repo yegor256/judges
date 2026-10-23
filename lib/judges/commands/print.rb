@@ -42,14 +42,16 @@ class Judges::Print
     raise(ArgumentError, 'At most two arguments accepted') if args.size > 2
     fmt = opts['format']&.downcase
     raise(ArgumentError, "Unknown format '#{fmt}', use one of #{FORMATS.join(', ')}") unless FORMATS.include?(fmt)
+    o = args[1]
+    raise(StandardError, "The output path is a directory: #{o.to_rel}") if !o.nil? && File.directory?(o)
     f = args[0]
     fb = Judges::Impex.new(@loog, f).import
     fb.query("(not #{opts['query']})").delete! unless opts['query'].nil?
-    o = args[1]
     if o.nil?
       raise(ArgumentError, 'Either provide output file name or use --auto') unless opts['auto']
       o = File.join(File.dirname(f), File.basename(f).gsub(/\.[^.]*$/, ''))
       o = "#{o}.#{fmt}"
+      raise(StandardError, "The output path is a directory: #{o.to_rel}") if File.directory?(o)
     end
     FileUtils.mkdir_p(File.dirname(o))
     stamp = stamp(opts, fmt)
