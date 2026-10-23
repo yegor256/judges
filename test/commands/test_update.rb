@@ -474,4 +474,50 @@ class TestUpdate < Minitest::Test
       refute_match('PrettyException', out)
     end
   end
+
+  def test_judge_own_timeout_not_attributed_to_flag
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), "raise Timeout::Error, 'internal timeout'")
+      log = Loog::Buffer.new
+      Judges::Update.new(log).run({ 'timeout' => 30, 'quiet' => true }, [d, File.join(d, 'base.fb')])
+      refute_includes(log.to_s, 'Terminated due to --timeout=30')
+      refute_includes(log.to_s, 'stopped by timeout')
+      assert_includes(log.to_s, 'internal timeout')
+    end
+  end
+
+  def test_judge_nested_timeout_not_attributed_to_flag
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'Timeout.timeout(0.01) { sleep 1 }')
+      log = Loog::Buffer.new
+      Judges::Update.new(log).run({ 'timeout' => 30, 'quiet' => true }, [d, File.join(d, 'base.fb')])
+      refute_includes(log.to_s, 'Terminated due to --timeout=30')
+      refute_includes(log.to_s, 'stopped by timeout')
+      assert_includes(log.to_s, 'execution expired')
+    end
+  end
+
+  def test_judge_timeout_error_recorded_in_summary
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), "raise Timeout::Error, 'custom error'")
+      file = File.join(d, 'base.fb')
+      log = Loog::Buffer.new
+      Judges::Update.new(log).run({ 'timeout' => 30, 'quiet' => true, 'summary' => 'add' }, [d, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      sums = fb.query('(eq what "judges-summary")').each.to_a
+      assert_equal(1, sums.size)
+      assert_includes(sums.first.error, 'custom error')
+      refute_includes(log.to_s, 'Terminated due to --timeout=30')
+    end
+  end
+
+  def test_judge_timeout_error_fails_without_quiet
+    assert_raises(StandardError) do
+      Dir.mktmpdir do |d|
+        save_it(File.join(d, 'foo/foo.rb'), "raise Timeout::Error, 'broke'")
+        Judges::Update.new(Loog::NULL).run({ 'timeout' => 30, 'quiet' => false }, [d, File.join(d, 'base.fb')])
+      end
+    end
+  end
 end
