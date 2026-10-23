@@ -17,6 +17,7 @@ class TestPush < Minitest::Test
   def test_push_simple_factbase
     WebMock.disable_net_connect!
     stub_request(:get, 'https://example.org/csrf').to_return(body: 'test-csrf-token')
+    stub_request(:get, 'https://example.org/exists/foo').to_return(body: 'no')
     stub_request(:post, %r{https://example.org/lock/foo}).to_return(status: 302)
     stub_request(:post, %r{https://example.org/unlock/foo}).to_return(status: 302)
     stub_request(:put, 'https://example.org/push/foo').to_return(status: 200, body: '42')
@@ -60,6 +61,7 @@ class TestPush < Minitest::Test
       fake.define_singleton_method(:lock) { |*| true }
       fake.define_singleton_method(:unlock) { |*| true }
       fake.define_singleton_method(:push) { |*| 42 }
+      fake.define_singleton_method(:name_exists?) { |_name| false }
       maker =
         lambda do |*_args, **kwargs|
           seen = kwargs[:timeout]
@@ -85,6 +87,7 @@ class TestPush < Minitest::Test
   def test_fails_on_http_error
     WebMock.disable_net_connect!
     stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
+    stub_request(:get, 'http://example.org/exists/foo').to_return(body: 'no')
     stub_request(:post, %r{http://example.org/lock/foo}).to_return(status: 302)
     stub_request(:put, 'http://example.org/push/foo').to_return(status: 500)
     stub_request(:post, %r{http://example.org/unlock/foo}).to_return(status: 302)
@@ -105,6 +108,109 @@ class TestPush < Minitest::Test
           ['foo', file]
         )
       end
+    end
+  end
+
+  def test_rejects_a_stale_snapshot
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      File.binwrite(file, Factbase.new.export)
+      File.binwrite(Judges::Impex.marker(file), '42')
+      sent = false
+      fake = Object.new
+      fake.define_singleton_method(:lock) { |*| true }
+      fake.define_singleton_method(:unlock) { |*| true }
+      fake.define_singleton_method(:name_exists?) { |_name| true }
+      fake.define_singleton_method(:recent) { |_name| 43 }
+      fake.define_singleton_method(:push) { |*| sent = true }
+      maker = ->(*_args, **_kwargs) { fake }
+      BazaRb.stub(:new, maker) do
+        assert_raises(StandardError) do
+          Judges::Push.new(Loog::NULL).run(
+            { 'token' => '000', 'host' => 'example.org', 'port' => 443, 'ssl' => true, 'owner' => 'none' },
+            ['foo', file]
+          )
+        end
+      end
+      refute(sent, 'a stale factbase must not be uploaded')
+    end
+  end
+
+  def test_pushes_a_new_name_without_a_pulled_snapshot
+    [
+      "Invalid response code #303: the product doesn't have any not-yet-expired jobs",
+      "Invalid response code #303 (Flash: product has no jobs, can't find recent one)"
+    ].each do |message|
+      sent = false
+      fake = Object.new
+      fake.define_singleton_method(:lock) { |*| true }
+      fake.define_singleton_method(:unlock) { |*| true }
+      fake.define_singleton_method(:name_exists?) { |_name| true }
+      fake.define_singleton_method(:recent) do |_name|
+        raise(BazaRb::ServerFailure, message)
+      end
+      fake.define_singleton_method(:push) { |*| sent = true }
+      maker = ->(*_args, **_kwargs) { fake }
+      Dir.mktmpdir do |d|
+        file = File.join(d, 'base.fb')
+        File.binwrite(file, Factbase.new.export)
+        BazaRb.stub(:new, maker) do
+          Judges::Push.new(Loog::NULL).run(
+            { 'token' => '000', 'host' => 'example.org', 'port' => 443, 'ssl' => true, 'owner' => 'none' },
+            ['foo', file]
+          )
+        end
+      end
+      assert(sent, 'a new remote name has no snapshot that could be stale')
+    end
+  end
+
+  def test_rejects_missing_snapshot_marker
+    sent = false
+    fake = Object.new
+    fake.define_singleton_method(:lock) { |*| true }
+    fake.define_singleton_method(:unlock) { |*| true }
+    fake.define_singleton_method(:name_exists?) { |_name| true }
+    fake.define_singleton_method(:recent) { |_name| 42 }
+    fake.define_singleton_method(:push) { |*| sent = true }
+    maker = ->(*_args, **_kwargs) { fake }
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      File.binwrite(file, Factbase.new.export)
+      BazaRb.stub(:new, maker) do
+        assert_raises(StandardError) do
+          Judges::Push.new(Loog::NULL).run(
+            { 'token' => '000', 'host' => 'example.org', 'port' => 443, 'ssl' => true, 'owner' => 'none' },
+            ['foo', file]
+          )
+        end
+      end
+    end
+    refute(sent, 'an existing remote factbase requires a pull marker')
+  end
+
+  def test_pushes_when_the_snapshot_is_current
+    sent = false
+    fake = Object.new
+    fake.define_singleton_method(:lock) { |*| true }
+    fake.define_singleton_method(:unlock) { |*| true }
+    fake.define_singleton_method(:name_exists?) { |_name| true }
+    fake.define_singleton_method(:recent) { |_name| 42 }
+    fake.define_singleton_method(:push) { |*| sent = true }
+    maker = ->(*_args, **_kwargs) { fake }
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      File.binwrite(file, Factbase.new.export)
+      marker = Judges::Impex.marker(file)
+      File.binwrite(marker, '42')
+      BazaRb.stub(:new, maker) do
+        Judges::Push.new(Loog::NULL).run(
+          { 'token' => '000', 'host' => 'example.org', 'port' => 443, 'ssl' => true, 'owner' => 'none' },
+          ['foo', file]
+        )
+      end
+      assert(sent, 'an unchanged remote base allows the factbase to be pushed')
+      refute(File.file?(marker), 'a successful push invalidates the old pull marker')
     end
   end
 end
