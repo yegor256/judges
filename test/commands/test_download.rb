@@ -90,6 +90,35 @@ class TestDownload < Minitest::Test
     end
   end
 
+  def test_refuses_incomplete_durable
+    WebMock.disable_net_connect!
+    stub_request(:get, 'http://example.org/durable-find?file=incomplete.txt&pname=broken').to_return(
+      status: 200, body: '42'
+    )
+    stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
+    stub_request(:post, %r{http://example.org/durables/42/lock}).to_return(status: 302)
+    stub_request(:get, 'http://example.org/durables/42').to_return(
+      status: 200, body: Judges::DurablePlaceholder::CONTENT, headers: {}
+    )
+    stub_request(:post, %r{http://example.org/durables/42/unlock}).to_return(status: 302)
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'incomplete.txt')
+      File.write(file, 'keep existing local file')
+      assert_raises(StandardError) do
+        Judges::Download.new(Loog::NULL).run(
+          {
+            'token' => '000',
+            'host' => 'example.org',
+            'port' => 80,
+            'ssl' => false
+          },
+          ['broken', file]
+        )
+      end.tap { |error| assert_match(/incomplete upload/, error.message) }
+      assert_equal('keep existing local file', File.read(file))
+    end
+  end
+
   def test_fails_with_wrong_number_of_arguments
     assert_raises(ArgumentError) do
       Judges::Download.new(Loog::NULL).run({}, ['only_one_arg'])
