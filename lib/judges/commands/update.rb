@@ -82,7 +82,7 @@ class Judges::Update
     options += Judges::Options.new(opts['option'])
     if opts['options-file']
       options += Judges::Options.new(
-        File.readlines(opts['options-file'])
+        File.readlines(opts['options-file'], encoding: 'bom|utf-8')
           .compact
           .reject { |ln| ln.strip.empty? }
           .map { |ln| ln.strip.split('=', 1).map(&:strip).join('=') }
