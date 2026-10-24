@@ -82,6 +82,18 @@ class TestPush < Minitest::Test
     end
   end
 
+  def test_picks_http_port_without_ssl
+    assert_equal(80, connects('ssl' => false))
+  end
+
+  def test_picks_https_port_with_ssl
+    assert_equal(443, connects('ssl' => true))
+  end
+
+  def test_keeps_explicit_port
+    assert_equal(8080, connects('ssl' => false, 'port' => 8080))
+  end
+
   def test_fails_on_http_error
     WebMock.disable_net_connect!
     stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
@@ -116,5 +128,31 @@ class TestPush < Minitest::Test
         Judges::Push.new(Loog::NULL).run({ 'offline' => true }, ['foo', 'file.fb'])
       end.message
     )
+  end
+
+  private
+
+  def connects(opts)
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      File.binwrite(file, Factbase.new.export)
+      seen = nil
+      fake = Object.new
+      fake.define_singleton_method(:lock) { |*| true }
+      fake.define_singleton_method(:unlock) { |*| true }
+      fake.define_singleton_method(:push) { |*| 42 }
+      maker =
+        lambda do |_host, port, *_args, **_kwargs|
+          seen = port
+          fake
+        end
+      BazaRb.stub(:new, maker) do
+        Judges::Push.new(Loog::NULL).run(
+          { 'token' => '000', 'host' => 'example.org', 'owner' => 'none' }.merge(opts),
+          ['foo', file]
+        )
+      end
+      seen
+    end
   end
 end
