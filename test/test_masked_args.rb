@@ -34,8 +34,7 @@ class TestMaskedArgs < Minitest::Test
   end
 
   def test_keeps_four_characters_at_most_on_each_side
-    line = Judges::MaskedArgs.new(['--token', 'a' * 40]).to_s
-    assert_equal("--token aaaa#{'*' * 32}aaaa", line)
+    assert_equal("--token aaaa#{'*' * 32}aaaa", Judges::MaskedArgs.new(['--token', 'a' * 40]).to_s)
   end
 
   def test_hides_a_token_inside_an_option
