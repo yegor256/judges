@@ -94,6 +94,30 @@ class TestImport < Minitest::Test
     end
   end
 
+  def test_imports_every_document_of_the_file
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      yaml = File.join(d, 'input.yml')
+      save_it(yaml, "---\n- what: first\n---\n- what: second\n- what: third\n")
+      Judges::Import.new(Loog::NULL).run({}, [yaml, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_equal(%w[first second third], fb.query('(always)').to_a.map { |f| f['what'].first })
+    end
+  end
+
+  def test_refuses_a_map_in_the_second_document
+    Dir.mktmpdir do |d|
+      yaml = File.join(d, 'input.yml')
+      save_it(yaml, "---\n- what: first\n---\nfoo: 42\n")
+      e =
+        assert_raises(StandardError) do
+          Judges::Import.new(Loog::NULL).run({}, [yaml, File.join(d, 'base.fb')])
+        end
+      assert_includes(e.message, 'must hold an array of facts, while Hash found', e.message)
+    end
+  end
+
   def test_refuses_a_directory_as_yaml
     Dir.mktmpdir do |d|
       dir = File.join(d, 'input.yml')
