@@ -62,6 +62,8 @@ class TestDownload < Minitest::Test
       )
       assert_equal(content, File.read(file))
     end
+    assert_requested(:post, 'http://example.org/durables/123/lock', body: /owner=custom/)
+    assert_requested(:post, 'http://example.org/durables/123/unlock', body: /owner=custom/)
   end
 
   def test_keeps_local_file_on_failure
