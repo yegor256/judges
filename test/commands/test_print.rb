@@ -153,6 +153,27 @@ class TestPrint < Minitest::Test
     assert_equal('w50', cols.last['class'], 'Last col should have class="w50"')
   end
 
+  def test_moves_empty_facts_to_the_footer
+    Dir.mktmpdir do |d|
+      fb = Factbase.new
+      fb.insert.what = 'alpha'
+      fb.insert.what = 'beta'
+      fb.insert
+      factbase = File.join(d, 'base.fb')
+      File.binwrite(factbase, fb.export)
+      printer = Judges::Print.new(Loog::NULL)
+      printer.run({ 'format' => 'html', 'offline' => true }, [factbase, File.join(d, 'all.html')])
+      all = Nokogiri::HTML(File.read(File.join(d, 'all.html')))
+      assert_equal(2, all.css('table#facts tbody tr').size, 'Only facts with properties are sortable')
+      assert_empty(all.css('table#facts tbody td.empty'), 'The empty fact must not be in the body')
+      assert_equal(1, all.css('table#facts tfoot tr td.empty').size, 'The empty fact must be in the footer')
+      printer.run(
+        { 'format' => 'html', 'offline' => true, 'query' => '(exists what)' }, [factbase, File.join(d, 'some.html')]
+      )
+      assert_empty(Nokogiri::HTML(File.read(File.join(d, 'some.html'))).css('table#facts tfoot'), 'No footer')
+    end
+  end
+
   def test_refuses_an_unknown_format
     Dir.mktmpdir do |d|
       f = File.join(d, 'base.fb')
