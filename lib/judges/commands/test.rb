@@ -151,10 +151,10 @@ class Judges::Test
     yaml['before']&.each do |n|
       j = judges.get(n).with_loog(buf)
       buf.info("Running #{j.script} judge as a pre-condition...")
-      test_one(fb, opts, j, n, yaml, assert: false)
+      test_one(fb, buf, opts, j, n, yaml, assert: false)
     end
     tname = badge.split('/').last
-    test_one(fb, opts, judge, tname, yaml)
+    test_one(fb, buf, opts, judge, tname, yaml)
     run_after_assertions(judge, buf, fb, yaml)
     1
   end
@@ -234,13 +234,14 @@ class Judges::Test
 
   # Test a single test in a single judge and raise exception if the test fails.
   # @param [Factbase] fb The factbase to use
+  # @param [Loog::Buffer] buf The buffer of the judge, where the factbase operations are logged
   # @param [Hash] opts The command line options
   # @param [Judges::Judge] judge The judge to run
   # @param [String] tname The name of the test (without .rb suffix)
   # @param [Hash] yaml The YAML to be tested
   # @param [Boolean] assert Should we assert (TRUE) or simply skip (FALSE)?
   # @return [nil] Always NIL
-  def test_one(fb, opts, judge, tname, yaml, assert: true)
+  def test_one(fb, buf, opts, judge, tname, yaml, assert: true)
     options = Judges::Options.new(opts['option']) + Judges::Options.new(yaml['options'])
     runs = opts['runs'] || yaml['runs'] || 1
     timeout = yaml['timeout']
@@ -248,7 +249,7 @@ class Judges::Test
       fbx = fb
       if opts['log']
         require('factbase/logged')
-        fbx = Factbase::Logged.new(fb, @loog)
+        fbx = Factbase::Logged.new(fb, buf)
       end
       failure = yaml['expected_failure']
       failure = nil if failure == []
