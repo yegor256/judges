@@ -68,13 +68,12 @@ class Judges::Pull
     start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     loop do
       break if baza.finished?(id)
-      raise(StandardError, "Time is over, the job ##{id} ('#{name}') is still not completed") if limit <= 0
-      sleep(1)
       duration = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
-      if duration > limit
+      if limit <= 0 || duration > limit
         raise(StandardError, "Time is over, the job ##{id} ('#{name}') is still not completed")
       end
       @loog.debug("Still waiting for the job ##{id} ('#{name}') to finish... (#{format('%.2f', duration)}s already)")
+      sleep(1)
     end
     id
   end
