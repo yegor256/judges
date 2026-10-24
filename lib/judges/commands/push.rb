@@ -35,7 +35,7 @@ class Judges::Push
     name = args[0]
     fb = Judges::Impex.new(@loog, args[1]).import
     baza = BazaRb.new(
-      opts['host'], opts['port'].to_i, opts['token'],
+      opts['host'], opts['port'].to_i, token(opts),
       ssl: opts['ssl'],
       timeout: (opts['timeout'] || 30).to_f,
       loog: @loog,
@@ -51,5 +51,12 @@ class Judges::Push
         baza.unlock(name, opts['owner'])
       end
     end
+  end
+
+  private
+
+  def token(opts)
+    raise(StandardError, 'The --token option is required for the push command') if opts['token'].to_s.empty?
+    opts['token']
   end
 end
