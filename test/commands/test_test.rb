@@ -123,7 +123,7 @@ class TestTest < Minitest::Test
     end
   end
 
-  def test_prefers_options_of_the_pack_over_command_line
+  def test_overrides_command_line_options_with_pack
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = $options.bar')
       save_it(File.join(d, 'foo/x.yml'), "input: []\noptions:\n  bar: 7\nexpected:\n  - /fb/f[foo='7']\n")
