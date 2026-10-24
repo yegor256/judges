@@ -189,6 +189,29 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_refuses_timeout_too_close_to_lifetime
+    [[30, 20], [20, 21]].each do |timeout, lifetime|
+      Dir.mktmpdir do |d|
+        save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+        file = File.join(d, 'base.fb')
+        opts = { 'timeout' => timeout, 'lifetime' => lifetime, 'max-cycles' => 1 }
+        assert_match(
+          /The --timeout=#{timeout}\.0 must be at least 10 percent smaller than --lifetime=#{lifetime}\.0/,
+          assert_raises(StandardError) { Judges::Update.new(Loog::NULL).run(opts, [d, file]) }.message
+        )
+      end
+    end
+  end
+
+  def test_accepts_timeout_well_below_lifetime
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::NULL).run({ 'timeout' => 10, 'lifetime' => 20, 'max-cycles' => 1 }, [d, file])
+      assert_path_exists(file)
+    end
+  end
+
   def test_keeps_global_across_cycles
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$global[:n] = ($global[:n] || 0) + 1; $fb.insert.seen = $global[:n]')
