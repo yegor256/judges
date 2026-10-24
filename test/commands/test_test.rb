@@ -358,6 +358,21 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_goes_on_after_broken_after_script
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'aaa/aaa.rb'), '$fb.insert.foo = 1')
+      save_it(File.join(d, 'aaa/x.yml'), "after:\n  - absent.rb")
+      save_it(File.join(d, 'bbb/bbb.rb'), '$fb.insert.foo = 1')
+      save_it(File.join(d, 'bbb/broken.rb'), 'this is (( broken')
+      save_it(File.join(d, 'bbb/y.yml'), "after:\n  - broken.rb")
+      save_it(File.join(d, 'ccc/ccc.rb'), '$fb.insert.foo = 1')
+      save_it(File.join(d, 'ccc/z.yml'), 'input: []')
+      loog = Loog::Buffer.new
+      assert_raises(StandardError) { Judges::Test.new(loog).run({}, [d]) }
+      assert_equal(%w[ERROR ERROR OK], %w[aaa/x bbb/y ccc/z].map { |t| loog.to_s[/#{t}\s+\S+\s+(\w+)/, 1] })
+    end
+  end
+
   def test_accepts_a_correct_layout
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')

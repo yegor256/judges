@@ -117,7 +117,7 @@ class Judges::Test
         next if skip_test?(buf, f, yaml, opts)
         buf.info("🛠️ Testing #{f.to_rel}:")
         count += run_single_test(judge, buf, opts, judges, yaml, badge)
-      rescue StandardError => e
+      rescue StandardError, ScriptError => e
         @loog.info(buf.to_s)
         @loog.warn(Backtrace.new(e))
         errors << badge
