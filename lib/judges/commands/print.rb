@@ -50,6 +50,12 @@ class Judges::Print
       raise(ArgumentError, 'Either provide output file name or use --auto') unless opts['auto']
       o = File.join(File.dirname(f), File.basename(f).gsub(/\.[^.]*$/, ''))
       o = "#{o}.#{fmt}"
+      if File.expand_path(o) == File.expand_path(f)
+        raise(
+          ArgumentError,
+          "The --auto output #{o.to_rel} would overwrite the input factbase; pass an explicit output path"
+        )
+      end
     end
     sidecar = "#{o}.judges-options"
     if File.exist?(sidecar) && File.identical?(f, sidecar)
