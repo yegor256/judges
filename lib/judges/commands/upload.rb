@@ -31,6 +31,7 @@ class Judges::Upload
   # rubocop:disable Metrics/MethodLength
   def run(opts, args)
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
+    raise(StandardError, 'The upload command needs the network, while --offline is set') if opts['offline']
     jname = args[0]
     path = args[1]
     raise(StandardError, "File not found: #{path}") unless File.file?(path)

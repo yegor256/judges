@@ -112,4 +112,14 @@ class TestUpload < Minitest::Test
       )
     end
   end
+
+  def test_fails_when_offline
+    WebMock.disable_net_connect!
+    assert_equal(
+      'The upload command needs the network, while --offline is set',
+      assert_raises(StandardError) do
+        Judges::Upload.new(Loog::NULL).run({ 'offline' => true }, ['myjudge', 'file.txt'])
+      end.message
+    )
+  end
 end

@@ -116,4 +116,14 @@ class TestDownload < Minitest::Test
       refute_path_exists(file)
     end
   end
+
+  def test_fails_when_offline
+    WebMock.disable_net_connect!
+    assert_equal(
+      'The download command needs the network, while --offline is set',
+      assert_raises(StandardError) do
+        Judges::Download.new(Loog::NULL).run({ 'offline' => true }, ['myjudge', 'file.txt'])
+      end.message
+    )
+  end
 end
