@@ -211,8 +211,10 @@ class TestPrint < Minitest::Test
       Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml', 'auto' => true }, [f])
       y = File.join(d, 'base.yaml')
       assert_path_exists(y)
+      before = Time.now + 3600
+      File.utime(before, before, y)
       Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml', 'auto' => true }, [f])
-      assert_equal(File.mtime(y), File.mtime(y))
+      assert_equal(before.to_i, File.mtime(y).to_i, 'an up to date output was printed again')
     end
   end
 
