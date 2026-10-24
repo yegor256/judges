@@ -43,6 +43,7 @@ class Judges::Test
     @loog.info("Testing judges in #{dir.to_rel}...")
     misplaced(dir)
     errors = []
+    skips = []
     tested = 0
     tests = 0
     visible = []
@@ -55,7 +56,7 @@ class Judges::Test
         @loog.info("👉 Testing #{judge.script} (##{i}) in #{judge.dir.to_rel}...")
         buf = Loog::Buffer.new
         judge = judge.with_loog(buf)
-        tests += run_judge_tests(judge, buf, opts, judges, visible, times, errors)
+        tests += run_judge_tests(judge, buf, opts, judges, visible, times, errors, skips)
         tested += 1
       end
       if tested.zero? && !visible.empty? && !(opts['judge'] || []).empty?
@@ -64,7 +65,7 @@ class Judges::Test
           "No judge matches --judge=#{opts['judge'].join(',')}, while these are available: #{visible.join(', ')}"
         )
       end
-      print_test_summary(times, errors, tested, tests)
+      print_test_summary(times, errors, skips, tested, tests)
     end
     unless errors.empty?
       raise(StandardError, "#{errors.size} tests failed") unless opts['quiet']
@@ -105,7 +106,7 @@ class Judges::Test
     )
   end
 
-  def run_judge_tests(judge, buf, opts, judges, visible, times, errors)
+  def run_judge_tests(judge, buf, opts, judges, visible, times, errors, skips)
     count = 0
     judge.tests.each do |f|
       tname = File.basename(f).gsub(/\.yml$/, '')
@@ -115,7 +116,10 @@ class Judges::Test
       start = Time.now
       begin
         yaml = YAML.load_file(f, permitted_classes: [Time])
-        next if skip_test?(buf, f, yaml, opts)
+        if skip_test?(buf, f, yaml, opts)
+          skips << badge
+          next
+        end
         buf.info("🛠️ Testing #{f.to_rel}:")
         count += run_single_test(judge, buf, opts, judges, yaml, badge)
       rescue StandardError, ScriptError => e
@@ -167,9 +171,7 @@ class Judges::Test
         $fb = fb
         $loog = buf
         if yaml['timeout']
-          Timeout.timeout(yaml['timeout']) do
-            load(File.join(judge.dir, rb), true)
-          end
+          Timeout.timeout(yaml['timeout']) { load(File.join(judge.dir, rb), true) }
         else
           load(File.join(judge.dir, rb), true)
         end
@@ -180,7 +182,7 @@ class Judges::Test
     end
   end
 
-  def print_test_summary(times, errors, tested, tests)
+  def print_test_summary(times, errors, skips, tested, tests)
     unless times.empty?
       fmt = "%-60s\t%9s\t%-9s"
       @loog.info(
@@ -189,7 +191,9 @@ class Judges::Test
           format(fmt, 'Script', 'Seconds', 'Result'),
           format(fmt, '---', '---', '---'),
           times.sort_by { |_, v| v }.reverse.map do |script, sec|
-            format(fmt, script.ellipsized(50), format('%.3f', sec), errors.include?(script) ? 'ERROR' : 'OK')
+            status = skips.include?(script) ? 'SKIPPED' : 'OK'
+            status = 'ERROR' if errors.include?(script)
+            format(fmt, script.ellipsized(50), format('%.3f', sec), status)
           end.join("\n  ")
         ].join("\n  ")
       )
@@ -285,10 +289,9 @@ class Judges::Test
   end
 
   def assert(judge, tname, fb, yaml)
-    xpaths = yaml['expected']
-    return if xpaths.nil?
+    return if yaml['expected'].nil?
     xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
-    xpaths.each do |xp|
+    yaml['expected'].each do |xp|
       raise(StandardError, "#{judge.name}/#{tname} doesn't match '#{xp}':\n#{xml}") if xml.xpath(xp).empty?
     end
   end
