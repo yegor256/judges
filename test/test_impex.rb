@@ -31,7 +31,7 @@ class TestImpex < Minitest::Test
     end
   end
 
-  def test_starts_from_an_empty_factbase_on_a_zero_byte_file
+  def test_imports_nothing_from_zero_bytes
     Dir.mktmpdir do |d|
       file = File.join(d, 'empty.fb')
       FileUtils.touch(file)
@@ -39,7 +39,7 @@ class TestImpex < Minitest::Test
     end
   end
 
-  def test_refuses_a_zero_byte_file_in_strict_mode
+  def test_refuses_zero_bytes_in_strict_mode
     Dir.mktmpdir do |d|
       file = File.join(d, 'empty.fb')
       FileUtils.touch(file)
