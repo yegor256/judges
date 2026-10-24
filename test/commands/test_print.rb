@@ -238,13 +238,16 @@ class TestPrint < Minitest::Test
       f = File.join(d, 'base.fb')
       File.binwrite(f, Factbase.new.export)
       %w[yaml html].each do |fmt|
-        script = [
-          "require #{File.expand_path('../../lib/judges/commands/print', __dir__).inspect}",
-          "require 'loog'",
-          "Judges::Print.new(Loog::NULL).run({ 'format' => '#{fmt}', 'offline' => true }, [#{f.inspect}, '#{d}/x.#{fmt}'])",
-          "abort('typhoeus loaded') if defined?(Typhoeus)"
-        ].join("\n")
-        out, status = Open3.capture2e(RbConfig.ruby, '-e', script)
+        out, status = Open3.capture2e(
+          RbConfig.ruby, '-e',
+          <<~RUBY,
+            require ARGV[0]
+            require 'loog'
+            Judges::Print.new(Loog::NULL).run({ 'format' => ARGV[1], 'offline' => true }, ARGV[2..])
+            abort('typhoeus loaded') if defined?(Typhoeus)
+          RUBY
+          File.expand_path('../../lib/judges/commands/print', __dir__), fmt, f, File.join(d, "x.#{fmt}")
+        )
         assert_predicate(status, :success?, "Printing #{fmt} offline must not load typhoeus: #{out}")
       end
     end
