@@ -45,7 +45,9 @@ class Judges::Upload
     )
     elapsed(@loog, level: Logger::INFO) do
       id = baza.durable_find(jname, name)
+      kind = 'existing'
       if id.nil? || id.to_s.strip.empty?
+        kind = 'new'
         tmp = Dir.mktmpdir
         begin
           f = File.join(tmp, name)
@@ -61,7 +63,7 @@ class Judges::Upload
       baza.durable_lock(id, opts['owner'] || 'default')
       begin
         baza.durable_save(id, path)
-        throw(:"👍 Uploaded #{path} to existing durable '#{name}' in '#{jname}' (ID: #{id}, #{size} bytes)")
+        throw(:"👍 Uploaded #{path} to #{kind} durable '#{name}' in '#{jname}' (ID: #{id}, #{size} bytes)")
       ensure
         baza.durable_unlock(id, opts['owner'] || 'default')
       end
