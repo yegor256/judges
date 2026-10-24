@@ -217,7 +217,7 @@ class JudgesGLI extend GLI::App
     c.flag([:enable], multiple: true)
     c.desc 'Name of the judge to run (directory name)'
     c.flag([:judge], multiple: true)
-    c.desc 'Number of times to run the tests'
+    c.desc 'Number of times to run each judge in every test, on the same factbase (overrides runs in the YAML)'
     c.flag([:runs], type: Integer)
     c.desc 'Location of a Ruby library (directory with .rb files to include)'
     c.flag([:lib])
