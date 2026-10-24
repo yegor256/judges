@@ -232,6 +232,21 @@ class TestPrint < Minitest::Test
     end
   end
 
+  def test_treats_an_empty_query_as_absent
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert.what = 'alpha'
+      fb.insert.what = 'beta'
+      File.binwrite(f, fb.export)
+      ['', nil].each do |q|
+        output = File.join(d, "result-#{q.inspect}.yaml")
+        Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml', 'query' => q }, [f, output])
+        assert_equal(2, YAML.load_file(output).size, "Query #{q.inspect} must print all facts")
+      end
+    end
+  end
+
   def test_no_integrity_when_the_asset_fails
     WebMock.disable_net_connect!
     stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(status: 500)
