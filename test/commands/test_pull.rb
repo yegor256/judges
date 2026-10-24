@@ -156,7 +156,7 @@ class TestPull < Minitest::Test
     end
   end
 
-  def test_fail_pull_when_stdout_of_broken_job_is_absent
+  def test_fails_when_broken_job_has_no_stdout
     WebMock.disable_net_connect!
     stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
     stub_request(:post, %r{http://example.org/lock/foo}).to_return(status: 302)
