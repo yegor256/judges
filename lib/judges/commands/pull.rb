@@ -9,6 +9,7 @@ require 'iri'
 require 'typhoeus'
 require_relative '../../judges'
 require_relative '../../judges/impex'
+require_relative '../../judges/to_rel'
 
 # The +pull+ command.
 #
@@ -32,6 +33,9 @@ class Judges::Pull
   def run(opts, args)
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     raise(StandardError, 'The pull command needs the network, while --offline is set') if opts['offline']
+    if File.directory?(args[1])
+      raise(StandardError, "The factbase path is a directory: #{args[1].to_rel}")
+    end
     fb = Factbase.new
     baza = BazaRb.new(
       opts['host'], opts['port'].to_i, opts['token'],
