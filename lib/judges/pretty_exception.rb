@@ -23,4 +23,8 @@ class Judges::PrettyException < SimpleDelegator
   def message
     __getobj__.message.ellipsized(100, :right)
   end
+
+  def exception(*)
+    __getobj__.exception(message)
+  end
 end
