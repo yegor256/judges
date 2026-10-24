@@ -274,8 +274,8 @@ class JudgesGLI extend GLI::App
     run_it(c, 'pull')
   end
 
-  desc 'Download a durable from the server by ID'
-  arg_name '<id> <factbase>'
+  desc 'Download a durable from the server, found by the job name and the file name'
+  arg_name '<name> <file>'
   command :download do |c|
     c.desc 'Authentication token'
     c.flag([:token])
