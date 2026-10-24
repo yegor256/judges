@@ -32,7 +32,6 @@ Gem::Specification.new do |s|
   s.add_dependency('ellipsized', '~>0.3')
   s.add_dependency('factbase', '~>0.16')
   s.add_dependency('gli', '~>2.21')
-  s.add_dependency('iri', '~>0.11')
   s.add_dependency('loog', '~>0.6')
   s.add_dependency('moments', '~>0.3')
   s.add_dependency('nokogiri', '~>1.10')
