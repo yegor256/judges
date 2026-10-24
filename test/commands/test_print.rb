@@ -9,6 +9,7 @@ require 'json'
 require 'loog'
 require 'nokogiri'
 require 'online'
+require 'open3'
 require 'os'
 require 'qbash'
 require 'securerandom'
@@ -151,6 +152,27 @@ class TestPrint < Minitest::Test
     cols = colgroup.css('col')
     assert_equal(4, cols.size, 'Should have 4 col elements (3 for columns + 1 for extra)')
     assert_equal('w50', cols.last['class'], 'Last col should have class="w50"')
+  end
+
+  def test_sorts_iso_times_in_the_html
+    skip('No node') unless system('node', '--version', out: File::NULL, err: File::NULL)
+    out, status = Open3.capture2e(
+      'node', '-e',
+      <<~JS,
+        const parsers = [];
+        global.$ = () => {};
+        global.$.tablesorter = { addParser: (p) => parsers.push(p) };
+        require(process.argv[1]);
+        const p = parsers.find((x) => x.id === 'iso8601');
+        const times = ['2025-01-10T00:00:00Z', '2024-12-31T00:00:00Z', '2025-03-01T12:30:00Z'];
+        if (!times.every((t) => p.is(t))) throw new Error('times are not recognized');
+        if (['42', 'alpha', '2025-01-10'].some((t) => p.is(t))) throw new Error('other values are recognized');
+        console.log(times.map((t) => p.format(t)).sort().join(','));
+      JS
+      File.expand_path('../../assets/index.js', __dir__)
+    )
+    assert_predicate(status, :success?, out)
+    assert_equal('2024-12-31T00:00:00Z,2025-01-10T00:00:00Z,2025-03-01T12:30:00Z', out.strip)
   end
 
   def test_refuses_an_unknown_format
