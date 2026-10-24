@@ -79,6 +79,16 @@ class TestJudges < Minitest::Test
     end
   end
 
+  def test_refuses_to_get_unknown_judge
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'boo/boo.rb'), 'hey')
+      assert_includes(
+        assert_raises(StandardError) { Judges::Judges.new(d, nil, Loog::NULL).get('bo') }.message,
+        "Judge bo doesn't exist"
+      )
+    end
+  end
+
   def test_list_only_direct_subdirs
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'first/first.rb'), '')
