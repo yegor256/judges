@@ -94,6 +94,32 @@ class TestImport < Minitest::Test
     end
   end
 
+  def test_names_the_fact_with_a_bad_value
+    Dir.mktmpdir do |d|
+      yaml = File.join(d, 'input.yml')
+      save_it(yaml, "- {what: a, done: 1}\n- {what: b, done: 2}\n- {what: c, done: true}\n")
+      e =
+        assert_raises(StandardError) do
+          Judges::Import.new(Loog::NULL).run({}, [yaml, File.join(d, 'base.fb')])
+        end
+      assert_includes(e.message, "The fact #2 in #{yaml.to_rel} can't be imported", e.message)
+      assert_includes(e.message, "The type 'TrueClass' of 'done' is not allowed", e.message)
+    end
+  end
+
+  def test_names_the_fact_with_an_empty_value
+    Dir.mktmpdir do |d|
+      yaml = File.join(d, 'input.yml')
+      save_it(yaml, "- {what: a}\n- {what: b, note: }\n")
+      e =
+        assert_raises(StandardError) do
+          Judges::Import.new(Loog::NULL).run({}, [yaml, File.join(d, 'base.fb')])
+        end
+      assert_includes(e.message, 'The fact #1 in', e.message)
+      assert_includes(e.message, "can't be nil", e.message)
+    end
+  end
+
   def test_refuses_a_directory_as_yaml
     Dir.mktmpdir do |d|
       dir = File.join(d, 'input.yml')
