@@ -70,7 +70,7 @@ Feature: Update
     Given I make a temp directory
     Then I have a "simple/simple.rb" file with content:
     """
-      n.kind.foo = $options.a1
+      $fb.insert.foo = $options.a1
     """
     Then I have a "opts.txt" file with content:
     """
@@ -83,6 +83,8 @@ Feature: Update
     Then Stdout contains "1 judge(s) processed"
     Then Stdout contains "Update completed"
     And Exit code is zero
+    Then I run bin/judges with "print --format=yaml --auto simple.fb"
+    Then simple.yaml contains "foo: test"
 
   Scenario: Simple run with a timeout for a judge
     Given I make a temp directory
