@@ -242,7 +242,7 @@ class JudgesGLI extend GLI::App
     c.desc 'Enable SSL connection'
     c.switch([:ssl], default_value: true)
     c.desc 'Unique identifier for lock/unlock operations'
-    c.flag([:owner], default_value: 'default', type: String)
+    c.flag([:owner], type: String)
     c.desc 'Additional metadata for the upload (key:value format)'
     c.flag([:meta], type: String, multiple: true)
     c.desc 'Number of retry attempts'
@@ -268,7 +268,7 @@ class JudgesGLI extend GLI::App
     c.desc 'Enable SSL connection'
     c.switch([:ssl], default_value: true)
     c.desc 'Unique identifier for lock/unlock operations'
-    c.flag([:owner], default_value: 'default', type: String)
+    c.flag([:owner], type: String)
     c.desc 'Number of retry attempts'
     c.flag([:retries], type: Integer, default_value: 3)
     run_it(c, 'pull')
@@ -288,7 +288,7 @@ class JudgesGLI extend GLI::App
     c.desc 'Enable SSL connection'
     c.switch([:ssl], default_value: true)
     c.desc 'Unique identifier for the operation'
-    c.flag([:owner], default_value: 'default', type: String)
+    c.flag([:owner], type: String)
     c.desc 'Number of retry attempts'
     c.flag([:retries], type: Integer, default_value: 3)
     run_it(c, 'download')
@@ -308,7 +308,7 @@ class JudgesGLI extend GLI::App
     c.desc 'Enable SSL connection'
     c.switch([:ssl], default_value: true)
     c.desc 'Unique identifier for the operation'
-    c.flag([:owner], default_value: 'default', type: String)
+    c.flag([:owner], type: String)
     c.desc 'Number of retry attempts'
     c.flag([:retries], type: Integer, default_value: 3)
     run_it(c, 'upload')
