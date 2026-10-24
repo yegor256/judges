@@ -31,6 +31,22 @@ class TestImpex < Minitest::Test
     end
   end
 
+  def test_starts_from_an_empty_factbase_on_a_zero_byte_file
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'empty.fb')
+      FileUtils.touch(file)
+      assert_equal(0, Judges::Impex.new(Loog::NULL, file).import(strict: false).size)
+    end
+  end
+
+  def test_refuses_a_zero_byte_file_in_strict_mode
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'empty.fb')
+      FileUtils.touch(file)
+      assert_raises(StandardError) { Judges::Impex.new(Loog::NULL, file).import }
+    end
+  end
+
   def test_refuses_a_nil_file
     assert_includes(assert_raises(ArgumentError) { Judges::Impex.new(Loog::NULL, nil) }.message, 'The file is nil')
   end
