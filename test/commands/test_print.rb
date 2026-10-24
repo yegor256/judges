@@ -78,6 +78,18 @@ class TestPrint < Minitest::Test
     end
   end
 
+  def test_prints_to_null_device
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert.foo = 1
+      File.binwrite(f, fb.export)
+      loog = Loog::Buffer.new
+      Judges::Print.new(loog).run({ 'format' => 'yaml' }, [f, File::NULL])
+      assert_includes(loog.to_s, 'Factbase printed')
+    end
+  end
+
   def test_print_to_html
     WebMock.disable_net_connect!
     stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(body: 'nothing')
