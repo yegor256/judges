@@ -597,7 +597,7 @@ class TestUpdate < Minitest::Test
     end
   end
 
-  def test_refuses_factbase_under_a_file_before_running_judges
+  def test_refuses_factbase_under_a_file
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.what = "x"')
       File.write(File.join(d, 'plain'), 'text')
@@ -610,7 +610,7 @@ class TestUpdate < Minitest::Test
     end
   end
 
-  def test_refuses_factbase_in_read_only_directory_before_running_judges
+  def test_refuses_read_only_factbase_directory
     skip('root can write anywhere') if Process.uid.zero?
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.what = "x"')

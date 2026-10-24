@@ -80,9 +80,9 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
   def writable(path)
     dir = File.dirname(File.expand_path(path))
     dir = File.dirname(dir) until File.exist?(dir)
-    ok = File.exist?(path) ? File.file?(path) && File.writable?(path) : File.directory?(dir) && File.writable?(dir)
-    raise(StandardError, "The factbase can't be written to #{path.to_rel}") unless ok
-    path
+    return path if File.exist?(path) && File.file?(path) && File.writable?(path)
+    return path if !File.exist?(path) && File.directory?(dir) && File.writable?(dir)
+    raise(StandardError, "The factbase can't be written to #{path.to_rel}")
   end
 
   def build_options(opts)
