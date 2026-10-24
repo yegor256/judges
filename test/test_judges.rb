@@ -208,11 +208,15 @@ class TestJudges < Minitest::Test
     Dir.mktmpdir do |d|
       %w[alpha beta gamma].each { |n| save_it(File.join(d, n, "#{n}.rb"), 'hey') }
       seen = []
-      Judges::Judges.new(d, nil, Loog::NULL).each_with_index do |j| # rubocop:disable Lint/UnexpectedBlockArity, Lint/RedundantWithIndex
+      js = Judges::Judges.new(d, nil, Loog::NULL)
+      js.each_with_index do |j| # rubocop:disable Lint/UnexpectedBlockArity, Lint/RedundantWithIndex
         seen << j
       end
       assert_equal(3, seen.size)
       seen.each { |j| assert_kind_of(Judges::Judge, j, 'a one-parameter block must get the judge alone') }
+      indexes = []
+      js.each_with_index { |_j, idx| indexes << idx }
+      assert_equal([0, 1, 2], indexes)
     end
   end
 
