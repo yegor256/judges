@@ -189,6 +189,32 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_fails_after_lifetime_stop
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'aaa/aaa.rb'), '$fb.insert.what = "a"; raise "boom"')
+      save_it(File.join(d, 'bbb/bbb.rb'), '$fb.insert.what = "b"')
+      file = File.join(d, 'base.fb')
+      assert_match(
+        /Failed to update correctly \(1 errors\)/,
+        assert_raises(StandardError) { Judges::Update.new(slow).run(limits, [d, file]) }.message
+      )
+    end
+  end
+
+  def test_writes_summary_after_lifetime_stop
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'aaa/aaa.rb'), '$fb.insert.what = "a"; raise "boom"')
+      save_it(File.join(d, 'bbb/bbb.rb'), '$fb.insert.what = "b"')
+      file = File.join(d, 'base.fb')
+      log = slow
+      Judges::Update.new(log).run(limits.merge('quiet' => true), [d, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_equal(1, fb.query('(and (eq what "judges-summary") (eq error "boom"))').each.to_a.size)
+      assert_includes(log.to_s, 'Judge execution summary')
+    end
+  end
+
   def test_keeps_global_across_cycles
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$global[:n] = ($global[:n] || 0) + 1; $fb.insert.seen = $global[:n]')
@@ -595,5 +621,23 @@ class TestUpdate < Minitest::Test
       xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
       assert_empty(xml.xpath('/fb/f[foo]'), xml)
     end
+  end
+
+  private
+
+  def slow
+    Class.new(Loog::Buffer) do
+      def info(msg)
+        sleep(2) if msg.to_s.include?('Running bbb')
+        super
+      end
+    end.new
+  end
+
+  def limits
+    {
+      'lifetime' => 1, 'timeout' => 0.5, 'shuffle' => 'a', 'summary' => 'add',
+      'statistics' => true, 'max-cycles' => 2, 'expect-judges' => true
+    }
   end
 end

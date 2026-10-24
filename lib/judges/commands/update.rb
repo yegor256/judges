@@ -120,6 +120,7 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
     global = {}
     statistics = opts['statistics'] ? Judges::Statistics.new : nil
     log_summary(opts, fb)
+    stopped = false
     elapsed(@loog, level: Logger::INFO) do
       loop do
         if !opts['max-cycles'].nil? && c >= opts['max-cycles']
@@ -148,11 +149,21 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
         @loog.info("The cycle #{c} did #{delta}")
       end
       throw(:"👍 Update completed in #{c} cycle(s), did #{ch}")
+    rescue Timeout::Error, Timeout::ExitException
+      stopped = true
+      @loog.info("Had to stop due to the --lifetime=#{opts['lifetime']}")
     end
-    statistics&.report(@loog)
-    summarize(fb, ch, errors, c, opts['summary']) if %w[add append].include?(opts['summary'])
+    conclude(fb, ch, errors, c, opts, statistics, stopped)
   end
   # rubocop:enable Metrics/MethodLength
+
+  # Report statistics and write the summary, then fail if the run was stopped by --lifetime with errors.
+  def conclude(fb, churn, errors, cycles, opts, statistics, stopped)
+    statistics&.report(@loog)
+    summarize(fb, churn, errors, cycles, opts['summary']) if %w[add append].include?(opts['summary'])
+    return unless stopped && !errors.empty? && !opts['quiet']
+    raise(StandardError, "Failed to update correctly (#{errors.size} errors)")
+  end
 
   # Update the summary.
   # @param [Factbase] fb The factbase
