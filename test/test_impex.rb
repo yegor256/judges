@@ -35,6 +35,13 @@ class TestImpex < Minitest::Test
     assert_includes(assert_raises(ArgumentError) { Judges::Impex.new(Loog::NULL, nil) }.message, 'The file is nil')
   end
 
+  def test_refuses_an_empty_file
+    assert_includes(
+      assert_raises(ArgumentError) { Judges::Impex.new(Loog::NULL, '') }.message,
+      'The file name is empty'
+    )
+  end
+
   def test_imports_from_a_pipe
     skip('No named pipes on Windows') if Gem.win_platform?
     Dir.mktmpdir do |d|
