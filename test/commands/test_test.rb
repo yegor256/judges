@@ -295,6 +295,44 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_refuses_an_infinite_number_of_runs
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        runs: .inf
+        YAML
+      )
+      loog = Loog::Buffer.new
+      assert_equal(
+        assert_raises(StandardError) do
+          Timeout.timeout(30) { Judges::Test.new(loog).run({}, [d]) }
+        end.message,
+        '1 tests failed'
+      )
+      assert_includes(loog.to_s, 'A finite number of runs is expected')
+    end
+  end
+
+  def test_runs_a_finite_number_of_runs
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        runs: 3
+        expected:
+          - /fb[count(f)=3]
+        YAML
+      )
+      Timeout.timeout(30) { Judges::Test.new(Loog::NULL).run({}, [d]) }
+      assert_path_exists(d)
+    end
+  end
+
   def test_with_timeout_failure
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), 'sleep(10)')
