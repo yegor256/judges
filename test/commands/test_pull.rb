@@ -98,6 +98,52 @@ class TestPull < Minitest::Test
     end
   end
 
+  def test_fails_when_factbase_is_never_ready
+    WebMock.disable_net_connect!
+    stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
+    stub_request(:post, %r{http://example.org/lock/foo}).to_return(status: 302)
+    stub_request(:get, 'http://example.org/exists/foo').to_return(body: 'yes')
+    stub_request(:get, 'http://example.org/recent/foo.txt').to_return(body: '42')
+    stub_request(:get, 'http://example.org/finished/42').to_return(body: 'yes')
+    stub_request(:get, 'http://example.org/exit/42.txt').to_return(body: '0')
+    stub_request(:get, 'http://example.org/pull/42.fb').to_return(status: 204)
+    unlock = stub_request(:post, %r{http://example.org/unlock/foo}).to_return(status: 302)
+    Dir.mktmpdir do |d|
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Pull.new(Loog::NULL).run(
+            { 'token' => '000', 'host' => 'example.org', 'port' => 80, 'ssl' => false, 'wait' => 1, 'owner' => 'none' },
+            ['foo', File.join(d, 'base.fb')]
+          )
+        end.message,
+        'Time is over'
+      )
+    end
+    assert_requested(unlock)
+  end
+
+  def test_pulls_when_factbase_gets_ready_in_time
+    WebMock.disable_net_connect!
+    stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
+    stub_request(:post, %r{http://example.org/lock/foo}).to_return(status: 302)
+    stub_request(:get, 'http://example.org/exists/foo').to_return(body: 'yes')
+    stub_request(:get, 'http://example.org/recent/foo.txt').to_return(body: '42')
+    stub_request(:get, 'http://example.org/finished/42').to_return(body: 'yes')
+    stub_request(:get, 'http://example.org/exit/42.txt').to_return(body: '0')
+    stub_request(:post, %r{http://example.org/unlock/foo}).to_return(status: 302)
+    fb = Factbase.new
+    fb.insert.foo = 42
+    stub_request(:get, 'http://example.org/pull/42.fb').to_return({ status: 204 }, { body: fb.export })
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      Judges::Pull.new(Loog::NULL).run(
+        { 'token' => '000', 'host' => 'example.org', 'port' => 80, 'ssl' => false, 'wait' => 10, 'owner' => 'none' },
+        ['foo', file]
+      )
+      assert_path_exists(file)
+    end
+  end
+
   def test_unlocks_baza_on_success
     WebMock.disable_net_connect!
     stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
