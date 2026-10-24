@@ -37,6 +37,47 @@ class TestPrint < Minitest::Test
     end
   end
 
+  def test_rejects_input_as_cache_sidecar
+    Dir.mktmpdir do |dir|
+      output = File.join(dir, 'report.json')
+      source = "#{output}.judges-options"
+      fb = Factbase.new
+      fb.insert.what = 'kept'
+      original = fb.export
+      File.binwrite(source, original)
+      [false, true].each do |force|
+        assert_includes(
+          assert_raises(ArgumentError) do
+            Judges::Print.new(Loog::NULL).run({ 'format' => 'json', 'force' => force }, [source, output])
+          end.message,
+          'cache sidecar'
+        )
+        assert_equal(original, File.binread(source))
+        refute_path_exists(output)
+      end
+    end
+  end
+
+  def test_rejects_cache_sidecar_linked_to_input
+    skip('Creating symbolic links requires extra privileges on Windows') if OS.windows?
+    Dir.mktmpdir do |dir|
+      source = File.join(dir, 'source.fb')
+      fb = Factbase.new
+      fb.insert.what = 'kept'
+      original = fb.export
+      File.binwrite(source, original)
+      %i[link symlink].each do |link|
+        output = File.join(dir, "#{link}.json")
+        File.public_send(link, source, "#{output}.judges-options")
+        assert_raises(ArgumentError) do
+          Judges::Print.new(Loog::NULL).run({ 'format' => 'json' }, [source, output])
+        end
+        assert_equal(original, File.binread(source))
+        refute_path_exists(output)
+      end
+    end
+  end
+
   def test_print_to_html
     WebMock.disable_net_connect!
     stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(body: 'nothing')
