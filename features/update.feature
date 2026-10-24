@@ -255,3 +255,25 @@ Feature: Update
     Then Stdout contains "1xOK"
     Then Stdout contains "1xSKIPPED (timeout)"
     And Exit code is zero
+
+  Scenario: Accept a fractional timeout for a judge
+    Given I make a temp directory
+    Then I have a "slow/slow.rb" file with content:
+    """
+      sleep(10)
+      $fb.insert.foo = 1
+    """
+    Then I run bin/judges with "--verbose update --timeout 0.5 --quiet . foo.fb"
+    Then Stdout contains "execution expired"
+    Then Stdout contains "Update completed in 1 cycle(s), did nothing"
+    And Exit code is zero
+
+  Scenario: Accept a fractional lifetime
+    Given I make a temp directory
+    Then I have a "simple/simple.rb" file with content:
+    """
+      $fb.insert.foo = 1
+    """
+    Then I run bin/judges with "--verbose update --lifetime 100.5 --timeout 3.5 --max-cycles 1 . simple.fb"
+    Then Stdout contains "Update completed in 1 cycle(s)"
+    And Exit code is zero
