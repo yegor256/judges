@@ -9,6 +9,7 @@ require 'json'
 require 'loog'
 require 'nokogiri'
 require 'online'
+require 'open3'
 require 'os'
 require 'qbash'
 require 'securerandom'
@@ -229,6 +230,23 @@ class TestPrint < Minitest::Test
       assert_equal(1, YAML.load_file(output).size)
       printer.run({ 'format' => 'json', 'query' => '(always)' }, [f, output])
       assert_equal(2, JSON.parse(File.read(output)).size)
+    end
+  end
+
+  def test_does_not_load_typhoeus_when_offline
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'base.fb')
+      File.binwrite(f, Factbase.new.export)
+      %w[yaml html].each do |fmt|
+        script = [
+          "require #{File.expand_path('../../lib/judges/commands/print', __dir__).inspect}",
+          "require 'loog'",
+          "Judges::Print.new(Loog::NULL).run({ 'format' => '#{fmt}', 'offline' => true }, [#{f.inspect}, '#{d}/x.#{fmt}'])",
+          "abort('typhoeus loaded') if defined?(Typhoeus)"
+        ].join("\n")
+        out, status = Open3.capture2e(RbConfig.ruby, '-e', script)
+        assert_predicate(status, :success?, "Printing #{fmt} offline must not load typhoeus: #{out}")
+      end
     end
   end
 
