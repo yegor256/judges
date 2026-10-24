@@ -17,6 +17,33 @@ require_relative '../test__helper'
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
 class TestUpdate < Minitest::Test
+  def test_rejects_churn_that_references_the_input
+    links = %i[symlink hardlink]
+    %i[same relative symlink hardlink missing].each do |mode|
+      Dir.mktmpdir do |dir|
+        save_it(File.join(dir, 'sample/sample.rb'), '$fb.insert.value = 42')
+        file = File.join(dir, 'base.fb')
+        original = Factbase.new.tap { |fb| fb.insert.value = 7 }.export
+        File.binwrite(file, original) unless mode == :missing
+        churn = file
+        if links.include?(mode)
+          churn = File.join(dir, 'churn.txt')
+          File.public_send(mode == :symlink ? :symlink : :link, file, churn)
+        elsif mode == :relative
+          churn = File.join(dir, '.', 'base.fb')
+        end
+        assert_raises(ArgumentError) do
+          Judges::Update.new(Loog::NULL).run({ 'churn' => churn, 'max-cycles' => 1 }, [dir, file])
+        end
+        if mode == :missing
+          refute_path_exists(file)
+        else
+          assert_equal(original, File.binread(file))
+        end
+      end
+    end
+  end
+
   def test_build_factbase_from_scratch
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), 'return if $fb.size > 2; $fb.insert.zzz = $options.foo_bar + 1')
