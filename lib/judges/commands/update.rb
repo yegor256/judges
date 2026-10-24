@@ -45,7 +45,7 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
     dir = args[0]
     raise(StandardError, "The directory is absent: #{dir.to_rel}") unless File.directory?(dir)
     guard(opts['churn'], args[1]) if opts['churn']
-    impex = Judges::Impex.new(@loog, args[1])
+    impex = Judges::Impex.new(@loog, writable(args[1]))
     fb = impex.import(strict: false)
     fb = Factbase::Logged.new(fb, @loog) if opts['log']
     options = build_options(opts)
@@ -75,6 +75,14 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
   def guard(churn, input)
     return unless File.expand_path(churn) == File.expand_path(input) || File.identical?(churn, input)
     raise(ArgumentError, 'The churn file must differ from the input factbase')
+  end
+
+  def writable(path)
+    dir = File.dirname(File.expand_path(path))
+    dir = File.dirname(dir) until File.exist?(dir)
+    ok = File.exist?(path) ? File.file?(path) && File.writable?(path) : File.directory?(dir) && File.writable?(dir)
+    raise(StandardError, "The factbase can't be written to #{path.to_rel}") unless ok
+    path
   end
 
   def build_options(opts)
