@@ -74,6 +74,13 @@ class JudgesGLI extend GLI::App
       @@loog.info("+ #{File.absolute_path($0)} #{Judges::MaskedArgs.new(@@args)}")
     end
     @@loog.debug("Judges #{Judges::VERSION}")
+    if command.name == :update
+      lifetime, timeout = options[:lifetime], options[:timeout]
+      timeout ||= lifetime ? [30, lifetime / 1.2].min : 30
+      lifetime ||= [300, timeout * 1.2].max
+      options[:lifetime] = options['lifetime'] = lifetime
+      options[:timeout] = options['timeout'] = timeout
+    end
     if global[:factbase]
       ver = global[:factbase]
       @@loog.debug("Factbase version to be used: '#{ver}' (set via --factbase)")
@@ -125,10 +132,10 @@ class JudgesGLI extend GLI::App
     c.flag([:boost], multiple: true)
     c.desc 'Demote a judge to run after all others (supports wildcards with *)'
     c.flag([:demote], multiple: true)
-    c.desc 'Maximum time in seconds for the entire update, across all cycles'
-    c.flag([:lifetime], default_value: 300, type: Integer)
-    c.desc 'Maximum time in seconds for each judge (forcefully terminates if exceeded)'
-    c.flag([:timeout], default_value: 30, type: Integer)
+    c.desc 'Maximum time in seconds for the entire update, across all cycles (300 by default)'
+    c.flag([:lifetime], type: Integer)
+    c.desc 'Maximum time in seconds for each judge, forcefully terminates if exceeded (30 by default)'
+    c.flag([:timeout], type: Integer)
     c.desc 'Maximum number of update cycles to run'
     c.flag([:'max-cycles'], default_value: 8, type: Integer)
     c.desc 'Suppress errors even when judges fail'
