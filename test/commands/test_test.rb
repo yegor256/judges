@@ -373,6 +373,16 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_shares_global_with_before_judge
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'setup/setup.rb'), '$global[:token] = "abc"')
+      save_it(File.join(d, 'user/user.rb'), 'raise "no token" if $global[:token].nil?; $fb.insert.what = "user"')
+      save_it(File.join(d, 'user/x.yml'), "before:\n  - setup\nexpected:\n  - /fb/f[what='user']")
+      Judges::Test.new(Loog::NULL).run({ 'judge' => ['user'] }, [d])
+      assert_path_exists(d)
+    end
+  end
+
   def test_accepts_a_correct_layout
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
