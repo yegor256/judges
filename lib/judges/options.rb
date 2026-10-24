@@ -120,7 +120,8 @@ class Judges::Options
 
   def mask(value)
     return '*' * value.length if value.length <= 8
-    "#{value[0..3]}#{'*' * (value.length - 8)}#{value[-4..]}"
+    edge = [value.length / 8, 4].min
+    "#{value[0, edge]}#{'*' * (value.length - (edge * 2))}#{value[-edge..]}"
   end
 
   def normalize_to_h
