@@ -153,12 +153,17 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
       stopped = true
       @loog.info("Had to stop due to the --lifetime=#{opts['lifetime']}")
     end
+    conclude(fb, ch, errors, c, opts, statistics, stopped)
+  end
+  # rubocop:enable Metrics/MethodLength
+
+  # Report statistics and write the summary, then fail if the run was stopped by --lifetime with errors.
+  def conclude(fb, churn, errors, cycles, opts, statistics, stopped)
     statistics&.report(@loog)
-    summarize(fb, ch, errors, c, opts['summary']) if %w[add append].include?(opts['summary'])
+    summarize(fb, churn, errors, cycles, opts['summary']) if %w[add append].include?(opts['summary'])
     return unless stopped && !errors.empty? && !opts['quiet']
     raise(StandardError, "Failed to update correctly (#{errors.size} errors)")
   end
-  # rubocop:enable Metrics/MethodLength
 
   # Update the summary.
   # @param [Factbase] fb The factbase
