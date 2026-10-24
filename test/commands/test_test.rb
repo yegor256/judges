@@ -53,7 +53,7 @@ class TestTest < Minitest::Test
     end
   end
 
-  def test_refuses_judge_option_that_matches_nothing_among_matching_ones
+  def test_refuses_unknown_judge_among_known
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
       save_it(File.join(d, 'foo/t1.yml'), "input: []\nexpected:\n  - /fb[count(f)=1]\n")
