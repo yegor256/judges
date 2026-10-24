@@ -53,7 +53,7 @@ class TestTest < Minitest::Test
     end
   end
 
-  def test_logs_factbase_operations_into_the_report_of_a_failed_test
+  def test_reports_factbase_operations_of_failed_test
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), "$fb.insert.x = 1\nraise 'boom'")
       save_it(File.join(d, 'foo/x.yml'), "input: []\n")
