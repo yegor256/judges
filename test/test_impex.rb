@@ -31,6 +31,15 @@ class TestImpex < Minitest::Test
     end
   end
 
+  def test_names_the_file_it_can_not_read
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'broken.fb')
+      File.write(file, 'not a factbase')
+      error = assert_raises(StandardError) { Judges::Impex.new(Loog::NULL, file).import }
+      assert_includes(error.message, 'broken.fb', error.message)
+    end
+  end
+
   def test_refuses_a_nil_file
     assert_includes(assert_raises(ArgumentError) { Judges::Impex.new(Loog::NULL, nil) }.message, 'The file is nil')
   end
