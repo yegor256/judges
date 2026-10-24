@@ -35,6 +35,13 @@ class TestImport < Minitest::Test
       fb.import(File.binread(file))
       xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
       refute_empty(xml.xpath('/fb[count(f)=2]'), xml)
+      first = fb.query('(exists foo)').first
+      assert_equal([42], first['foo'])
+      assert_instance_of(Integer, first['foo'].first)
+      assert_instance_of(Time, first['bar'].first)
+      assert_instance_of(String, first['t'].first)
+      assert_equal([3.14], fb.query('(exists z)').first['z'])
+      assert_instance_of(Float, fb.query('(exists z)').first['z'].first)
     end
   end
 
