@@ -3,6 +3,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require 'factbase'
 require 'loog'
 require 'webmock/minitest'
 require_relative '../../lib/judges'
@@ -66,6 +67,25 @@ class TestUpload < Minitest::Test
         },
         ['judge1', file]
       )
+    end
+  end
+
+  def test_makes_one_attempt_with_zero_retries
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      File.binwrite(file, Factbase.new.export)
+      seen = nil
+      maker =
+        lambda do |*_args, **kwargs|
+          seen = kwargs[:retries]
+          raise(IOError, 'no server here')
+        end
+      BazaRb.stub(:new, maker) do
+        assert_raises(IOError) do
+          Judges::Upload.new(Loog::NULL).run({ 'host' => 'example.org', 'port' => 443, 'retries' => 0 }, ['foo', file])
+        end
+      end
+      assert_equal(1, seen)
     end
   end
 
