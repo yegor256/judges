@@ -239,8 +239,10 @@ class TestPrint < Minitest::Test
       Dir.chdir(d) do
         ['--auto', '--format=html'].each do |o|
           printer = Judges::Print.new(Loog::NULL)
-          e = assert_raises(ArgumentError) { printer.run({ 'format' => 'yaml' }, [f, o]) }
-          assert_includes(e.message, 'Options must come before the arguments', "No hint for #{o}")
+          assert_includes(
+            assert_raises(ArgumentError) { printer.run({ 'format' => 'yaml' }, [f, o]) }.message,
+            'Options must come before the arguments', "No hint for #{o}"
+          )
           refute_path_exists(File.join(d, o))
         end
       end
