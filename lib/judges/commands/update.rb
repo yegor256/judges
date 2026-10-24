@@ -120,6 +120,7 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
     global = {}
     statistics = opts['statistics'] ? Judges::Statistics.new : nil
     log_summary(opts, fb)
+    stopped = false
     elapsed(@loog, level: Logger::INFO) do
       loop do
         if !opts['max-cycles'].nil? && c >= opts['max-cycles']
@@ -148,9 +149,14 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
         @loog.info("The cycle #{c} did #{delta}")
       end
       throw(:"👍 Update completed in #{c} cycle(s), did #{ch}")
+    rescue Timeout::Error, Timeout::ExitException
+      stopped = true
+      @loog.info("Had to stop due to the --lifetime=#{opts['lifetime']}")
     end
     statistics&.report(@loog)
     summarize(fb, ch, errors, c, opts['summary']) if %w[add append].include?(opts['summary'])
+    return unless stopped && !errors.empty? && !opts['quiet']
+    raise(StandardError, "Failed to update correctly (#{errors.size} errors)")
   end
   # rubocop:enable Metrics/MethodLength
 
