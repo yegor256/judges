@@ -156,6 +156,35 @@ class TestPull < Minitest::Test
     end
   end
 
+  def test_refuses_directory_before_any_request
+    WebMock.disable_net_connect!
+    Dir.mktmpdir do |d|
+      e =
+        assert_raises(StandardError) do
+          Judges::Pull.new(Loog::NULL).run(
+            { 'token' => '000', 'host' => 'example.org', 'port' => 80, 'ssl' => false, 'owner' => 'none' },
+            ['foo', d]
+          )
+        end
+      assert_includes(e.message, 'is a directory', e)
+    end
+    assert_not_requested(:any, /example\.org/)
+  end
+
+  def test_refuses_directory_for_nested_path
+    WebMock.disable_net_connect!
+    Dir.mktmpdir do |d|
+      FileUtils.mkdir_p(File.join(d, 'sub'))
+      assert_raises(StandardError) do
+        Judges::Pull.new(Loog::NULL).run(
+          { 'token' => '000', 'host' => 'example.org', 'port' => 80, 'ssl' => false, 'owner' => 'none' },
+          ['foo', File.join(d, 'sub')]
+        )
+      end
+    end
+    assert_not_requested(:any, /example\.org/)
+  end
+
   def test_fails_when_offline
     WebMock.disable_net_connect!
     assert_equal(
