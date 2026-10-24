@@ -596,4 +596,33 @@ class TestUpdate < Minitest::Test
       assert_empty(xml.xpath('/fb/f[foo]'), xml)
     end
   end
+
+  def test_refuses_factbase_under_a_file_before_running_judges
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.what = "x"')
+      File.write(File.join(d, 'plain'), 'text')
+      log = Loog::Buffer.new
+      file = File.join(d, 'plain/base.fb')
+      error = assert_raises(StandardError) { Judges::Update.new(log).run({ 'max-cycles' => 1 }, [d, file]) }
+      assert_includes(error.message, "can't be written to", error.message)
+      assert_includes(error.message, 'plain/base.fb', error.message)
+      refute_includes(log.to_s, 'Running foo', log.to_s)
+    end
+  end
+
+  def test_refuses_factbase_in_read_only_directory_before_running_judges
+    skip('root can write anywhere') if Process.uid.zero?
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.what = "x"')
+      Dir.mkdir(File.join(d, 'ro'))
+      File.chmod(0o555, File.join(d, 'ro'))
+      log = Loog::Buffer.new
+      file = File.join(d, 'ro/base.fb')
+      error = assert_raises(StandardError) { Judges::Update.new(log).run({ 'max-cycles' => 1 }, [d, file]) }
+      assert_includes(error.message, 'ro/base.fb', error.message)
+      refute_includes(log.to_s, 'Running foo', log.to_s)
+    ensure
+      File.chmod(0o755, File.join(d, 'ro'))
+    end
+  end
 end
