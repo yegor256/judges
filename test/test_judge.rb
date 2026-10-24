@@ -3,6 +3,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require 'backtrace'
 require 'factbase'
 require 'loog'
 require 'tmpdir'
@@ -105,6 +106,24 @@ class TestJudge < Minitest::Test
         save_it(File.join(dir, "#{File.basename(d)}.rb"), 'raise "intentional"')
         Judges::Judge.new(dir, lib, Loog::NULL).run(Factbase.new, {}, {}, {})
       end
+    end
+  end
+
+  def test_raises_timeout_exit_without_logging_it
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, "#{File.basename(d)}.rb"), 'raise Timeout::ExitException, "expired"')
+      log = Loog::Buffer.new
+      assert_raises(Timeout::ExitException) { Judges::Judge.new(d, nil, log).run(Factbase.new, {}, {}, {}) }
+      refute_includes(log.to_s, 'ExitException', log.to_s)
+    end
+  end
+
+  def test_logs_standard_error_with_backtrace
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, "#{File.basename(d)}.rb"), 'raise "intentional"')
+      log = Loog::Buffer.new
+      assert_raises(StandardError) { Judges::Judge.new(d, nil, log).run(Factbase.new, {}, {}, {}) }
+      assert_includes(log.to_s, 'intentional', log.to_s)
     end
   end
 end
