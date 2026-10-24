@@ -9,6 +9,7 @@ require 'fileutils'
 require 'iri'
 require 'typhoeus'
 require_relative '../../judges'
+require_relative '../../judges/owner'
 
 # The +download+ command.
 #
@@ -49,7 +50,7 @@ class Judges::Download
         return
       end
       @loog.info("Durable ##{id} ('#{name}') found in '#{jname}'")
-      baza.durable_lock(id, opts['owner'] || 'default')
+      baza.durable_lock(id, owner = Judges::Owner.new(opts['owner']).to_s)
       tmp = "#{path}.part"
       begin
         baza.durable_load(id, tmp)
@@ -57,7 +58,7 @@ class Judges::Download
         throw(:"👍 Downloaded durable ##{id} to #{path} (#{File.size(path)} bytes)")
       ensure
         FileUtils.rm_f(tmp)
-        baza.durable_unlock(id, opts['owner'] || 'default')
+        baza.durable_unlock(id, owner)
       end
     end
   end
