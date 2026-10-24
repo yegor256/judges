@@ -114,6 +114,24 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_passes_command_line_options_to_judges
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = $options.bar')
+      save_it(File.join(d, 'foo/x.yml'), "input: []\nexpected:\n  - /fb/f[foo='42']\n")
+      Judges::Test.new(Loog::NULL).run({ 'option' => ['bar=42'] }, [d])
+      assert_path_exists(d)
+    end
+  end
+
+  def test_prefers_options_of_the_pack_over_command_line
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = $options.bar')
+      save_it(File.join(d, 'foo/x.yml'), "input: []\noptions:\n  bar: 7\nexpected:\n  - /fb/f[foo='7']\n")
+      Judges::Test.new(Loog::NULL).run({ 'option' => ['bar=42'] }, [d])
+      assert_path_exists(d)
+    end
+  end
+
   def test_with_before
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'first/first.rb'), 'x = $fb.size; $fb.insert.foo = x')
