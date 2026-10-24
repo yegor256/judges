@@ -307,10 +307,10 @@ class TestTest < Minitest::Test
       )
       loog = Loog::Buffer.new
       assert_equal(
+        '1 tests failed',
         assert_raises(StandardError) do
           Timeout.timeout(30) { Judges::Test.new(loog).run({}, [d]) }
-        end.message,
-        '1 tests failed'
+        end.message
       )
       assert_includes(loog.to_s, 'A finite number of runs is expected')
     end
