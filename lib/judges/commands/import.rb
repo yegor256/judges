@@ -60,11 +60,13 @@ class Judges::Import
   # @param [String] file The path of the file to read
   # @return [Array] The list of facts found in it
   def facts(file)
-    yaml = YAML.load_file(file, permitted_classes: [Time])
-    raise(StandardError, "The file #{file.to_rel} is empty, nothing to import") if yaml.nil?
-    unless yaml.is_a?(Array)
-      raise(StandardError, "The file #{file.to_rel} must hold an array of facts, while #{yaml.class} found")
+    docs = YAML.safe_load_stream(File.read(file), permitted_classes: [Time]).compact
+    raise(StandardError, "The file #{file.to_rel} is empty, nothing to import") if docs.empty?
+    docs.each do |doc|
+      next if doc.is_a?(Array)
+      raise(StandardError, "The file #{file.to_rel} must hold an array of facts, while #{doc.class} found")
     end
+    yaml = docs.flatten(1)
     yaml.each_with_index do |fact, index|
       next if fact.is_a?(Hash)
       raise(
