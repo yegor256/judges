@@ -119,8 +119,9 @@ class Judges::Test
         buf.info("🛠️ Testing #{f.to_rel}:")
         count += run_single_test(judge, buf, opts, judges, yaml, badge)
       rescue StandardError, ScriptError => e
-        @loog.info(buf.to_s)
-        @loog.warn(Backtrace.new(e))
+        out = buf.to_s
+        @loog.info(out)
+        @loog.warn(Backtrace.new(e)) unless out.include?(Backtrace.new(e).to_s)
         errors << badge
       ensure
         times[badge] = Time.now - start
