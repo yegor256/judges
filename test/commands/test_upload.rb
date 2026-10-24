@@ -115,6 +115,25 @@ class TestUpload < Minitest::Test
     end
   end
 
+  def test_rejects_invalid_durable_name
+    WebMock.disable_net_connect!
+    Dir.mktmpdir do |d|
+      %w[http_cache.db Cache.txt data.tar.gz].each do |n|
+        file = File.join(d, n)
+        File.write(file, 'content')
+        assert_includes(
+          assert_raises(StandardError) do
+            Judges::Upload.new(Loog::NULL).run(
+              { 'token' => '000', 'host' => 'example.org', 'port' => 80, 'ssl' => false },
+              ['myjob', file]
+            )
+          end.message,
+          "The durable name '#{n}' is not valid"
+        )
+      end
+    end
+  end
+
   def test_fails_when_offline
     WebMock.disable_net_connect!
     assert_equal(
