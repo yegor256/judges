@@ -216,13 +216,8 @@ class Judges::Test
       inputs&.each do |i|
         f = fb.insert
         i.each do |k, vv|
-          unless k.is_a?(String)
-            raise(
-              StandardError,
-              "The key #{k} of an input fact in #{badge} is not a string, " \
-              "quote it if you meant 'on', 'off', 'yes' or 'no'"
-            )
-          end
+          msg = "The key #{k} of an input fact in #{badge} is not a string, quote it if it is on/off/yes/no"
+          raise(StandardError, msg) unless k.is_a?(String)
           if vv.is_a?(Array)
             vv.each do |v|
               f.public_send(:"#{k}=", v)
