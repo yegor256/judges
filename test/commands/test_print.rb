@@ -232,6 +232,23 @@ class TestPrint < Minitest::Test
     end
   end
 
+  def test_rejects_an_option_in_place_of_the_output
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'base.fb')
+      File.binwrite(f, Factbase.new.export)
+      Dir.chdir(d) do
+        ['--auto', '--format=html'].each do |o|
+          printer = Judges::Print.new(Loog::NULL)
+          assert_includes(
+            assert_raises(ArgumentError) { printer.run({ 'format' => 'yaml' }, [f, o]) }.message,
+            'Options must come before the arguments', "No hint for #{o}"
+          )
+          refute_path_exists(File.join(d, o))
+        end
+      end
+    end
+  end
+
   def test_no_integrity_when_the_asset_fails
     WebMock.disable_net_connect!
     stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(status: 500)
