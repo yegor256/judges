@@ -278,6 +278,7 @@ Feature: Update
     And Exit code is zero
 
   Scenario: Accept a fractional lifetime
+  Scenario: Read zero padded numbers as decimal
     Given I make a temp directory
     Then I have a "simple/simple.rb" file with content:
     """
@@ -285,4 +286,18 @@ Feature: Update
     """
     Then I run bin/judges with "--verbose update --lifetime 100.5 --timeout 3.5 --max-cycles 1 . simple.fb"
     Then Stdout contains "Update completed in 1 cycle(s)"
+    Then I run bin/judges with "--verbose update --lifetime=0900 --max-cycles=010 . simple.fb"
+    Then Stdout contains "LIFETIME → 900.0"
+    Then Stdout contains "Update completed in 10 cycle(s)"
+    And Exit code is zero
+
+  Scenario: Read a zero padded timeout as decimal
+    Given I make a temp directory
+    Then I have a "simple/simple.rb" file with content:
+    """
+      $fb.insert.foo = 1
+    """
+    Then I run bin/judges with "--verbose update --lifetime=0300 --timeout=0020 --max-cycles=1 . simple.fb"
+    Then Stdout contains "LIFETIME → 300.0"
+    Then Stdout contains "TIMEOUT → 20.0"
     And Exit code is zero
