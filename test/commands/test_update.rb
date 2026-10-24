@@ -444,6 +444,20 @@ class TestUpdate < Minitest::Test
       fb.import(File.binread(file))
       assert_equal(2, fb.query('(always)').to_a.size)
       assert_match(%r{bar\s+\d\.\d{3}\s+\d\s+N/A\s+SKIPPED}, loog.to_s)
+      assert_includes(loog.to_s, "The 'bar' judge skipped itself in")
+      refute_includes(loog.to_s, 'skip (RuntimeError)')
+    end
+  end
+
+  def test_skipped_judge_logged_as_skip_once
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'sk/sk.rb'), "raise 'skip'")
+      loog = Loog::Buffer.new
+      Judges::Update.new(loog).run(
+        { 'statistics' => true, 'quiet' => true, 'expect-judges' => false }, [d, File.join(d, 'base.fb')]
+      )
+      assert_equal(1, loog.to_s.scan("The 'sk' judge skipped itself in").size)
+      refute_includes(loog.to_s, 'skip (RuntimeError)')
     end
   end
 
