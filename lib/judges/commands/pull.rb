@@ -33,17 +33,9 @@ class Judges::Pull
   def run(opts, args)
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     raise(StandardError, 'The pull command needs the network, while --offline is set') if opts['offline']
-    if File.directory?(args[1])
-      raise(StandardError, "The factbase path is a directory: #{args[1].to_rel}")
-    end
+    raise(StandardError, "The factbase path is a directory: #{args[1].to_rel}") if File.directory?(args[1])
     fb = Factbase.new
-    baza = BazaRb.new(
-      opts['host'], opts['port'].to_i, opts['token'],
-      ssl: opts['ssl'],
-      timeout: (opts['timeout'] || 30).to_f,
-      loog: @loog,
-      retries: (opts['retries'] || 3).to_i
-    )
+    baza = connect(opts)
     name = args[0]
     elapsed(@loog, level: Logger::INFO) do
       if baza.name_exists?(name)
@@ -67,6 +59,16 @@ class Judges::Pull
   end
 
   private
+
+  def connect(opts)
+    BazaRb.new(
+      opts['host'], opts['port'].to_i, opts['token'],
+      ssl: opts['ssl'],
+      timeout: (opts['timeout'] || 30).to_f,
+      loog: @loog,
+      retries: (opts['retries'] || 3).to_i
+    )
+  end
 
   def wait(name, baza, id, limit)
     raise(StandardError, 'Waiting time is nil') if limit.nil?
