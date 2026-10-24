@@ -380,4 +380,15 @@ class TestTest < Minitest::Test
       Judges::Test.new(Loog::NULL).run({}, [d])
     end
   end
+
+  def test_restores_globals_after_assertion_script
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(File.join(d, 'foo/assert.rb'), 'raise unless $fb.size == 1')
+      save_it(File.join(d, 'foo/x.yml'), "input: []\nafter:\n  - assert.rb")
+      Judges::Test.new(Loog::NULL).run({}, [d])
+      assert_nil($fb, 'The factbase of the pack leaked out of the after script')
+      assert_nil($loog, 'The log of the pack leaked out of the after script')
+    end
+  end
 end
