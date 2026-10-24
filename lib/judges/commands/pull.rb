@@ -45,7 +45,7 @@ class Judges::Pull
       if baza.name_exists?(name)
         baza.lock(name, opts['owner'])
         begin
-          jid = baza.recent(name)
+          jid = recent(name, baza)
           unless baza.exit_code(jid).zero?
             @loog.warn("STDOUT of the job ##{jid} (from the server):\n#{baza.stdout(jid)}")
             raise(StandardError, "The job ##{jid} ('#{name}') is broken, maybe you should expire it")
@@ -63,6 +63,13 @@ class Judges::Pull
   end
 
   private
+
+  def recent(name, baza)
+    baza.recent(name)
+  rescue BazaRb::ServerFailure => e
+    raise unless e.message.include?('not-yet-expired')
+    throw(:"⚠️ Nothing to pull - name '#{name}' has no not-yet-expired jobs on server")
+  end
 
   def wait(name, baza, id, limit)
     raise(StandardError, 'Waiting time is nil') if limit.nil?
