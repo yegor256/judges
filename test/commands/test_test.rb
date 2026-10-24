@@ -114,6 +114,28 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_with_before_and_expected_failure
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'first/first.rb'), '$fb.insert.foo = 1')
+      save_it(File.join(d, 'second/second.rb'), 'raise "this is intentional"')
+      save_it(
+        File.join(d, 'second/something.yml'),
+        <<-YAML
+        input: []
+        runs: 2
+        before:
+          - first
+        expected_failure:
+          - intentional
+        expected:
+          - /fb[count(f)=1]
+        YAML
+      )
+      Judges::Test.new(Loog::NULL).run({}, [d])
+      assert_path_exists(d)
+    end
+  end
+
   def test_with_before
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'first/first.rb'), 'x = $fb.size; $fb.insert.foo = x')
