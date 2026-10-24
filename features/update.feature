@@ -286,3 +286,23 @@ Feature: Update
     Then I run bin/judges with "--verbose update --lifetime 100.5 --timeout 3.5 --max-cycles 1 . simple.fb"
     Then Stdout contains "Update completed in 1 cycle(s)"
     And Exit code is zero
+
+  Scenario: Accept only --lifetime that is shorter than the default timeout
+    Given I make a temp directory
+    Then I have a "simple/simple.rb" file with content:
+    """
+      $fb.insert.foo = 1
+    """
+    Then I run bin/judges with "--verbose update --lifetime 20 --max-cycles 1 . simple.fb"
+    Then Stdout contains "Update completed in 1 cycle(s)"
+    And Exit code is zero
+
+  Scenario: Accept only --timeout that is longer than the default lifetime
+    Given I make a temp directory
+    Then I have a "simple/simple.rb" file with content:
+    """
+      $fb.insert.foo = 1
+    """
+    Then I run bin/judges with "--verbose update --timeout 400 --max-cycles 1 . simple.fb"
+    Then Stdout contains "Update completed in 1 cycle(s)"
+    And Exit code is zero
