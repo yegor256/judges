@@ -9,6 +9,7 @@ require 'iri'
 require 'typhoeus'
 require_relative '../../judges'
 require_relative '../../judges/impex'
+require_relative '../../judges/owner'
 
 # The +pull+ command.
 #
@@ -44,7 +45,7 @@ class Judges::Pull
     elapsed(@loog, level: Logger::INFO) do
       if baza.name_exists?(name)
         jid = wait(name, baza, baza.recent(name), opts['wait'])
-        baza.lock(name, opts['owner'])
+        baza.lock(name, owner = Judges::Owner.new(opts['owner']).to_s)
         begin
           unless baza.exit_code(jid).zero?
             @loog.warn("STDOUT of the job ##{jid} (from the server):\n#{baza.stdout(jid)}")
@@ -53,7 +54,7 @@ class Judges::Pull
           fb.import(baza.pull(jid))
           Judges::Impex.new(@loog, args[1]).export(fb)
         ensure
-          baza.unlock(name, opts['owner'])
+          baza.unlock(name, owner)
         end
         throw(:"👍 Pulled #{fb.size} facts by name '#{name}'")
       else
