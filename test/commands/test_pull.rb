@@ -156,6 +156,35 @@ class TestPull < Minitest::Test
     end
   end
 
+  def test_fail_pull_when_stdout_of_broken_job_is_absent
+    WebMock.disable_net_connect!
+    stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
+    stub_request(:post, %r{http://example.org/lock/foo}).to_return(status: 302)
+    stub_request(:get, 'http://example.org/exists/foo').to_return(body: 'yes')
+    stub_request(:get, 'http://example.org/recent/foo.txt').to_return(body: '42')
+    stub_request(:get, 'http://example.org/exit/42.txt').to_return(body: '1')
+    stub_request(:get, 'http://example.org/stdout/42.txt').to_return(status: 404)
+    unlock = stub_request(:post, %r{http://example.org/unlock/foo}).to_return(status: 302)
+    Dir.mktmpdir do |d|
+      e =
+        assert_raises(StandardError) do
+          Judges::Pull.new(Loog::NULL).run(
+            {
+              'token' => '000',
+              'host' => 'example.org',
+              'port' => 80,
+              'ssl' => false,
+              'retries' => 1,
+              'owner' => 'none'
+            },
+            ['foo', File.join(d, 'base.fb')]
+          )
+        end
+      assert_includes(e.message, "The job #42 ('foo') is broken", e)
+    end
+    assert_requested(unlock)
+  end
+
   def test_fails_when_offline
     WebMock.disable_net_connect!
     assert_equal(
