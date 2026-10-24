@@ -153,6 +153,29 @@ class TestPrint < Minitest::Test
     assert_equal('w50', cols.last['class'], 'Last col should have class="w50"')
   end
 
+  def test_prints_values_of_facts_to_html
+    Dir.mktmpdir do |d|
+      fb = Factbase.new
+      f = fb.insert
+      f.what = 'merge'
+      f.when = Time.utc(2025, 1, 10)
+      f.ticket = 42
+      fb.insert.what = 'push'
+      factbase = File.join(d, 'base.fb')
+      File.binwrite(factbase, fb.export)
+      html = File.join(d, 'base.html')
+      Judges::Print.new(Loog::NULL).run(
+        { 'format' => 'html', 'offline' => true, 'columns' => 'what,when,ticket' }, [factbase, html]
+      )
+      rows = Nokogiri::HTML(File.read(html)).css('table#facts tbody tr')
+      assert_equal(2, rows.size)
+      assert_equal(%w[merge push], rows.map { |r| r.css('td')[0].text.strip })
+      assert_equal('2025-01-10T00:00:00Z', rows[0].css('td')[1].text.strip)
+      assert_equal('42', rows[0].css('td')[2].text.strip)
+      assert_equal('', rows[1].css('td')[2].text.strip)
+    end
+  end
+
   def test_refuses_an_unknown_format
     Dir.mktmpdir do |d|
       f = File.join(d, 'base.fb')
