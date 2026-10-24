@@ -203,7 +203,7 @@ class Judges::Test
   def include?(opts, name, tname = nil)
     judges = opts['judge'] || []
     return true if judges.empty?
-    re = tname.nil? ? '.+' : tname
+    re = tname.nil? ? '.+' : Regexp.escape(tname)
     judges.any? { |n| n.match?(%r{^#{Regexp.escape(name)}(/#{re})?$}) }
   end
 
