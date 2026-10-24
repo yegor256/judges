@@ -98,6 +98,55 @@ class TestPull < Minitest::Test
     end
   end
 
+  def test_waits_for_the_job_before_locking
+    WebMock.disable_net_connect!
+    polls = 0
+    stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
+    stub_request(:post, %r{http://example.org/lock/foo}).to_return { { status: polls > 1 ? 302 : 409 } }
+    stub_request(:get, 'http://example.org/exists/foo').to_return(body: 'yes')
+    stub_request(:get, 'http://example.org/recent/foo.txt').to_return(body: '42')
+    stub_request(:get, 'http://example.org/finished/42').to_return do
+      polls += 1
+      { body: polls > 1 ? 'yes' : 'no' }
+    end
+    stub_request(:get, 'http://example.org/exit/42.txt').to_return(body: '0')
+    unlock = stub_request(:post, %r{http://example.org/unlock/foo}).to_return(status: 302)
+    fb = Factbase.new
+    fb.insert.foo = 42
+    stub_request(:get, 'http://example.org/pull/42.fb').to_return(body: fb.export, headers: {})
+    pull = Judges::Pull.new(Loog::NULL)
+    Dir.mktmpdir do |d|
+      pull.stub(:sleep, ->(_seconds) {}) do
+        pull.run(
+          { 'token' => '000', 'host' => 'example.org', 'port' => 80, 'ssl' => false, 'wait' => 10, 'owner' => 'none' },
+          ['foo', File.join(d, 'base.fb')]
+        )
+      end
+    end
+    assert_requested(unlock)
+  end
+
+  def test_fails_on_timeout_without_locking
+    WebMock.disable_net_connect!
+    stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
+    lock = stub_request(:post, %r{http://example.org/lock/foo}).to_return(status: 302)
+    stub_request(:get, 'http://example.org/exists/foo').to_return(body: 'yes')
+    stub_request(:get, 'http://example.org/recent/foo.txt').to_return(body: '42')
+    stub_request(:get, 'http://example.org/finished/42').to_return(body: 'no')
+    Dir.mktmpdir do |d|
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Pull.new(Loog::NULL).run(
+            { 'token' => '000', 'host' => 'example.org', 'port' => 80, 'ssl' => false, 'wait' => 0, 'owner' => 'none' },
+            ['foo', File.join(d, 'base.fb')]
+          )
+        end.message,
+        'Time is over'
+      )
+    end
+    assert_not_requested(lock)
+  end
+
   def test_unlocks_baza_on_success
     WebMock.disable_net_connect!
     stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
