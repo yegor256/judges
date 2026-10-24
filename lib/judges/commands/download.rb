@@ -40,8 +40,7 @@ class Judges::Download
       opts['host'], opts['port'].to_i, opts['token'],
       ssl: opts['ssl'],
       timeout: (opts['timeout'] || 30).to_f,
-      loog: @loog,
-      retries: (opts['retries'] || 3).to_i
+      loog: @loog, retries: (opts['retries'] || 3).to_i
     )
     elapsed(@loog, level: Logger::INFO) do
       id = baza.durable_find(jname, name)
