@@ -153,6 +153,25 @@ class TestPrint < Minitest::Test
     assert_equal('w50', cols.last['class'], 'Last col should have class="w50"')
   end
 
+  def test_prints_html_without_self_closing_tbody
+    Dir.mktmpdir do |d|
+      fb = Factbase.new
+      fb.insert.what = 'alpha'
+      factbase = File.join(d, 'base.fb')
+      File.binwrite(factbase, fb.export)
+      printer = Judges::Print.new(Loog::NULL)
+      ['(eq what "absent")', '(always)'].each_with_index do |query, idx|
+        html = File.join(d, "#{idx}.html")
+        printer.run({ 'format' => 'html', 'offline' => true, 'query' => query }, [factbase, html])
+        refute_match(%r{<tbody\s*/>}, File.read(html), "Self-closing tbody for #{query}")
+      end
+      empty = File.join(d, 'empty.fb')
+      File.binwrite(empty, Factbase.new.export)
+      printer.run({ 'format' => 'html', 'offline' => true }, [empty, File.join(d, 'empty.html')])
+      refute_match(%r{<tbody\s*/>}, File.read(File.join(d, 'empty.html')), 'Self-closing tbody for empty factbase')
+    end
+  end
+
   def test_refuses_an_unknown_format
     Dir.mktmpdir do |d|
       f = File.join(d, 'base.fb')
