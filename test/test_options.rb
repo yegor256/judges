@@ -95,6 +95,19 @@ class TestOptions < Minitest::Test
     assert_includes(s, '"long****************cret"', s)
   end
 
+  def test_turns_yaml_scalars_into_strings
+    o = Judges::Options.new('debug' => true, 'ratio' => 1.5, 'off' => false)
+    assert_equal('true', o.debug)
+    assert_equal('1.5', o.ratio)
+    assert_equal('false', o.off)
+  end
+
+  def test_gives_the_same_values_for_yaml_and_command_line
+    cli = Judges::Options.new(['debug=true', 'ratio=1.5', 'count=42'])
+    yml = Judges::Options.new('debug' => true, 'ratio' => 1.5, 'count' => 42)
+    assert_equal(cli.to_h, yml.to_h)
+  end
+
   def test_masks_short_values
     rendered = Judges::Options.new('token' => 'hunter2').to_s
     refute_includes(rendered, 'hunter2', rendered)
