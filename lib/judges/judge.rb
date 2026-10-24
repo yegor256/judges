@@ -3,6 +3,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require 'backtrace'
 require 'elapsed'
 require 'factbase/tallied'
 require 'octokit'
@@ -69,16 +70,16 @@ class Judges::Judge
     $epoch = @epoch
     $kickoff = Time.now
     options.to_h.each { |k, v| ENV.store(k.to_s, v.to_s) }
-    unless @lib.nil?
-      raise(StandardError, "Lib dir #{@lib.to_rel} is absent") unless File.exist?(@lib)
-      raise(StandardError, "Lib #{@lib.to_rel} is not a directory") unless File.directory?(@lib)
-      Dir.glob(File.join(@lib, '*.rb')).each do |f|
-        require_relative(File.absolute_path(f))
-      end
-    end
     s = File.join(@dir, script)
     raise(StandardError, "Can't load '#{s}'") unless File.exist?(s)
     elapsed(@loog, good: "#{$judge} completed", level: Logger::INFO) do
+      unless @lib.nil?
+        raise(StandardError, "Lib dir #{@lib.to_rel} is absent") unless File.exist?(@lib)
+        raise(StandardError, "Lib #{@lib.to_rel} is not a directory") unless File.directory?(@lib)
+        Dir.glob(File.join(@lib, '*.rb')).each do |f|
+          require_relative(File.absolute_path(f))
+        end
+      end
       load(s, true)
       nil
       # rubocop:disable Lint/RescueException
