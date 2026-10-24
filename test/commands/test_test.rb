@@ -53,6 +53,28 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_logs_factbase_operations_into_the_report_of_a_failed_test
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), "$fb.insert.x = 1\nraise 'boom'")
+      save_it(File.join(d, 'foo/x.yml'), "input: []\n")
+      loog = Loog::Buffer.new
+      assert_raises(StandardError) { Judges::Test.new(loog).run({ 'log' => true }, [d]) }
+      out = loog.to_s
+      assert_operator(out.index('Inserted new fact'), :>, out.index('🛠️ Testing'), out)
+      assert_operator(out.index('Inserted new fact'), :<, out.index('boom'), out)
+    end
+  end
+
+  def test_hides_factbase_operations_of_a_passed_test
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.x = 1')
+      save_it(File.join(d, 'foo/x.yml'), "input: []\nexpected:\n  - /fb/f[x]\n")
+      loog = Loog::Buffer.new
+      Judges::Test.new(loog).run({ 'log' => true }, [d])
+      refute_includes(loog.to_s, 'Inserted new fact')
+    end
+  end
+
   def test_negative
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.query("(eq foo 42)").each { |f| f.bar = 4 }')
