@@ -40,6 +40,8 @@ class Judges::Eval
         eval(args[1])
       rescue SyntaxError => e
         raise(StandardError, "The expression #{args[1].inspect} is not valid Ruby: #{e.message}", cause: e)
+      rescue UncaughtThrowError => e
+        raise(StandardError, "The expression #{args[1].inspect} threw #{e.tag.inspect}, but nobody caught it", cause: e)
       rescue ScriptError => e
         raise(StandardError, "The expression #{args[1].inspect} failed: #{e.message}", cause: e)
       end
