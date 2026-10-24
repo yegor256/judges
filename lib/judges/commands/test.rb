@@ -40,7 +40,6 @@ class Judges::Test
   def run(opts, args)
     raise(ArgumentError, 'Exactly one argument required') unless args.size == 1
     dir = args[0]
-    raise(StandardError, "The directory is absent: #{dir.to_rel}") unless File.directory?(dir)
     @loog.info("Testing judges in #{dir.to_rel}...")
     misplaced(dir)
     errors = []
@@ -91,8 +90,9 @@ class Judges::Test
   # nothing says why.
   #
   # @param [String] dir The directory with judges
-  # @raise [StandardError] If at least one sub-directory has no script of its own
+  # @raise [StandardError] If the directory is absent or a sub-directory has no script of its own
   def misplaced(dir)
+    raise(StandardError, "The directory is absent: #{dir.to_rel}") unless File.directory?(dir)
     bad =
       Dir.glob(File.join(dir, '*'))
         .select { |d| File.directory?(d) }
