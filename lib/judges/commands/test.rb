@@ -289,7 +289,9 @@ class Judges::Test
     return if xpaths.nil?
     xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
     xpaths.each do |xp|
-      raise(StandardError, "#{judge.name}/#{tname} doesn't match '#{xp}':\n#{xml}") if xml.xpath(xp).empty?
+      found = xml.xpath(xp)
+      next if found == true || (found.is_a?(Nokogiri::XML::NodeSet) && !found.empty?)
+      raise(StandardError, "#{judge.name}/#{tname} doesn't match '#{xp}':\n#{xml}")
     end
   end
 end
