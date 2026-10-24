@@ -206,16 +206,14 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
     delta = Factbase::Churn.new
     used = 0
     elapsed(@loog, level: Logger::INFO) do
-      done = 0
       judges.each_with_index do |judge, idx|
-        done += 1
         result = run_judge_in_cycle(judge, idx, opts, fb, churn, options, errors, global, statistics)
         next unless result
         used += 1
         delta += result if result.is_a?(Factbase::Churn)
       end
-      throw(:"👍 #{done} judge(s) processed") if errors.empty?
-      throw(:"❌ #{done} judge(s) processed with #{errors.size} errors")
+      throw(:"👍 #{used} judge(s) processed") if errors.empty?
+      throw(:"❌ #{used} judge(s) processed with #{errors.size} errors")
     end
     if used.zero?
       raise(StandardError, 'No judges were used, while at least one expected to run') if opts['expect-judges']
