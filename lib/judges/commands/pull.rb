@@ -34,7 +34,7 @@ class Judges::Pull
     raise(StandardError, 'The pull command needs the network, while --offline is set') if opts['offline']
     fb = Factbase.new
     baza = BazaRb.new(
-      opts['host'], opts['port'].to_i, opts['token'],
+      opts['host'], opts['port'].to_i, token(opts),
       ssl: opts['ssl'],
       timeout: (opts['timeout'] || 30).to_f,
       loog: @loog,
@@ -63,6 +63,11 @@ class Judges::Pull
   end
 
   private
+
+  def token(opts)
+    raise(StandardError, 'The --token option is required for the pull command') if opts['token'].to_s.empty?
+    opts['token']
+  end
 
   def wait(name, baza, id, limit)
     raise(StandardError, 'Waiting time is nil') if limit.nil?
