@@ -102,10 +102,11 @@ class TestOptions < Minitest::Test
     assert_equal('false', o.off)
   end
 
-  def test_gives_the_same_values_for_yaml_and_command_line
-    cli = Judges::Options.new(['debug=true', 'ratio=1.5', 'count=42'])
-    yml = Judges::Options.new('debug' => true, 'ratio' => 1.5, 'count' => 42)
-    assert_equal(cli.to_h, yml.to_h)
+  def test_matches_command_line_options
+    assert_equal(
+      Judges::Options.new(['debug=true', 'ratio=1.5', 'count=42']).to_h,
+      Judges::Options.new('debug' => true, 'ratio' => 1.5, 'count' => 42).to_h
+    )
   end
 
   def test_masks_short_values
