@@ -81,8 +81,8 @@ The `after` (default: `[]`) is a list of relative file names
 of Ruby scripts that are executed after the judge
 (`$fb` and `$loog` are passed into them).
 
-The `expected_failure` (default: `[]`) is a list of strings that must
-be present in the message of the exception being raised.
+The `expected_failure` (default: `[]`) is a list of strings; the exception
+being raised is accepted when its message contains at least one of them.
 
 ## Architecture
 
