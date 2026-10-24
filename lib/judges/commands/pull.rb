@@ -47,7 +47,11 @@ class Judges::Pull
         begin
           jid = baza.recent(name)
           unless baza.exit_code(jid).zero?
-            @loog.warn("STDOUT of the job ##{jid} (from the server):\n#{baza.stdout(jid)}")
+            begin
+              @loog.warn("STDOUT of the job ##{jid} (from the server):\n#{baza.stdout(jid)}")
+            rescue BazaRb::ServerFailure => e
+              @loog.warn("Can't read the STDOUT of the job ##{jid}: #{e.message}")
+            end
             raise(StandardError, "The job ##{jid} ('#{name}') is broken, maybe you should expire it")
           end
           fb.import(baza.pull(wait(name, baza, jid, opts['wait'])))
