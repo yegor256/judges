@@ -53,6 +53,29 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_refuses_unknown_judge_among_known
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(File.join(d, 'foo/t1.yml'), "input: []\nexpected:\n  - /fb[count(f)=1]\n")
+      e =
+        assert_raises(StandardError) do
+          Judges::Test.new(Loog::NULL).run({ 'judge' => %w[foo fooo] }, [d])
+        end
+      assert_includes(e.message, 'No judge matches --judge=fooo, while these are available: foo', e.message)
+    end
+  end
+
+  def test_accepts_judge_options_that_all_match
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(File.join(d, 'foo/t1.yml'), "input: []\nexpected:\n  - /fb[count(f)=1]\n")
+      save_it(File.join(d, 'bar/bar.rb'), '$fb.insert.bar = 42')
+      save_it(File.join(d, 'bar/t2.yml'), "input: []\nexpected:\n  - /fb[count(f)=1]\n")
+      Judges::Test.new(Loog::NULL).run({ 'judge' => %w[foo bar/t2] }, [d])
+      assert_path_exists(d)
+    end
+  end
+
   def test_negative
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.query("(eq foo 42)").each { |f| f.bar = 4 }')
