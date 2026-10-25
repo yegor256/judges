@@ -373,6 +373,37 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_one_pack_fails_when_after_script_aborts
+    badges = %w[a/t1 a/t2]
+    results = %w[ERROR OK]
+    ["abort('check failed')", 'exit(1)', 'raise Interrupt'].each do |code|
+      Dir.mktmpdir do |d|
+        save_it(File.join(d, 'a/a.rb'), '$fb.insert.foo = 1')
+        save_it(File.join(d, 'a/boom.rb'), code)
+        save_it(File.join(d, 'a/t1.yml'), "after:\n  - boom.rb")
+        save_it(File.join(d, 'a/t2.yml'), 'input: []')
+        loog = Loog::Buffer.new
+        assert_includes(
+          assert_raises(StandardError) { Judges::Test.new(loog).run({}, [d]) }.message,
+          '1 tests failed', code
+        )
+        assert_equal(results, badges.map { |t| loog.to_s[/#{t}\s+\S+\s+(\w+)/, 1] }, code)
+      end
+    end
+  end
+
+  def test_quiet_does_not_fail_on_after_script_abort
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'a/a.rb'), '$fb.insert.foo = 1')
+      save_it(File.join(d, 'a/boom.rb'), "abort('check failed')")
+      save_it(File.join(d, 'a/t1.yml'), "after:\n  - boom.rb")
+      save_it(File.join(d, 'a/t2.yml'), 'input: []')
+      loog = Loog::Buffer.new
+      Judges::Test.new(loog).run({ 'quiet' => true }, [d])
+      assert_equal(%w[ERROR OK], %w[a/t1 a/t2].map { |t| loog.to_s[/#{t}\s+\S+\s+(\w+)/, 1] })
+    end
+  end
+
   def test_accepts_a_correct_layout
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
