@@ -155,6 +155,26 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_runs_an_after_script_without_a_timeout
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(File.join(d, 'foo/boom.rb'), 'raise "after was here"')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        after:
+          - boom.rb
+        YAML
+      )
+      e =
+        assert_raises(StandardError) do
+          Judges::Test.new(Loog::NULL).run({}, [d])
+        end
+      assert_includes(e.message, '1 tests failed', e.message)
+    end
+  end
+
   def test_with_after_assertion
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42;')
