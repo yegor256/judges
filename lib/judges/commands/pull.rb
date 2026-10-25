@@ -31,7 +31,7 @@ class Judges::Pull
   # @raise [RuntimeError] If not exactly two arguments provided
   def run(opts, args)
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
-    fb = Factbase.new
+    raise(StandardError, 'The pull command needs the network, while --offline is set') if opts['offline']
     baza = BazaRb.new(
       opts['host'], opts['port'].to_i, opts['token'],
       ssl: opts['ssl'],
@@ -49,7 +49,7 @@ class Judges::Pull
             @loog.warn("STDOUT of the job ##{jid} (from the server):\n#{baza.stdout(jid)}")
             raise(StandardError, "The job ##{jid} ('#{name}') is broken, maybe you should expire it")
           end
-          fb.import(baza.pull(wait(name, baza, jid, opts['wait'])))
+          fb = Factbase.new.tap { |base| base.import(baza.pull(wait(name, baza, jid, opts['wait']))) }
           Judges::Impex.new(@loog, args[1]).export(fb)
           File.binwrite(Judges::Impex.marker(args[1]), jid.to_s)
         ensure
@@ -66,17 +66,15 @@ class Judges::Pull
 
   def wait(name, baza, id, limit)
     raise(StandardError, 'Waiting time is nil') if limit.nil?
-    start = Time.now
+    start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     loop do
       break if baza.finished?(id)
-      raise(StandardError, "Time is over, the job ##{id} ('#{name}') is still not completed") if limit <= 0
-      sleep(1)
-      if Time.now - start > limit
+      duration = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
+      if limit <= 0 || duration > limit
         raise(StandardError, "Time is over, the job ##{id} ('#{name}') is still not completed")
       end
-      @loog.debug(
-        "Still waiting for the job ##{id} ('#{name}') to finish... (#{format('%.2f', Time.now - start)}s already)"
-      )
+      @loog.debug("Still waiting for the job ##{id} ('#{name}') to finish... (#{format('%.2f', duration)}s already)")
+      sleep(1)
     end
     id
   end

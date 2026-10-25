@@ -213,4 +213,14 @@ class TestPush < Minitest::Test
       refute(File.file?(marker), 'a successful push invalidates the old pull marker')
     end
   end
+
+  def test_fails_when_offline
+    WebMock.disable_net_connect!
+    assert_equal(
+      'The push command needs the network, while --offline is set',
+      assert_raises(StandardError) do
+        Judges::Push.new(Loog::NULL).run({ 'offline' => true }, ['foo', 'file.fb'])
+      end.message
+    )
+  end
 end
