@@ -28,7 +28,7 @@ require_relative '../../judges/to_rel'
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
-class Judges::Update
+class Judges::Update # rubocop:disable Metrics/ClassLength
   # Initialize.
   # @param [Loog] loog Logging facility
   def initialize(loog)
@@ -44,6 +44,7 @@ class Judges::Update
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     dir = args[0]
     raise(StandardError, "The directory is absent: #{dir.to_rel}") unless File.directory?(dir)
+    guard(opts['churn'], args[1]) if opts['churn']
     impex = Judges::Impex.new(@loog, args[1])
     fb = impex.import(strict: false)
     fb = Factbase::Logged.new(fb, @loog) if opts['log']
@@ -55,7 +56,7 @@ class Judges::Update
     )
     churn = Factbase::Churn.new
     begin
-      Timeout.timeout(opts['lifetime']) do
+      Timeout.timeout(opts['lifetime'] ? [opts['lifetime'] - (Time.now - @start), 0.001].max : nil) do
         loop_them(judges, fb, churn, opts, options)
       end
     rescue Timeout::Error, Timeout::ExitException
@@ -70,6 +71,11 @@ class Judges::Update
   end
 
   private
+
+  def guard(churn, input)
+    return unless File.expand_path(churn) == File.expand_path(input) || File.identical?(churn, input)
+    raise(ArgumentError, 'The churn file must differ from the input factbase')
+  end
 
   def build_options(opts)
     options = Judges::Options.new(timeout: opts['timeout']&.to_f, lifetime: opts['lifetime']&.to_f)
@@ -111,6 +117,7 @@ class Judges::Update
     c = 0
     ch = Factbase::Churn.new
     errors = []
+    global = {}
     statistics = opts['statistics'] ? Judges::Statistics.new : nil
     log_summary(opts, fb)
     elapsed(@loog, level: Logger::INFO) do
@@ -128,7 +135,7 @@ class Judges::Update
           end
           @loog.info("\nStarting cycle ##{c}#{" (out of #{opts['max-cycles']})" if opts['max-cycles']}...")
         end
-        delta = cycle(opts, judges, fb, churn, options, errors, statistics)
+        delta = cycle(opts, judges, fb, churn, options, errors, global, statistics)
         ch += delta
         if delta.zero?
           @loog.info("The update cycle ##{c} has made no changes to the factbase, let's stop")
@@ -173,9 +180,9 @@ class Judges::Update
     s.version = Judges::VERSION
     s.seconds = Time.now - @start
     s.cycles = cycles
-    s.inserted = churn.inserted.size
-    s.deleted = churn.deleted.size
-    s.added = churn.added.size
+    s.inserted = churn.inserted
+    s.deleted = churn.deleted
+    s.added = churn.added
     if errors.empty?
       @loog.info('No errors added to the summary')
     else
@@ -192,11 +199,11 @@ class Judges::Update
   # @param [Factbase::Churn] churn All modifications
   # @param [Judges::Options] options The options
   # @param [Array<String>] errors List of errors
+  # @param [Hash] global The global hash, shared by all cycles of a run
   # @param [Judges::Statistics] statistics Statistics tracking object (optional)
   # @return [Factbase::Churn] How many modifications have been made in current cycle
-  def cycle(opts, judges, fb, churn, options, errors, statistics = nil)
+  def cycle(opts, judges, fb, churn, options, errors, global, statistics = nil)
     delta = Factbase::Churn.new
-    global = {}
     used = 0
     elapsed(@loog, level: Logger::INFO) do
       done = 0

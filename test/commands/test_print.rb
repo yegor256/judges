@@ -49,6 +49,47 @@ class TestPrint < Minitest::Test
     end
   end
 
+  def test_rejects_input_as_cache_sidecar
+    Dir.mktmpdir do |dir|
+      output = File.join(dir, 'report.json')
+      source = "#{output}.judges-options"
+      fb = Factbase.new
+      fb.insert.what = 'kept'
+      original = fb.export
+      File.binwrite(source, original)
+      [false, true].each do |force|
+        assert_includes(
+          assert_raises(ArgumentError) do
+            Judges::Print.new(Loog::NULL).run({ 'format' => 'json', 'force' => force }, [source, output])
+          end.message,
+          'cache sidecar'
+        )
+        assert_equal(original, File.binread(source))
+        refute_path_exists(output)
+      end
+    end
+  end
+
+  def test_rejects_cache_sidecar_linked_to_input
+    skip('Creating symbolic links requires extra privileges on Windows') if OS.windows?
+    Dir.mktmpdir do |dir|
+      source = File.join(dir, 'source.fb')
+      fb = Factbase.new
+      fb.insert.what = 'kept'
+      original = fb.export
+      File.binwrite(source, original)
+      %i[link symlink].each do |link|
+        output = File.join(dir, "#{link}.json")
+        File.public_send(link, source, "#{output}.judges-options")
+        assert_raises(ArgumentError) do
+          Judges::Print.new(Loog::NULL).run({ 'format' => 'json' }, [source, output])
+        end
+        assert_equal(original, File.binread(source))
+        refute_path_exists(output)
+      end
+    end
+  end
+
   def test_print_to_html
     WebMock.disable_net_connect!
     stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(body: 'nothing')
@@ -224,6 +265,33 @@ class TestPrint < Minitest::Test
       assert_nil(script['integrity'])
     end
     assert_includes(loog.to_s, 'without integrity check')
+  end
+
+  def test_retries_the_asset_after_a_failure
+    WebMock.disable_net_connect!
+    stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css')
+      .to_return({ status: 500 }, { status: 200, body: 'body { color: red; }' })
+    stub_request(:get, 'https://yegor256.github.io/judges/assets/index.js')
+      .to_return({ status: 500 }, { status: 200, body: 'console.log(1);' })
+    fb = Factbase.new
+    fb.insert.what = 'test'
+    loog = Loog::Buffer.new
+    Dir.mktmpdir do |d|
+      factbase = File.join(d, 'base.fb')
+      html = File.join(d, 'base.html')
+      File.binwrite(factbase, fb.export)
+      Judges::Print.new(loog).run({ 'format' => 'html' }, [factbase, html])
+      doc = Nokogiri::HTML(File.read(html))
+      assert_equal(
+        "sha256-#{Base64.strict_encode64(Digest::SHA256.digest('body { color: red; }'))}",
+        doc.at_css('link[href="https://yegor256.github.io/judges/assets/index.css"]')['integrity']
+      )
+      assert_equal(
+        "sha256-#{Base64.strict_encode64(Digest::SHA256.digest('console.log(1);'))}",
+        doc.at_css('script[src="https://yegor256.github.io/judges/assets/index.js"]')['integrity']
+      )
+    end
+    refute_includes(loog.to_s, 'without integrity check')
   end
 
   private
