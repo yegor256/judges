@@ -33,6 +33,42 @@ class TestEval < Minitest::Test
           Judges::Eval.new(Loog::NULL).run({}, [File.join(d, 'base.fb'), '1 +'])
         end
       assert_includes(error.message, 'is not valid Ruby', error.message)
+      assert_instance_of(SyntaxError, error.cause)
+    end
+  end
+
+  def test_reports_load_error_as_a_command_error
+    Dir.mktmpdir do |d|
+      fb = File.join(d, 'base.fb')
+      error =
+        assert_raises(StandardError) do
+          Judges::Eval.new(Loog::NULL).run({}, [fb, "require 'nonexistent_gem_lib_xyz_123'"])
+        end
+      assert_includes(error.message, 'failed:', error.message)
+      assert_instance_of(LoadError, error.cause)
+    end
+  end
+
+  def test_reports_not_implemented_script_error
+    Dir.mktmpdir do |d|
+      fb = File.join(d, 'base.fb')
+      error =
+        assert_raises(StandardError) do
+          Judges::Eval.new(Loog::NULL).run({}, [fb, "raise NotImplementedError, 'feature pending'"])
+        end
+      assert_includes(error.message, 'failed: feature pending', error.message)
+      assert_instance_of(NotImplementedError, error.cause)
+    end
+  end
+
+  def test_reports_script_error_with_expression_name
+    Dir.mktmpdir do |d|
+      expr = "require 'no_such_file_anywhere'"
+      error =
+        assert_raises(StandardError) do
+          Judges::Eval.new(Loog::NULL).run({}, [File.join(d, 'base.fb'), expr])
+        end
+      assert_includes(error.message, expr, error.message)
     end
   end
 end

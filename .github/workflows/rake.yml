@@ -17,6 +17,7 @@ jobs:
         os: [ubuntu-24.04, macos-15, windows-2022]
         ruby: [3.3]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - uses: ruby/setup-ruby@v1

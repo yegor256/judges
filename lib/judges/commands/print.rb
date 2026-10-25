@@ -51,9 +51,12 @@ class Judges::Print
       o = File.join(File.dirname(f), File.basename(f, File.extname(f)))
       o = "#{o}.#{fmt}"
     end
+    sidecar = "#{o}.judges-options"
+    if File.exist?(sidecar) && File.identical?(f, sidecar)
+      raise(ArgumentError, 'The cache sidecar must not overwrite the input factbase')
+    end
     FileUtils.mkdir_p(File.dirname(o))
     stamp = stamp(opts, fmt)
-    sidecar = "#{o}.judges-options"
     return if skip?(opts, f, o, sidecar, stamp)
     elapsed(@loog, level: Logger::INFO) { write(o, sidecar, stamp, fmt, opts, fb) }
   end
@@ -127,9 +130,9 @@ class Judges::Print
       raise(StandardError, "Timeout at #{url.inspect}") if http.timed_out?
       raise(StandardError, "Failed to load #{url.inspect}") unless http.code == 200
       "sha256-#{Base64.strict_encode64(Digest::SHA256.digest(http.body))}"
-    rescue StandardError => e
-      @loog.warn("Failed to fetch #{asset.inspect}, the page will load it without integrity check: #{e.message}")
-      ''
     end
+  rescue StandardError => e
+    @loog.warn("Failed to fetch #{asset.inspect}, the page will load it without integrity check: #{e.message}")
+    ''
   end
 end

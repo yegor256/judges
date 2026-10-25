@@ -146,6 +146,7 @@ class Judges::Options
         .reject(&:empty?)
         .map { |s| s.split('=', 2) }
         .map { |a| a.size == 1 ? [a[0], 'true'] : a }
+        .map { |a| [a[0].strip.upcase, a[1]] }
         .reject { |a| a[0].empty? }
         .to_h
     end
