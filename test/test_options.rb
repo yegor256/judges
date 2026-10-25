@@ -80,6 +80,11 @@ class TestOptions < Minitest::Test
     assert_nil(opts.xxx)
   end
 
+  def test_rejects_whitespace_only_hash_keys
+    assert_empty(Judges::Options.new('   ' => 'value').to_h)
+    assert_empty(Judges::Options.new((' ' * 3).to_sym => 'value').to_h)
+  end
+
   def test_with_nil_values
     assert_nil(Judges::Options.new('foo' => nil).foo)
   end
@@ -140,5 +145,56 @@ class TestOptions < Minitest::Test
     opts = Judges::Options.new(['max=42', 'zero=0'])
     assert_equal(42, opts.max, opts)
     assert_equal(0, opts.zero, opts)
+  end
+
+  def test_converts_negative_numbers
+    opts = Judges::Options.new(['delta=-1', 'offset=-42', 'zero=-0'])
+    assert_equal(-1, opts.delta, opts)
+    assert_equal(-42, opts.offset, opts)
+    assert_equal(0, opts.zero, opts)
+  end
+
+  def test_mixed_case_repeated_keys_in_array
+    opts = Judges::Options.new(['timeout=1', 'TIMEOUT=2', 'timeout=3'])
+    assert_equal(3, opts.timeout)
+    assert_equal(3, opts.TIMEOUT)
+    assert_equal(3, opts.to_h[:TIMEOUT])
+  end
+
+  def test_mixed_case_repeated_keys_in_string
+    opts = Judges::Options.new('timeout=1,TIMEOUT=2,timeout=3')
+    assert_equal(3, opts.timeout)
+    assert_equal(3, opts.TIMEOUT)
+    assert_equal(3, opts.to_h[:TIMEOUT])
+  end
+
+  def test_mixed_case_repeated_array_last_upper
+    opts = Judges::Options.new(['TIMEOUT=1', 'timeout=2', 'TIMEOUT=3'])
+    assert_equal(3, opts.timeout)
+    assert_equal(3, opts.to_h[:TIMEOUT])
+  end
+
+  def test_mixed_case_repeated_string_last_upper
+    opts = Judges::Options.new('TIMEOUT=1,timeout=2,TIMEOUT=3')
+    assert_equal(3, opts.timeout)
+    assert_equal(3, opts.to_h[:TIMEOUT])
+  end
+
+  def test_mixed_case_repeated_keys_with_spaces
+    opts = Judges::Options.new([' timeout = 1 ', ' TIMEOUT = 2 ', ' timeout = 3 '])
+    assert_equal(3, opts.timeout)
+    assert_equal(3, opts.TIMEOUT)
+  end
+
+  def test_mixed_case_repeated_keys_with_flags
+    opts = Judges::Options.new(['debug', 'DEBUG=false', 'debug'])
+    assert_equal('true', opts.debug)
+    assert_equal('true', opts.DEBUG)
+  end
+
+  def test_mixed_case_repeated_keys_with_strings
+    opts = Judges::Options.new(['name=first', 'NAME=second', 'name=third'])
+    assert_equal('third', opts.name)
+    assert_equal('third', opts.NAME)
   end
 end

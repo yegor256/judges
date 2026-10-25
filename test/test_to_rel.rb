@@ -32,4 +32,12 @@ class TestToRel < Minitest::Test
       assert_equal(file, file.to_rel)
     end
   end
+
+  def test_quotes_dir_name_with_its_slash
+    Dir.mktmpdir do |d|
+      dir = File.join(d, 'my judges')
+      FileUtils.mkdir_p(dir)
+      assert_match(%r{\A".*my judges/"\z}, dir.to_rel)
+    end
+  end
 end

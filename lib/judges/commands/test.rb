@@ -8,6 +8,7 @@ require 'elapsed'
 require 'ellipsized'
 require 'factbase'
 require 'factbase/to_xml'
+require 'loog'
 require 'nokogiri'
 require 'timeout'
 require_relative '../../judges'
@@ -117,7 +118,7 @@ class Judges::Test
         next if skip_test?(buf, f, yaml, opts)
         buf.info("🛠️ Testing #{f.to_rel}:")
         count += run_single_test(judge, buf, opts, judges, yaml, badge)
-      rescue StandardError => e
+      rescue StandardError, ScriptError => e
         @loog.info(buf.to_s)
         @loog.warn(Backtrace.new(e))
         errors << badge
@@ -141,6 +142,10 @@ class Judges::Test
   end
 
   def run_single_test(judge, buf, opts, judges, yaml, badge)
+    timeout = yaml['timeout']
+    if timeout.is_a?(Numeric) && !timeout.finite?
+      raise(ArgumentError, "A finite timeout is expected, but #{timeout.inspect} provided")
+    end
     fb = Factbase.new
     prepare(fb, yaml)
     yaml['before']&.each do |n|
@@ -246,6 +251,7 @@ class Judges::Test
         fbx = Factbase::Logged.new(fb, @loog)
       end
       failure = yaml['expected_failure']
+      failure = nil if failure == []
       caught = capture(fbx, judge, options, timeout)
       if failure
         raise(StandardError, 'Exception expected but not raised') if caught.nil?
