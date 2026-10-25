@@ -153,4 +153,48 @@ class TestOptions < Minitest::Test
     assert_equal(-42, opts.offset, opts)
     assert_equal(0, opts.zero, opts)
   end
+
+  def test_mixed_case_repeated_keys_in_array
+    opts = Judges::Options.new(['timeout=1', 'TIMEOUT=2', 'timeout=3'])
+    assert_equal(3, opts.timeout)
+    assert_equal(3, opts.TIMEOUT)
+    assert_equal(3, opts.to_h[:TIMEOUT])
+  end
+
+  def test_mixed_case_repeated_keys_in_string
+    opts = Judges::Options.new('timeout=1,TIMEOUT=2,timeout=3')
+    assert_equal(3, opts.timeout)
+    assert_equal(3, opts.TIMEOUT)
+    assert_equal(3, opts.to_h[:TIMEOUT])
+  end
+
+  def test_mixed_case_repeated_array_last_upper
+    opts = Judges::Options.new(['TIMEOUT=1', 'timeout=2', 'TIMEOUT=3'])
+    assert_equal(3, opts.timeout)
+    assert_equal(3, opts.to_h[:TIMEOUT])
+  end
+
+  def test_mixed_case_repeated_string_last_upper
+    opts = Judges::Options.new('TIMEOUT=1,timeout=2,TIMEOUT=3')
+    assert_equal(3, opts.timeout)
+    assert_equal(3, opts.to_h[:TIMEOUT])
+  end
+
+  def test_mixed_case_repeated_keys_with_spaces
+    opts = Judges::Options.new([' timeout = 1 ', ' TIMEOUT = 2 ', ' timeout = 3 '])
+    assert_equal(3, opts.timeout)
+    assert_equal(3, opts.TIMEOUT)
+  end
+
+  def test_mixed_case_repeated_keys_with_flags
+    opts = Judges::Options.new(['debug', 'DEBUG=false', 'debug'])
+    assert_equal('true', opts.debug)
+    assert_equal('true', opts.DEBUG)
+  end
+
+  def test_mixed_case_repeated_keys_with_strings
+    opts = Judges::Options.new(['name=first', 'NAME=second', 'name=third'])
+    assert_equal('third', opts.name)
+    assert_equal('third', opts.NAME)
+  end
 end

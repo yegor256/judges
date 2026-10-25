@@ -34,4 +34,16 @@ class TestImpex < Minitest::Test
   def test_refuses_a_nil_file
     assert_includes(assert_raises(ArgumentError) { Judges::Impex.new(Loog::NULL, nil) }.message, 'The file is nil')
   end
+
+  def test_imports_from_a_pipe
+    skip('No named pipes on Windows') if Gem.win_platform?
+    Dir.mktmpdir do |d|
+      pipe = File.join(d, 'fifo')
+      File.mkfifo(pipe)
+      fb = Factbase.new
+      fb.insert.foo = 42
+      Thread.new { File.binwrite(pipe, fb.export) }
+      assert_equal(1, Judges::Impex.new(Loog::NULL, pipe).import.size)
+    end
+  end
 end
