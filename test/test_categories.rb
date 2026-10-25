@@ -42,4 +42,9 @@ class TestCategories < Minitest::Test
     assert(Judges::Categories.new('foo', nil).ok?('foo'))
     refute(Judges::Categories.new(nil, 'bad').ok?('bad'))
   end
+
+  def test_matches_numeric_category
+    assert(Judges::Categories.new(['2024'], nil).ok?(2024))
+    refute(Judges::Categories.new(nil, ['2024']).ok?([2024]))
+  end
 end

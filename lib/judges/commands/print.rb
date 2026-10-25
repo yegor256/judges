@@ -36,9 +36,10 @@ class Judges::Print
   # Run the print command (called by the +bin/judges+ script).
   # @param [Hash] opts Command line options (start with '--')
   # @param [Array] args List of command line arguments
-  # @raise [RuntimeError] If no arguments provided
+  # @raise [ArgumentError] If the number of arguments is invalid
   def run(opts, args)
     raise(ArgumentError, 'At least one argument required') if args.empty?
+    raise(ArgumentError, 'At most two arguments accepted') if args.size > 2
     fmt = opts['format']&.downcase
     raise(ArgumentError, "Unknown format '#{fmt}', use one of #{FORMATS.join(', ')}") unless FORMATS.include?(fmt)
     f = args[0]
@@ -50,11 +51,14 @@ class Judges::Print
       o = File.join(File.dirname(f), File.basename(f).gsub(/\.[^.]*$/, ''))
       o = "#{o}.#{fmt}"
     end
+    sidecar = "#{o}.judges-options"
+    if File.exist?(sidecar) && File.identical?(f, sidecar)
+      raise(ArgumentError, 'The cache sidecar must not overwrite the input factbase')
+    end
     FileUtils.mkdir_p(File.dirname(o))
     assets = fingerprint(opts, fmt)
     stamp = stamp(opts, fmt)
     stamp = Digest::SHA256.hexdigest([stamp, *assets.values].join("\n")) unless assets.empty?
-    sidecar = "#{o}.judges-options"
     return if skip?(opts, f, o, sidecar, stamp)
     elapsed(@loog, level: Logger::INFO) { write(o, sidecar, stamp, fmt, opts.merge(assets), fb) }
   end
@@ -132,13 +136,13 @@ class Judges::Print
     return 'sha256-offline' if opts['offline']
     with_retries do
       url = "https://yegor256.github.io/judges/assets/#{asset}"
-      http = Typhoeus::Request.get(url)
+      http = Typhoeus::Request.get(url, timeout: 30, connecttimeout: 10)
       raise(StandardError, "Timeout at #{url.inspect}") if http.timed_out?
       raise(StandardError, "Failed to load #{url.inspect}") unless http.code == 200
       "sha256-#{Base64.strict_encode64(Digest::SHA256.digest(http.body))}"
-    rescue StandardError => e
-      @loog.warn("Failed to fetch #{asset.inspect}, the page will load it without integrity check: #{e.message}")
-      ''
     end
+  rescue StandardError => e
+    @loog.warn("Failed to fetch #{asset.inspect}, the page will load it without integrity check: #{e.message}")
+    ''
   end
 end
