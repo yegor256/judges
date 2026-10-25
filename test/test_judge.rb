@@ -107,4 +107,14 @@ class TestJudge < Minitest::Test
       end
     end
   end
+
+  def test_finds_yaml_and_yml_packs
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, "#{File.basename(d)}.rb"), '$fb.insert')
+      save_it(File.join(d, 'b.yaml'), "expected: []\n")
+      save_it(File.join(d, 'a.yml'), "expected: []\n")
+      save_it(File.join(d, 'c.txt'), 'not a pack')
+      assert_equal(%w[a.yml b.yaml], Judges::Judge.new(d, nil, Loog::NULL).tests.map { |t| File.basename(t) })
+    end
+  end
 end

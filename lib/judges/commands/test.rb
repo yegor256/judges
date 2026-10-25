@@ -108,7 +108,7 @@ class Judges::Test
   def run_judge_tests(judge, buf, opts, judges, visible, times, errors)
     count = 0
     judge.tests.each do |f|
-      tname = File.basename(f).gsub(/\.yml$/, '')
+      tname = File.basename(f).gsub(/\.ya?ml$/, '')
       visible << "  #{judge.name}/#{tname}"
       next unless include?(opts, judge.name, tname)
       badge = "#{judge.name}/#{tname}"

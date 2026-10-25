@@ -33,6 +33,25 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_runs_a_yaml_pack
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 4')
+      save_it(
+        File.join(d, 'foo/something.yaml'),
+        <<-YAML
+        input: []
+        expected:
+          - /fb[count(f)=2]
+        YAML
+      )
+      e =
+        assert_raises(StandardError) do
+          Judges::Test.new(Loog::NULL).run({ 'judge' => ['foo/something'] }, [d])
+        end
+      assert_includes(e.message, '1 tests failed', e.message)
+    end
+  end
+
   def test_refuses_a_judge_name_that_matches_nothing
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 4')
