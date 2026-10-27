@@ -64,13 +64,15 @@ class TestTest < Minitest::Test
             foo: 42
         expected:
           - /fb[count(f)=1]
-          - /fb/f[foo/v='42']
-          - /fb/f[bar/v='5']
+          - /fb/f[foo='42']
+          - /fb/f[bar='5']
         YAML
       )
+      loog = Loog::Buffer.new
       assert_raises(StandardError) do
-        Judges::Test.new(Loog::NULL).run({}, [d])
+        Judges::Test.new(loog).run({}, [d])
       end
+      assert_includes(loog.to_s, "/fb/f[bar='5']", loog.to_s)
     end
   end
 
@@ -149,9 +151,11 @@ class TestTest < Minitest::Test
           - /fb[count(f)=1]
         YAML
       )
-      assert_raises(StandardError) do
-        Judges::Test.new(Loog::NULL).run({ 'judge' => [File.basename(dir)] }, [d])
-      end
+      e =
+        assert_raises(StandardError) do
+          Judges::Test.new(Loog::NULL).run({ 'judge' => ['foo'] }, [d])
+        end
+      assert_includes(e.message, 'failed', e.message)
     end
   end
 

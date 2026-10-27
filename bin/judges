@@ -125,7 +125,7 @@ class JudgesGLI extend GLI::App
     c.flag([:boost], multiple: true)
     c.desc 'Demote a judge to run after all others (supports wildcards with *)'
     c.flag([:demote], multiple: true)
-    c.desc 'Maximum time in seconds for the entire update cycle'
+    c.desc 'Maximum time in seconds for the entire update, across all cycles'
     c.flag([:lifetime], default_value: 300, type: Integer)
     c.desc 'Maximum time in seconds for each judge (forcefully terminates if exceeded)'
     c.flag([:timeout], default_value: 30, type: Integer)
@@ -156,8 +156,8 @@ class JudgesGLI extend GLI::App
     run_it(c, 'eval')
   end
 
-  desc 'Join two factbases'
-  arg_name '<first> <second>'
+  desc 'Copy all facts of the second factbase into the first one (the first file is overwritten)'
+  arg_name '<target> <source>'
   command :join do |c|
     run_it(c, 'join')
   end
@@ -170,10 +170,10 @@ class JudgesGLI extend GLI::App
     run_it(c, 'import')
   end
 
-  desc 'Remove outdated facts from the factbase'
+  desc 'Remove the facts that match --query from the factbase'
   arg_name 'factbase'
   command :trim do |c|
-    c.desc 'Delete only facts matching the specified expression'
+    c.desc 'Delete the facts matching this expression (nothing by default)'
     c.flag([:query], default_value: '(never)')
     run_it(c, 'trim')
   end
@@ -195,7 +195,7 @@ class JudgesGLI extend GLI::App
     c.flag([:highlighted], default_value: 'stale,tombstone')
     c.desc 'Comma-separated list of columns to hide from rendering (no spaces)'
     c.flag([:hidden], default_value: '_id,_time,_version,_job')
-    c.desc 'Force printing even if the target file exists and is older than the factbase'
+    c.desc 'Force printing even if the target file exists and is newer than the factbase (up to date)'
     c.switch([:force], default_value: false)
     run_it(c, 'print')
   end
@@ -217,7 +217,7 @@ class JudgesGLI extend GLI::App
     c.flag([:enable], multiple: true)
     c.desc 'Name of the judge to run (directory name)'
     c.flag([:judge], multiple: true)
-    c.desc 'Number of times to run the tests'
+    c.desc 'Number of times to run each judge in every test, on the same factbase (overrides runs in the YAML)'
     c.flag([:runs], type: Integer)
     c.desc 'Location of a Ruby library (directory with .rb files to include)'
     c.flag([:lib])
@@ -274,8 +274,8 @@ class JudgesGLI extend GLI::App
     run_it(c, 'pull')
   end
 
-  desc 'Download a durable from the server by ID'
-  arg_name '<id> <factbase>'
+  desc 'Download a durable from the server, found by the job name and the file name'
+  arg_name '<name> <file>'
   command :download do |c|
     c.desc 'Authentication token'
     c.flag([:token])
@@ -295,7 +295,7 @@ class JudgesGLI extend GLI::App
   end
 
   desc 'Upload a file as a durable to the server'
-  arg_name '<file> <path>'
+  arg_name '<name> <file>'
   command :upload do |c|
     c.desc 'Authentication token'
     c.flag([:token])
