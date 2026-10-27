@@ -295,7 +295,7 @@ class JudgesGLI extend GLI::App
   end
 
   desc 'Upload a file as a durable to the server'
-  arg_name '<file> <path>'
+  arg_name '<name> <file>'
   command :upload do |c|
     c.desc 'Authentication token'
     c.flag([:token])
