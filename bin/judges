@@ -170,10 +170,10 @@ class JudgesGLI extend GLI::App
     run_it(c, 'import')
   end
 
-  desc 'Remove outdated facts from the factbase'
+  desc 'Remove the facts that match --query from the factbase'
   arg_name 'factbase'
   command :trim do |c|
-    c.desc 'Delete only facts matching the specified expression'
+    c.desc 'Delete the facts matching this expression (nothing by default)'
     c.flag([:query], default_value: '(never)')
     run_it(c, 'trim')
   end
