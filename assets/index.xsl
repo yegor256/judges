@@ -149,8 +149,13 @@
         </tr>
       </thead>
       <tbody>
-        <xsl:apply-templates select="f"/>
+        <xsl:apply-templates select="f[*]"/>
       </tbody>
+      <xsl:if test="f[not(*)]">
+        <tfoot>
+          <xsl:apply-templates select="f[not(*)]"/>
+        </tfoot>
+      </xsl:if>
     </table>
   </xsl:template>
   <xsl:template match="f[not(*)]">
