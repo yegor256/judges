@@ -156,8 +156,8 @@ class JudgesGLI extend GLI::App
     run_it(c, 'eval')
   end
 
-  desc 'Join two factbases'
-  arg_name '<first> <second>'
+  desc 'Copy all facts of the second factbase into the first one (the first file is overwritten)'
+  arg_name '<target> <source>'
   command :join do |c|
     run_it(c, 'join')
   end
