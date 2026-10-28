@@ -142,9 +142,9 @@ class Judges::Test
   end
 
   def run_single_test(judge, buf, opts, judges, yaml, badge)
-    timeout = yaml['timeout']
-    if timeout.is_a?(Numeric) && !timeout.finite?
-      raise(ArgumentError, "A finite timeout is expected, but #{timeout.inspect} provided")
+    { 'timeout' => 'timeout', 'runs' => 'number of runs' }.each do |k, w|
+      v = yaml[k]
+      raise(ArgumentError, "A finite #{w} is expected, but #{v.inspect} provided") if v.is_a?(Numeric) && !v.finite?
     end
     fb = Factbase.new
     prepare(fb, yaml)
