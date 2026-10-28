@@ -40,4 +40,21 @@ class TestToRel < Minitest::Test
       assert_match(%r{\A".*my judges/"\z}, dir.to_rel)
     end
   end
+
+  def test_renders_root_dir_with_one_slash
+    Dir.mktmpdir do |d|
+      Dir.chdir(d) do
+        assert_equal('/', '/'.to_rel)
+      end
+    end
+  end
+
+  def test_keeps_slash_of_dir_below_root
+    Dir.mktmpdir do |d|
+      Dir.chdir(d) do
+        FileUtils.mkdir_p('sub')
+        assert_equal('sub/', File.absolute_path('sub').to_rel)
+      end
+    end
+  end
 end
