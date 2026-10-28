@@ -3,6 +3,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require 'factbase'
+require 'factbase/churn'
 require_relative '../judges'
 
 # Statistics collector for judge executions.
@@ -40,11 +42,7 @@ class Judges::Statistics
     stats[:cycles] += 1
     stats[:results] << result
     return unless churn
-    if stats[:total_churn]
-      stats[:total_churn] += churn
-    else
-      stats[:total_churn] = churn
-    end
+    stats[:total_churn] = (stats[:total_churn] || Factbase::Churn.new) + churn
   end
 
   # Generate a formatted statistics report.
