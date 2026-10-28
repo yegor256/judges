@@ -30,19 +30,19 @@ class TestOptions < Minitest::Test
 
   def test_with_nil
     opts = Judges::Options.new(nil)
-    assert_nil(opts.foo)
+    assert_raises(KeyError) { opts.foo }
     assert_empty(opts)
   end
 
   def test_with_empty_string
     opts = Judges::Options.new('   ')
-    assert_nil(opts.foo)
+    assert_raises(KeyError) { opts.foo }
     assert_empty(opts, opts)
   end
 
   def test_with_empty_strings
     opts = Judges::Options.new(['', nil])
-    assert_nil(opts.foo)
+    assert_raises(KeyError) { opts.foo }
     assert_empty(opts)
   end
 
@@ -77,7 +77,7 @@ class TestOptions < Minitest::Test
     opts = Judges::Options.new('foo' => 42, 'bar' => 'hello')
     assert_equal(42, opts.foo)
     assert_equal('hello', opts.Bar)
-    assert_nil(opts.xxx)
+    assert_raises(KeyError) { opts.xxx }
   end
 
   def test_rejects_whitespace_only_hash_keys
@@ -85,8 +85,41 @@ class TestOptions < Minitest::Test
     assert_empty(Judges::Options.new((' ' * 3).to_sym => 'value').to_h)
   end
 
-  def test_with_nil_values
-    assert_nil(Judges::Options.new('foo' => nil).foo)
+  def test_drops_nil_values
+    opts = Judges::Options.new('foo' => nil)
+    assert_empty(opts)
+    assert_raises(KeyError) { opts.foo }
+  end
+
+  def test_raises_on_absent_option
+    assert_includes(assert_raises(KeyError) { Judges::Options.new(['token=abc123']).bogus }.message, 'bogus')
+  end
+
+  def test_responds_only_to_present_options
+    opts = Judges::Options.new(['token=abc123'])
+    refute_respond_to(opts, :bogus)
+    assert_respond_to(opts, :token)
+    assert_respond_to(opts, :TOKEN)
+    assert_respond_to(opts, :to_h)
+    assert_respond_to(opts, :[])
+  end
+
+  def test_index_access
+    opts = Judges::Options.new(['token=abc123'])
+    assert_equal('abc123', opts[:token])
+    assert_equal('abc123', opts['token'])
+    assert_equal('abc123', opts.TOKEN)
+    assert_raises(KeyError) { opts[:bogus] }
+  end
+
+  def test_raises_on_absent_option_when_empty
+    [
+      Judges::Options.new,
+      Judges::Options.new(nil),
+      Judges::Options.new('   ')
+    ].each do |opts|
+      assert_raises(KeyError) { opts.foo }
+    end
   end
 
   def test_converts_to_string
