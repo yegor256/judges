@@ -210,6 +210,22 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_propagates_system_exit
+    Dir.mktmpdir do |dir|
+      save_it(File.join(dir, 'foo/foo.rb'), "raise SystemExit, 'stop'")
+      save_it(File.join(dir, 'foo/x.yml'), "input: []\nexpected_failure: true\n")
+      assert_equal('stop', assert_raises(SystemExit) { Judges::Test.new(Loog::NULL).run({}, [dir]) }.message)
+    end
+  end
+
+  def test_propagates_interrupt
+    Dir.mktmpdir do |dir|
+      save_it(File.join(dir, 'foo/foo.rb'), "raise Interrupt, 'cancelled'")
+      save_it(File.join(dir, 'foo/x.yml'), "input: []\nexpected_failure: true\n")
+      assert_equal('cancelled', assert_raises(Interrupt) { Judges::Test.new(Loog::NULL).run({}, [dir]) }.message)
+    end
+  end
+
   def test_with_expected_failure_no_string
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), 'raise "this is intentional";')

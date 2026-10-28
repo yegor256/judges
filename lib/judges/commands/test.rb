@@ -278,9 +278,9 @@ class Judges::Test
     nil
   rescue Timeout::Error
     raise(StandardError, "Test timed out after #{timeout} seconds")
-  # rubocop:disable Lint/RescueException
-  rescue Exception => e
-    # rubocop:enable Lint/RescueException
+  rescue StandardError, ScriptError => e
+    cause = e.cause
+    raise(cause) if cause.is_a?(SystemExit) || cause.is_a?(SignalException)
     e
   end
 
