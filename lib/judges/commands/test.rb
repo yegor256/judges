@@ -67,7 +67,7 @@ class Judges::Test
       print_test_summary(times, errors, tested, tests)
     end
     unless errors.empty?
-      raise(StandardError, "#{errors.size} tests failed") unless opts['quiet']
+      raise(StandardError, "#{errors.size} tests failed: #{errors.join(', ')}") unless opts['quiet']
       @loog.debug('Not failing the build with test failures, due to the --quiet option')
     end
     return unless tested.zero? || tests.zero?
@@ -114,7 +114,9 @@ class Judges::Test
       badge = "#{judge.name}/#{tname}"
       start = Time.now
       begin
-        yaml = YAML.load_file(f, permitted_classes: [Time])
+        docs = YAML.safe_load_stream(File.read(f), filename: f, permitted_classes: [Time])
+        raise(StandardError, "The pack #{f.to_rel} must hold one YAML document, not #{docs.size}") if docs.size > 1
+        yaml = docs.first
         next if skip_test?(buf, f, yaml, opts)
         buf.info("🛠️ Testing #{f.to_rel}:")
         count += run_single_test(judge, buf, opts, judges, yaml, badge)
