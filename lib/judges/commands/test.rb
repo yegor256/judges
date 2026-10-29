@@ -147,7 +147,7 @@ class Judges::Test
       raise(ArgumentError, "A finite timeout is expected, but #{timeout.inspect} provided")
     end
     fb = Factbase.new
-    prepare(fb, yaml)
+    prepare(fb, yaml, badge)
     yaml['before']&.each do |n|
       j = judges.get(n).with_loog(buf)
       buf.info("Running #{j.script} judge as a pre-condition...")
@@ -207,7 +207,7 @@ class Judges::Test
     judges.any? { |n| n.match?(%r{^#{Regexp.escape(name)}(/#{re})?$}) }
   end
 
-  def prepare(fb, yaml)
+  def prepare(fb, yaml, badge)
     id = 1
     inputs = yaml['input']
     repeat = yaml['repeat']&.to_i || 1
@@ -216,6 +216,8 @@ class Judges::Test
       inputs&.each do |i|
         f = fb.insert
         i.each do |k, vv|
+          msg = "The key #{k} of an input fact in #{badge} is not a string, quote it if it is on/off/yes/no"
+          raise(StandardError, msg) unless k.is_a?(String)
           if vv.is_a?(Array)
             vv.each do |v|
               f.public_send(:"#{k}=", v)
