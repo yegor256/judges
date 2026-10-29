@@ -148,13 +148,14 @@ class Judges::Test
     end
     fb = Factbase.new
     prepare(fb, yaml)
+    global = {}
     yaml['before']&.each do |n|
       j = judges.get(n).with_loog(buf)
       buf.info("Running #{j.script} judge as a pre-condition...")
-      test_one(fb, opts, j, n, yaml, assert: false)
+      test_one(fb, opts, j, n, yaml, global:, assert: false)
     end
     tname = badge.split('/').last
-    test_one(fb, opts, judge, tname, yaml)
+    test_one(fb, opts, judge, tname, yaml, global:)
     run_after_assertions(judge, buf, fb, yaml)
     1
   end
@@ -238,9 +239,10 @@ class Judges::Test
   # @param [Judges::Judge] judge The judge to run
   # @param [String] tname The name of the test pack without .yml, or the name of the judge for a before judge
   # @param [Hash] yaml The YAML to be tested
+  # @param [Hash] global The global hash, shared by all judges of the test
   # @param [Boolean] assert Whether to check the expected XPaths after the runs
   # @return [Range] The range of runs that were made
-  def test_one(fb, opts, judge, tname, yaml, assert: true)
+  def test_one(fb, opts, judge, tname, yaml, global:, assert: true)
     options = Judges::Options.new(opts['option']) + Judges::Options.new(yaml['options'])
     runs = opts['runs'] || yaml['runs'] || 1
     timeout = yaml['timeout']
@@ -252,7 +254,7 @@ class Judges::Test
       end
       failure = yaml['expected_failure']
       failure = nil if failure == []
-      caught = capture(fbx, judge, options, timeout)
+      caught = capture(fbx, judge, options, timeout, global)
       if failure
         raise(StandardError, 'Exception expected but not raised') if caught.nil?
         if failure.is_a?(Array) && failure.none? { |s| caught.message.include?(s) }
@@ -269,11 +271,11 @@ class Judges::Test
     end
   end
 
-  def capture(fbx, judge, options, timeout)
+  def capture(fbx, judge, options, timeout, global)
     if timeout
-      Timeout.timeout(timeout) { judge.run(fbx, {}, {}, options) }
+      Timeout.timeout(timeout) { judge.run(fbx, global, {}, options) }
     else
-      judge.run(fbx, {}, {}, options)
+      judge.run(fbx, global, {}, options)
     end
     nil
   rescue Timeout::Error
