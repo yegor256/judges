@@ -286,18 +286,19 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
     start = Time.now
     fb = Factbase::Tallied.new(fb)
     begin
-      if opts['lifetime'] && Time.now - @start > opts['lifetime']
-        throw(:"👎 The '#{judge.name}' judge skipped, no time left")
-      end
-      Timeout.timeout(opts['timeout']) do
+      throw(:"👎 The '#{judge.name}' judge skipped, no time left") if
+        opts['lifetime'] && Time.now - @start > opts['lifetime']
+      Timeout.timeout(opts['timeout'], JudgeTimeout) do
         judge.run(fb, global, local, options)
       end
-    rescue Timeout::Error, Timeout::ExitException => e
+    rescue Timeout::ExitException => e
       if opts['lifetime'] && Time.now - @start >= opts['lifetime']
         @loog.info("Had to stop '#{judge.name}' due to the --lifetime=#{opts['lifetime']}")
-      else
+      elsif e.is_a?(JudgeTimeout)
         @loog.error("Terminated due to --timeout=#{opts['timeout']}")
         errors << "Judge #{judge.name} stopped by timeout after #{start.ago}: #{e.message}"
+      else
+        raise(e)
       end
     end
     fb.churn
@@ -305,7 +306,9 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
 
   def include?(opts, name)
     judges = opts['judge'] || []
-    return true if judges.empty?
-    judges.any?(name)
+    judges.empty? || judges.any?(name)
   end
 end
+
+# Exception raised when a judge times out.
+class Judges::Update::JudgeTimeout < Timeout::ExitException; end
