@@ -377,6 +377,25 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_accepts_boolean_xpath
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 1')
+      save_it(File.join(d, 'foo/x.yml'), "expected:\n  - count(/fb/f)=1")
+      Judges::Test.new(Loog::NULL).run({}, [d])
+      assert_path_exists(d)
+    end
+  end
+
+  def test_fails_on_false_xpath
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 1')
+      save_it(File.join(d, 'foo/x.yml'), "expected:\n  - count(/fb/f)=5")
+      loog = Loog::Buffer.new
+      assert_raises(StandardError) { Judges::Test.new(loog).run({}, [d]) }
+      assert_includes(loog.to_s, "foo/x doesn't match 'count(/fb/f)=5'")
+    end
+  end
+
   def test_accepts_a_correct_layout
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
