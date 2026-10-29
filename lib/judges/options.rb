@@ -116,6 +116,37 @@ class Judges::Options
     @to_h ||= normalize_to_h
   end
 
+  # Get option by bracket notation.
+  #
+  # @param [Symbol, String] key The name of the option
+  # @return [Object, nil] The value of the option, or nil if not found
+  # @example Access option by key
+  #   options = Judges::Options.new(["token=abc123", "hash=4f2a9c1"])
+  #   options[:hash] # => "4f2a9c1"
+  def [](key)
+    to_h[key.to_s.upcase.to_sym]
+  end
+
+  %i[class clone display dup extend freeze hash method tap then].each do |m|
+    define_method(m) do |*args, &block|
+      k = m.to_s.upcase.to_sym
+      return to_h[k] if to_h.key?(k)
+      super(*args, &block)
+    end
+  end
+
+  others do |*args|
+    to_h[args[0].upcase.to_sym]
+  end
+
+  def method_missing(*args)
+    to_h[args[0].to_s.upcase.to_sym]
+  end
+
+  def respond_to_missing?(_mtd, _inc = false)
+    true
+  end
+
   private
 
   def mask(value)
@@ -176,9 +207,5 @@ class Judges::Options
     current << '\\' if escaped
     pairs << current
     pairs
-  end
-
-  others do |*args|
-    to_h[args[0].upcase.to_sym]
   end
 end
