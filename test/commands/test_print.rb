@@ -116,7 +116,11 @@ class TestPrint < Minitest::Test
       end
     assert_empty(xml.errors, xml)
     refute_empty(xml.xpath('/html'), xml)
-    skip('No tidy') unless qbash('tidy -v', accept: nil, both: true, raw: OS.windows?)[1].zero?
+    skip('No tidy') unless begin
+      qbash('tidy -v', accept: nil, both: true, raw: OS.windows?)[1].zero?
+    rescue Errno::ENOENT
+      false
+    end
     qbash("tidy -e #{html}", accept: [0, 1], raw: OS.windows?)
     WebMock.enable_net_connect!
     skip('We are offline') unless online?
@@ -280,5 +284,91 @@ class TestPrint < Minitest::Test
       )
     end
     refute_includes(loog.to_s, 'without integrity check')
+  end
+
+  def test_hidden_properties_filtered_in_yaml
+    Dir.mktmpdir do |d|
+      fb = Factbase.new
+      f = fb.insert
+      f._id = 1
+      f.title = 'Hello'
+      f.secret = 'xyz'
+      factbase = File.join(d, 'base.fb')
+      File.binwrite(factbase, fb.export)
+      output = File.join(d, 'base.yaml')
+      Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml', 'hidden' => 'secret, _id' }, [factbase, output])
+      loaded = YAML.load_file(output)
+      assert_equal('Hello', loaded.first['title'])
+      assert_nil(loaded.first['secret'])
+      assert_nil(loaded.first['_id'])
+    end
+  end
+
+  def test_hidden_properties_filtered_in_json
+    Dir.mktmpdir do |d|
+      fb = Factbase.new
+      f = fb.insert
+      f.foo = 'bar'
+      f.token = 'secret_token'
+      factbase = File.join(d, 'base.fb')
+      File.binwrite(factbase, fb.export)
+      output = File.join(d, 'base.json')
+      Judges::Print.new(Loog::NULL).run({ 'format' => 'json', 'hidden' => 'token' }, [factbase, output])
+      loaded = JSON.parse(File.read(output))
+      assert_equal('bar', loaded.first['foo'])
+      assert_nil(loaded.first['token'])
+    end
+  end
+
+  def test_hidden_properties_filtered_in_xml
+    Dir.mktmpdir do |d|
+      fb = Factbase.new
+      f = fb.insert
+      f.visible = 'yes'
+      f.secret = 'no'
+      factbase = File.join(d, 'base.fb')
+      File.binwrite(factbase, fb.export)
+      output = File.join(d, 'base.xml')
+      Judges::Print.new(Loog::NULL).run({ 'format' => 'xml', 'hidden' => 'secret' }, [factbase, output])
+      xml = Nokogiri::XML(File.read(output))
+      assert_equal('yes', xml.xpath('//visible').text)
+      assert_empty(xml.xpath('//secret'))
+    end
+  end
+
+  def test_hidden_properties_absent_keeps_all
+    Dir.mktmpdir do |d|
+      fb = Factbase.new
+      f = fb.insert
+      f.foo = 'bar'
+      f.baz = 'qux'
+      factbase = File.join(d, 'base.fb')
+      File.binwrite(factbase, fb.export)
+      output = File.join(d, 'base.json')
+      Judges::Print.new(Loog::NULL).run({ 'format' => 'json' }, [factbase, output])
+      loaded = JSON.parse(File.read(output))
+      assert_equal('bar', loaded.first['foo'])
+      assert_equal('qux', loaded.first['baz'])
+    end
+  end
+
+  def test_hides_properties_across_all_facts
+    Dir.mktmpdir do |d|
+      fb = Factbase.new
+      first = fb.insert
+      first.name = 'first'
+      first.secret = 's1'
+      second = fb.insert
+      second.name = 'second'
+      second.secret = 's2'
+      factbase = File.join(d, 'base.fb')
+      File.binwrite(factbase, fb.export)
+      output = File.join(d, 'base.yaml')
+      Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml', 'hidden' => 'secret' }, [factbase, output])
+      loaded = YAML.load_file(output)
+      assert_equal(2, loaded.size)
+      assert_nil(loaded[0]['secret'])
+      assert_nil(loaded[1]['secret'])
+    end
   end
 end
