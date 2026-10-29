@@ -121,11 +121,11 @@ class Judges::Judge
 
   # Returns all YAML test files in the judge directory.
   #
-  # Test files are expected to have a .yml extension and contain test data
-  # used to validate the judge's behavior.
+  # Test files are expected to have a .yml or .yaml extension and contain test
+  # data used to validate the judge's behavior.
   #
-  # @return [Array<String>] Array of absolute paths to all .yml files in the judge directory
+  # @return [Array<String>] Array of absolute paths to all .yml and .yaml files in the judge directory
   def tests
-    Dir.glob(File.join(@dir, '*.yml')).sort_by { |path| File.basename(path) }
+    Dir.glob(File.join(@dir, '*.{yml,yaml}')).sort_by { |path| File.basename(path) }
   end
 end

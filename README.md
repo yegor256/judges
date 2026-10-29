@@ -16,7 +16,7 @@ A command line tool and a Ruby gem for running so-called judges against a
 [factbase](https://github.com/yegor256/factbase).
 
 Every "judge" is a directory with a single `.rb` file and a number
-of `.yml` files. A script in the Ruby file is executed with the following
+of `.yml` or `.yaml` files. A script in the Ruby file is executed with the following
 global variables available to it:
 
 * `$fb` — an instance
@@ -26,7 +26,7 @@ global variables available to it:
   of [Loog](https://www.rubydoc.info/gems/loog/0.5.1/Loog),
   where `.info` and `.debug` logs are welcome;
 * `$options` — a holder of options coming from either the `--option` command
-  line flag or the `.yml` file during testing;
+  line flag or the `.yml`/`.yaml` file during testing;
 * `$local` — a hash map that is cleaned up when the execution of
   a judge is finished;
 * `$global` — a hash map that is never cleaned up;
@@ -34,7 +34,7 @@ global variables available to it:
 * `$epoch` — the time moment when the plugin was started;
 * `$kickoff` — the time moment when a judge was started.
 
-Every `.yml` file must be formatted as such:
+Every `.yml` or `.yaml` file must be formatted as such:
 
 ```yaml
 before:
@@ -127,7 +127,7 @@ The `update` command runs all judges in repeated cycles until the
   [GitHub Actions](https://docs.github.com/en/actions) require a
   directed acyclic graph defined upfront; judges require none.
 
-Every judge directory contains `.yml` test files alongside its `.rb`
+Every judge directory contains `.yml` or `.yaml` test files alongside its `.rb`
   script. A YAML file declares the initial facts (`input`), the count
   of judge executions (`runs`), prerequisite judges (`before`),
   post-condition scripts (`after`), and
