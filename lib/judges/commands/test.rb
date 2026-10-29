@@ -147,7 +147,7 @@ class Judges::Test
       raise(ArgumentError, "A finite timeout is expected, but #{timeout.inspect} provided")
     end
     fb = Factbase.new
-    prepare(fb, yaml)
+    prepare(fb, yaml, badge)
     yaml['before']&.each do |n|
       j = judges.get(n).with_loog(buf)
       buf.info("Running #{j.script} judge as a pre-condition...")
@@ -207,19 +207,18 @@ class Judges::Test
     judges.any? { |n| n.match?(%r{^#{Regexp.escape(name)}(/#{re})?$}) }
   end
 
-  def prepare(fb, yaml)
+  def prepare(fb, yaml, badge)
     id = 1
     inputs = yaml['input']
     repeat = yaml['repeat']&.to_i || 1
     raise(ArgumentError, 'The repeat value must be at least 1') if repeat < 1
     repeat.times do
-      inputs&.each do |i|
+      Array(inputs).each do |i|
+        raise(ArgumentError, "The input of #{badge} must be a list of facts") unless i.is_a?(Hash)
         f = fb.insert
         i.each do |k, vv|
           if vv.is_a?(Array)
-            vv.each do |v|
-              f.public_send(:"#{k}=", v)
-            end
+            vv.each { |v| f.public_send(:"#{k}=", v) }
           else
             if k == '_id'
               vv = id
