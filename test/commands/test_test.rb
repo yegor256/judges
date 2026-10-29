@@ -377,6 +377,15 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_refuses_absent_directory
+    Dir.mktmpdir do |d|
+      assert_includes(
+        assert_raises(StandardError) { Judges::Test.new(Loog::NULL).run({}, [File.join(d, 'absent')]) }.message,
+        'The directory is absent'
+      )
+    end
+  end
+
   def test_accepts_a_correct_layout
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
