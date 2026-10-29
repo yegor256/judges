@@ -596,4 +596,43 @@ class TestUpdate < Minitest::Test
       assert_empty(xml.xpath('/fb/f[foo]'), xml)
     end
   end
+
+  def test_handles_judge_raising_empty_error_message
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'raise ""')
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::NULL).run({ 'quiet' => true, 'summary' => 'add', 'max-cycles' => 1 }, [d, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      sum = fb.query('(eq what "judges-summary")').each.first
+      refute_nil(sum)
+      assert_equal('RuntimeError', sum.error)
+    end
+  end
+
+  def test_handles_whitespace_error_message
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'raise "   "')
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::NULL).run({ 'quiet' => true, 'summary' => 'add', 'max-cycles' => 1 }, [d, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      sum = fb.query('(eq what "judges-summary")').each.first
+      refute_nil(sum)
+      assert_equal('RuntimeError', sum.error)
+    end
+  end
+
+  def test_handles_custom_exception_with_empty_message
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'class MyEmptyError < StandardError; end; raise MyEmptyError.new("")')
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::NULL).run({ 'quiet' => true, 'summary' => 'add', 'max-cycles' => 1 }, [d, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      sum = fb.query('(eq what "judges-summary")').each.first
+      refute_nil(sum)
+      assert_includes(sum.error, 'MyEmptyError')
+    end
+  end
 end
