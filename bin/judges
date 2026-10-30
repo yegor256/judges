@@ -54,7 +54,7 @@ class JudgesGLI extend GLI::App
   switch([:v, :verbose])
   desc 'Print diagnostic information about the environment, at the start'
   switch([:hello])
-  desc 'Specify Factbase version to use'
+  desc 'Verify Factbase version (it fails when a different version is already activated by RubyGems)'
   flag([:factbase], type: String)
   desc 'Echo the entire command line'
   switch([:echo])
@@ -77,6 +77,13 @@ class JudgesGLI extend GLI::App
     if global[:factbase]
       ver = global[:factbase]
       @@loog.debug("Factbase version to be used: '#{ver}' (set via --factbase)")
+      active = Gem.loaded_specs['factbase']
+      if active && !Gem::Requirement.new(ver).satisfied_by?(active.version)
+        raise "Requested factbase #{ver} via --factbase, but factbase " \
+              "#{active.version} is already activated and RubyGems cannot " \
+              "switch to another version of an already activated gem; " \
+              "remove --factbase or use the activated version"
+      end
       gem 'factbase', ver
     end
     require 'factbase'
