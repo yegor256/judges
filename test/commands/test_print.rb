@@ -153,6 +153,23 @@ class TestPrint < Minitest::Test
     assert_equal('w50', cols.last['class'], 'Last col should have class="w50"')
   end
 
+  def test_footer_reports_facts_not_bytes
+    WebMock.disable_net_connect!
+    stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(body: 'nothing')
+    stub_request(:get, 'https://yegor256.github.io/judges/assets/index.js').to_return(body: 'nothing')
+    fb = Factbase.new
+    fb.insert.note = 'kept'
+    Dir.mktmpdir do |d|
+      factbase = File.join(d, 'base.fb')
+      html = File.join(d, 'base.html')
+      File.binwrite(factbase, fb.export)
+      Judges::Print.new(Loog::NULL).run({ 'format' => 'html', 'columns' => 'note' }, [factbase, html])
+      footer = Nokogiri::HTML(File.read(html)).at_css('footer').text
+      refute_includes(footer, 'bytes')
+      assert_match(/Factbase: 1 fact, version/, footer)
+    end
+  end
+
   def test_refuses_an_unknown_format
     Dir.mktmpdir do |d|
       f = File.join(d, 'base.fb')
