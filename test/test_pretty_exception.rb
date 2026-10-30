@@ -32,4 +32,20 @@ class TestPrettyException < Minitest::Test
   def test_refuses_a_nil_exception
     assert_includes(assert_raises(ArgumentError) { Judges::PrettyException.new(nil) }.message, 'The exception is nil')
   end
+
+  # rubocop:disable Elegant/GoodMethodName
+  def test_long_utf16_message
+    txt = 'test ' * 50
+    exp = Judges::PrettyException.new(RuntimeError.new(txt.encode(Encoding::UTF_16LE)))
+    assert_equal(txt.ellipsized(100, :right), exp.message)
+    assert_equal(Encoding::UTF_8, exp.message.encoding)
+  end
+
+  def test_long_utf32_message
+    txt = 'test ' * 50
+    exp = Judges::PrettyException.new(RuntimeError.new(txt.encode(Encoding::UTF_32BE)))
+    assert_equal(txt.ellipsized(100, :right), exp.message)
+    assert_equal(Encoding::UTF_8, exp.message.encoding)
+  end
+  # rubocop:enable Elegant/GoodMethodName
 end
