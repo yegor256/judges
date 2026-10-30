@@ -262,7 +262,8 @@ class TestUpdate < Minitest::Test
   def test_refuses_zero_and_negative_timeouts
     [0, -1, -0.5].each do |timeout|
       Dir.mktmpdir do |d|
-        save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+        marker = File.join(d, 'ran.marker')
+        save_it(File.join(d, 'foo/foo.rb'), "File.write(#{marker.inspect}, 'ran'); $fb.insert.foo = 1")
         file = File.join(d, 'base.fb')
         assert_match(
           /\AThe --timeout=.* must be positive/,
@@ -270,6 +271,7 @@ class TestUpdate < Minitest::Test
             Judges::Update.new(Loog::NULL).run({ 'timeout' => timeout, 'lifetime' => 10 }, [d, file])
           end.message
         )
+        refute_path_exists(marker, 'no judge must run when the --timeout is not positive')
         refute_path_exists(file)
       end
     end
