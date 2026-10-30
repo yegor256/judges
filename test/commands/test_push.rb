@@ -82,6 +82,29 @@ class TestPush < Minitest::Test
     end
   end
 
+  def test_locks_with_own_owner_for_each_run
+    WebMock.disable_net_connect!
+    stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
+    locks = []
+    unlocks = []
+    stub_request(:post, %r{http://example.org/lock/foo}).with { |r| locks << r.body }.to_return(status: 302)
+    stub_request(:post, %r{http://example.org/unlock/foo}).with { |r| unlocks << r.body }.to_return(status: 302)
+    stub_request(:put, 'http://example.org/push/foo').to_return(status: 200, body: '42')
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      File.binwrite(file, Factbase.new.export)
+      2.times do
+        Judges::Push.new(Loog::NULL).run(
+          { 'token' => '000', 'host' => 'example.org', 'port' => 80, 'ssl' => false },
+          ['foo', file]
+        )
+      end
+    end
+    assert_equal(locks, unlocks)
+    assert_equal(2, locks.uniq.size)
+    refute_includes(locks.first, 'default')
+  end
+
   def test_fails_on_http_error
     WebMock.disable_net_connect!
     stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
