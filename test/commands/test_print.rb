@@ -202,6 +202,25 @@ class TestPrint < Minitest::Test
     end
   end
 
+  def test_prints_facts_to_xml
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert.foo = 42
+      fb.insert.bar = 'hello'
+      File.binwrite(f, fb.export)
+      Judges::Print.new(Loog::NULL).run({ 'format' => 'xml', 'auto' => true }, [f])
+      xml = Nokogiri::XML(File.read(File.join(d, 'base.xml')))
+      assert_equal(2, xml.xpath('/fb/f').size, xml.to_s)
+      refute_empty(xml.xpath("/fb/f[foo='42']"), xml.to_s)
+      refute_empty(xml.xpath("/fb/f[bar='hello']"), xml.to_s)
+      Judges::Print.new(Loog::NULL).run(
+        { 'format' => 'xml', 'query' => '(eq foo 42)' }, [f, File.join(d, 'some.xml')]
+      )
+      assert_equal(1, Nokogiri::XML(File.read(File.join(d, 'some.xml'))).xpath('/fb/f').size)
+    end
+  end
+
   def test_print_twice
     Dir.mktmpdir do |d|
       f = File.join(d, 'base.fb')
