@@ -89,6 +89,8 @@ of Ruby scripts that are executed after the judge
 
 The `expected_failure` (default: `[]`) is a list of strings; the exception
 being raised is accepted when its message contains at least one of them.
+When it is `true`, any exception is accepted, but it must be raised; its
+message is not checked.
 
 ## Architecture
 
