@@ -596,4 +596,56 @@ class TestUpdate < Minitest::Test
       assert_empty(xml.xpath('/fb/f[foo]'), xml)
     end
   end
+
+  def test_refuses_zero_timeout
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      file = File.join(d, 'base.fb')
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Update.new(Loog::NULL).run({ 'timeout' => 0 }, [d, file])
+        end.message,
+        'The --timeout=0.0 must be greater than zero'
+      )
+    end
+  end
+
+  def test_refuses_negative_timeout
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      file = File.join(d, 'base.fb')
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Update.new(Loog::NULL).run({ 'timeout' => -1 }, [d, file])
+        end.message,
+        'The --timeout=-1.0 must be greater than zero'
+      )
+    end
+  end
+
+  def test_refuses_fractional_negative_timeout
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      file = File.join(d, 'base.fb')
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Update.new(Loog::NULL).run({ 'timeout' => -0.5 }, [d, file])
+        end.message,
+        'The --timeout=-0.5 must be greater than zero'
+      )
+    end
+  end
+
+  def test_refuses_string_zero_timeout
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      file = File.join(d, 'base.fb')
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Update.new(Loog::NULL).run({ 'timeout' => '0' }, [d, file])
+        end.message,
+        'The --timeout=0.0 must be greater than zero'
+      )
+    end
+  end
 end
