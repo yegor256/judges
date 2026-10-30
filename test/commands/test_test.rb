@@ -97,6 +97,30 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_reads_anchors_and_aliases_in_a_pack
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.query("(exists bar)").each { |f| f.done = 1 }')
+      save_it(
+        File.join(d, 'foo/simple.yml'),
+        "input:\n  - &base\n    bar: 1\n  - *base\nexpected:\n  - /fb[count(f[done])=2]\n"
+      )
+      Judges::Test.new(Loog::NULL).run({}, [d])
+      assert_path_exists(d)
+    end
+  end
+
+  def test_reads_a_merge_key_in_a_pack
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.query("(exists baz)").each { |f| f.done = 1 }')
+      save_it(
+        File.join(d, 'foo/merge.yml'),
+        "input:\n  - &base\n    bar: 1\n  - <<: *base\n    baz: 2\nexpected:\n  - /fb/f[bar=1 and baz=2 and done=1]\n"
+      )
+      Judges::Test.new(Loog::NULL).run({}, [d])
+      assert_path_exists(d)
+    end
+  end
+
   def test_with_options
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = $options.bar')
