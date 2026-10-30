@@ -596,4 +596,45 @@ class TestUpdate < Minitest::Test
       assert_empty(xml.xpath('/fb/f[foo]'), xml)
     end
   end
+
+  def test_refuses_zero_timeout
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      file = File.join(d, 'base.fb')
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Update.new(Loog::NULL).run({ 'timeout' => 0, 'quiet' => true, 'max-cycles' => 1 }, [d, file])
+        end.message,
+        '--timeout=0.0', 'the error does not name the flag'
+      )
+      refute_path_exists(file, 'a judge ran with a zero timeout')
+    end
+  end
+
+  def test_refuses_negative_timeout
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      file = File.join(d, 'base.fb')
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Update.new(Loog::NULL).run(
+            { 'timeout' => -1, 'lifetime' => 10, 'quiet' => true, 'max-cycles' => 1 }, [d, file]
+          )
+        end.message,
+        'must be a positive number of seconds', 'the error is wrong'
+      )
+      refute_path_exists(file, 'a judge ran with a negative timeout')
+    end
+  end
+
+  def test_accepts_small_positive_timeout
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::NULL).run({ 'timeout' => 0.5, 'quiet' => true, 'max-cycles' => 1 }, [d, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_equal(1, fb.query('(exists foo)').each.to_a.size, 'the judge did not run with a small timeout')
+    end
+  end
 end
