@@ -37,7 +37,7 @@ class Judges::Upload
     raise(StandardError, "File not found: #{path}") unless File.file?(path)
     name = File.basename(path)
     baza = BazaRb.new(
-      opts['host'], opts['port'].to_i, opts['token'],
+      opts['host'], (opts['port'] || (opts['ssl'] ? 443 : 80)).to_i, opts['token'],
       ssl: opts['ssl'],
       timeout: (opts['timeout'] || 30).to_f,
       loog: @loog,

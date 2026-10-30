@@ -235,8 +235,8 @@ class JudgesGLI extend GLI::App
     c.flag([:token])
     c.desc 'Server IP/hostname'
     c.flag([:host], default_value: 'api.zerocracy.com')
-    c.desc 'Server TCP port number'
-    c.flag([:port], default_value: 443, type: Integer)
+    c.desc 'Server TCP port number (default: 443 with SSL, 80 without)'
+    c.flag([:port], type: Integer)
     c.desc 'Connection and read timeout in seconds'
     c.flag([:timeout], default_value: 30, type: Integer)
     c.desc 'Enable SSL connection'
@@ -261,8 +261,8 @@ class JudgesGLI extend GLI::App
     c.flag([:wait], default_value: 10 * 60, arg_name: '<seconds>', type: Integer)
     c.desc 'Server IP/hostname'
     c.flag([:host], default_value: 'api.zerocracy.com')
-    c.desc 'Server TCP port number'
-    c.flag([:port], default_value: 443, type: Integer)
+    c.desc 'Server TCP port number (default: 443 with SSL, 80 without)'
+    c.flag([:port], type: Integer)
     c.desc 'Connection and read timeout in seconds'
     c.flag([:timeout], default_value: 30, type: Integer)
     c.desc 'Enable SSL connection'
@@ -281,8 +281,8 @@ class JudgesGLI extend GLI::App
     c.flag([:token])
     c.desc 'Server IP/hostname'
     c.flag([:host], default_value: 'api.zerocracy.com')
-    c.desc 'Server TCP port number'
-    c.flag([:port], default_value: 443, type: Integer)
+    c.desc 'Server TCP port number (default: 443 with SSL, 80 without)'
+    c.flag([:port], type: Integer)
     c.desc 'Connection and read timeout in seconds'
     c.flag([:timeout], default_value: 30, type: Integer)
     c.desc 'Enable SSL connection'
@@ -301,8 +301,8 @@ class JudgesGLI extend GLI::App
     c.flag([:token])
     c.desc 'Server IP/hostname'
     c.flag([:host], default_value: 'api.zerocracy.com')
-    c.desc 'Server TCP port number'
-    c.flag([:port], default_value: 443, type: Integer)
+    c.desc 'Server TCP port number (default: 443 with SSL, 80 without)'
+    c.flag([:port], type: Integer)
     c.desc 'Connection and read timeout in seconds'
     c.flag([:timeout], default_value: 30, type: Integer)
     c.desc 'Enable SSL connection'

@@ -156,6 +156,18 @@ class TestPull < Minitest::Test
     end
   end
 
+  def test_reaches_http_port_by_default
+    WebMock.disable_net_connect!
+    stub_request(:get, 'http://example.org:80/exists/foo').to_return(body: 'no')
+    Dir.mktmpdir do |d|
+      Judges::Pull.new(Loog::NULL).run(
+        { 'token' => '000', 'host' => 'example.org', 'ssl' => false, 'owner' => 'none' },
+        ['foo', File.join(d, 'base.fb')]
+      )
+    end
+    assert_requested(:get, 'http://example.org:80/exists/foo')
+  end
+
   def test_fails_when_offline
     WebMock.disable_net_connect!
     assert_equal(
