@@ -48,4 +48,10 @@ class TestPrettyException < Minitest::Test
     assert_equal(Encoding::UTF_8, exp.message.encoding)
   end
   # rubocop:enable Elegant/GoodMethodName
+
+  def test_long_broken_message
+    exp = Judges::PrettyException.new(RuntimeError.new("\xff" * 150))
+    assert_predicate(exp.message, :valid_encoding?)
+    assert_includes(exp.message, "\uFFFD")
+  end
 end
