@@ -377,6 +377,17 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_counts_failed_tests_against_all_tests
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.what = "x"')
+      %w[a b c].each { |n| save_it(File.join(d, "foo/#{n}.yml"), "expected:\n  - /fb/f[what='nope']") }
+      save_it(File.join(d, 'foo/d.yml'), "expected:\n  - /fb/f[what='x']")
+      loog = Loog::Buffer.new
+      assert_raises(StandardError) { Judges::Test.new(loog).run({}, [d]) }
+      assert_includes(loog.to_s, '1 judge(s) and 4 tests run, 3 tests failed', loog.to_s)
+    end
+  end
+
   def test_accepts_a_correct_layout
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
