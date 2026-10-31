@@ -25,7 +25,7 @@ class Judges::Inspect
   # Run the inspect command (called by the +bin/judges+ script).
   # @param [Hash] _opts Command line options (not used)
   # @param [Array] args List of command line arguments
-  # @raise [RuntimeError] If no arguments provided
+  # @raise [ArgumentError] If no arguments provided
   def run(_opts, args)
     raise(ArgumentError, 'At least one argument required') if args.empty?
     fb = Judges::Impex.new(@loog, args[0]).import
