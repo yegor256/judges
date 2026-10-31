@@ -38,7 +38,7 @@ class Judges::Pull
       ssl: opts['ssl'],
       timeout: (opts['timeout'] || 30).to_f,
       loog: @loog,
-      retries: (opts['retries'] || 3).to_i
+      retries: (opts['retries'] || 3).to_i.clamp(0..) + 1
     )
     name = args[0]
     elapsed(@loog, level: Logger::INFO) do
