@@ -13,7 +13,8 @@ Feature: Inspect
 
   Scenario: Inspect with a summary
     Given I make a temp directory
-    Then I run bin/judges with "--verbose eval simple.fb '$fb.insert.what = "judges-summary"'"
+    Then I run bin/judges with "--verbose eval simple.fb '$fb.insert.what = %q(judges-summary)'"
     Then I run bin/judges with "inspect simple.fb"
     Then Stdout contains "Facts: 1"
+    Then Stdout contains "Summary fact found"
     And Exit code is zero
