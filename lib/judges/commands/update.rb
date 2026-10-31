@@ -161,20 +161,20 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
   # @param [Integer] cycles How many cycles
   def summarize(fb, churn, errors, cycles, mode)
     before = fb.query('(eq what "judges-summary")').each.to_a
+    kept = []
     if mode == 'add'
-      fb.query('(eq what "judges-summary")').delete!
       @loog.info('Summary fact deleted') unless before.empty?
-    end
-    if before.empty? || mode == 'add'
-      s = fb.insert
-    else
-      s = before.first
-      errs = s['error']&.size || 0
+    elsif !before.empty?
+      kept = before.first['error'].to_a
+      errs = kept.size
       @loog.info(
         "A summary found, with #{errs.positive? || 'no'} error#{'s' if errs > 1 || errs.zero?}: " \
-        "#{%w[when cycles version inserted deleted added].map { |a| "#{a}=#{s[a]&.first}" }.join(', ')}"
+        "#{%w[when cycles version inserted deleted added].map { |a| "#{a}=#{before.first[a]&.first}" }.join(', ')}"
       )
     end
+    fb.query('(eq what "judges-summary")').delete!
+    s = fb.insert
+    kept.each { |e| s.error = e }
     s.what = 'judges-summary'
     s.when = Time.now
     s.version = Judges::VERSION
