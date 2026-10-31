@@ -139,12 +139,15 @@ Every judge directory contains `.yml` test files alongside its `.rb`
 
 The `push` and `pull` commands exchange the binary factbase with a
   remote [Baza](https://github.com/yegor256/baza.rb) server via a
-  named lock. Each of them takes the lock only for the time of its own
-  transfer and releases it before it returns: `pull` downloads the
-  file, `push` uploads the modified one. This
-  lets distributed CI pipelines share a single evolving factbase
-  across multiple jobs without running a database: each job pulls,
-  runs `update` locally, and pushes back.
+  named-lock protocol. Each command holds the lock only for its own
+  transfer and releases it before returning. `pull` downloads the
+  file; it also records the Baza job ID next to the local factbase.
+  Before uploading, `push` acquires the lock and compares that ID with
+  the latest remote job. If another job has
+  already pushed, the stale upload is rejected and the local changes
+  must be replayed on a fresh pull. This lets distributed CI pipelines
+  share a single evolving factbase across multiple jobs without running
+  a database.
 
 ## How to contribute
 
