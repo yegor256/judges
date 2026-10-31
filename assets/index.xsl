@@ -121,9 +121,7 @@
               <xsl:if test="count(fb/f) != 1">
                 <xsl:text>s</xsl:text>
               </xsl:if>
-              <xsl:text>, </xsl:text>
-              <xsl:value-of select="fb/@size"/>
-              <xsl:text> bytes, version </xsl:text>
+              <xsl:text>, version </xsl:text>
               <xsl:value-of select="fb/@version"/>
               <xsl:text>.</xsl:text>
               <br/>
