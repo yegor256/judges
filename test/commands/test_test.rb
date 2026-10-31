@@ -33,6 +33,28 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_runs_only_the_named_test_of_a_judge
+    packs do |d|
+      loog = Loog::Buffer.new
+      Judges::Test.new(loog).run({ 'judge' => ['foo/good'] }, [d])
+      assert_includes(loog.to_s, 'All 1 judge(s) and 1 tests passed', loog.to_s)
+    end
+  end
+
+  def test_does_not_match_a_test_name_as_a_prefix
+    packs do |d|
+      assert_raises(StandardError) { Judges::Test.new(Loog::NULL).run({ 'judge' => ['foo/good-two'] }, [d]) }
+    end
+  end
+
+  def test_runs_every_test_of_a_judge_named_alone
+    packs do |d|
+      loog = Loog::Buffer.new
+      assert_raises(StandardError) { Judges::Test.new(loog).run({ 'judge' => ['foo'] }, [d]) }
+      assert_includes(loog.to_s, '2 of them failed', loog.to_s)
+    end
+  end
+
   def test_refuses_a_judge_name_that_matches_nothing
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 4')
@@ -382,6 +404,18 @@ class TestTest < Minitest::Test
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
       save_it(File.join(d, 'foo/simple.yml'), "input:\nexpected:\n  - /fb[count(f)=1]")
       Judges::Test.new(Loog::NULL).run({}, [d])
+    end
+  end
+
+  private
+
+  def packs
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 4')
+      save_it(File.join(d, 'foo/good.yml'), "input: []\nexpected:\n  - /fb[count(f)=1]\n")
+      save_it(File.join(d, 'foo/bad.yml'), "input: []\nexpected:\n  - /fb[count(f)=2]\n")
+      save_it(File.join(d, 'foo/good-two.yml'), "input: []\nexpected:\n  - /fb[count(f)=2]\n")
+      yield(d)
     end
   end
 end
