@@ -4,14 +4,12 @@ PATH
     judges (0.0.0)
       backtrace (~> 0.4)
       baza.rb (~> 0.10)
-      concurrent-ruby (~> 1.2)
       elapsed (~> 0.2)
       ellipsized (~> 0.3)
       factbase (~> 0.16)
       gli (~> 2.21)
       iri (~> 0.11)
       loog (~> 0.6)
-      moments (~> 0.3)
       nokogiri (~> 1.10)
       octokit (~> 10.0)
       others (~> 0.1)
@@ -44,7 +42,6 @@ GEM
       typhoeus (~> 1.4)
     bigdecimal (4.1.3)
     builder (3.3.0)
-    concurrent-ruby (1.3.7)
     crack (1.0.1)
       bigdecimal
       rexml
@@ -142,7 +139,6 @@ GEM
       ruby-progressbar
     minitest-retry (0.3.1)
       minitest (>= 5.0)
-    moments (0.3.0)
     multi_test (1.1.0)
     multipart-post (2.4.1)
     net-http (0.9.1)
