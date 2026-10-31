@@ -58,6 +58,13 @@ class TestMaskedArgs < Minitest::Test
     )
   end
 
+  def test_hides_authorization_inside_an_option
+    secret = 'ghp_SUPERSECRET1234567890'
+    line = Judges::MaskedArgs.new(["update", "--option", "authorization=Bearer #{secret}"]).to_s
+    refute_includes(line, secret, line)
+    assert_includes(line, 'authorization=Bearer', line)
+  end
+
   def test_keeps_everything_else
     assert_equal('update --quiet a b', Judges::MaskedArgs.new(%w[update --quiet a b]).to_s)
   end
