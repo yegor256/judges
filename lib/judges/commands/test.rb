@@ -167,12 +167,16 @@ class Judges::Test
         $fb = fb
         $loog = buf
         if yaml['timeout']
-          Timeout.timeout(yaml['timeout']) do
-            load(File.join(judge.dir, rb), true)
-          end
+          Timeout.timeout(yaml['timeout']) { load(File.join(judge.dir, rb), true) }
         else
           load(File.join(judge.dir, rb), true)
         end
+        # rubocop:disable Lint/RescueException
+      rescue Exception => e
+        # rubocop:enable Lint/RescueException
+        raise(e) if e.is_a?(StandardError)
+        raise(e) if e.is_a?(Timeout::ExitException)
+        raise(StandardError, "#{e.message} (#{e.class.name})")
       ensure
         $fb = previous[0]
         $loog = previous[1]
