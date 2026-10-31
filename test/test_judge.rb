@@ -78,6 +78,16 @@ class TestJudge < Minitest::Test
     end
   end
 
+  def test_runs_judge_with_bracket_in_name
+    Dir.mktmpdir do |d|
+      dir = File.join(d, 'a[1]b')
+      save_it(File.join(dir, 'a[1]b.rb'), '$fb.insert.foo = 1')
+      fb = Factbase.new
+      Judges::Judge.new(dir, nil, Loog::NULL).run(fb, {}, {}, {})
+      assert_equal(1, fb.size)
+    end
+  end
+
   def test_with_broken_ruby_syntax
     assert_raises(StandardError) do
       Dir.mktmpdir do |d|
