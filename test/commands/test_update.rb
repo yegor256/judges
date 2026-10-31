@@ -596,4 +596,66 @@ class TestUpdate < Minitest::Test
       assert_empty(xml.xpath('/fb/f[foo]'), xml)
     end
   end
+
+  def test_fails_early_when_churn_is_directory
+    Dir.mktmpdir do |d|
+      marker = File.join(d, 'marker.txt')
+      save_it(File.join(d, 'foo/foo.rb'), "File.write('#{marker.tr('\\', '/')}', 'ran')")
+      file = File.join(d, 'base.fb')
+      assert_raises(StandardError) do
+        Judges::Update.new(Loog::NULL).run({ 'churn' => d }, [d, file])
+      end
+      refute_path_exists(marker)
+      refute_path_exists(file)
+    end
+  end
+
+  def test_fails_early_when_churn_cannot_be_written
+    Dir.mktmpdir do |d|
+      marker = File.join(d, 'marker.txt')
+      save_it(File.join(d, 'foo/foo.rb'), "File.write('#{marker.tr('\\', '/')}', 'ran')")
+      bad = File.join(d, 'file.txt')
+      File.write(bad, 'not a dir')
+      churn = File.join(bad, 'sub/churn.txt')
+      file = File.join(d, 'base.fb')
+      assert_raises(StandardError) do
+        Judges::Update.new(Loog::NULL).run({ 'churn' => churn }, [d, file])
+      end
+      refute_path_exists(marker)
+      refute_path_exists(file)
+    end
+  end
+
+  def test_churn_error_in_ensure_does_not_mask_failure
+    Dir.mktmpdir do |d|
+      churn = File.join(d, 'churn_output.txt')
+      save_it(
+        File.join(d, 'foo/foo.rb'),
+        "FileUtils.mkdir_p('#{churn.tr('\\', '/')}')\nraise 'real failure in judge'"
+      )
+      file = File.join(d, 'base.fb')
+      log = Loog::Buffer.new
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Update.new(log).run({ 'churn' => churn, 'quiet' => false }, [d, file])
+        end.message,
+        'Failed to update correctly'
+      )
+      assert_includes(log.to_s, 'Failed to write churn')
+    end
+  end
+
+  def test_churn_failure_in_ensure_raises
+    Dir.mktmpdir do |d|
+      churn = File.join(d, 'churn_output.txt')
+      save_it(
+        File.join(d, 'foo/foo.rb'),
+        "FileUtils.mkdir_p('#{churn.tr('\\', '/')}')\n$fb.insert.foo = 1"
+      )
+      file = File.join(d, 'base.fb')
+      assert_raises(StandardError) do
+        Judges::Update.new(Loog::NULL).run({ 'churn' => churn, 'max-cycles' => 1 }, [d, file])
+      end
+    end
+  end
 end
