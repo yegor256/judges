@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'factbase/to_xml'
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require 'factbase/to_xml'
 require 'loog'
 require 'nokogiri'
 require_relative '../../lib/judges'
@@ -15,6 +15,20 @@ require_relative '../test__helper'
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
 class TestImport < Minitest::Test
+  def test_preserves_existing_facts
+    Dir.mktmpdir do |dir|
+      file = File.join(dir, 'base.fb')
+      yaml = File.join(dir, 'input.yml')
+      fb = Factbase.new
+      fb.insert.name = 'existing'
+      impex = Judges::Impex.new(Loog::NULL, file)
+      impex.export(fb)
+      File.write(yaml, "- name: imported\n")
+      Judges::Import.new(Loog::NULL).run({}, [yaml, file])
+      assert_equal(%w[existing imported], impex.import.query('(always)').each.map { |fact| fact['name'].first }.sort)
+    end
+  end
+
   def test_import_from_yaml
     Dir.mktmpdir do |d|
       file = File.join(d, 'base.fb')
