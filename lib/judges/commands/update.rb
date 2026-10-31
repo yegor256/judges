@@ -247,7 +247,7 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
       result = 'SKIPPED'
     else
       @loog.warn(Backtrace.new(e))
-      errors << e.message
+      errors << "Judge #{judge.name} failed: #{e.message}"
       result = 'ERROR'
     end
     impact || true
