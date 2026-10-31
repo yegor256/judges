@@ -90,9 +90,9 @@ class Judges::Judge
       raise(e) if e.is_a?(StandardError)
       raise(e) if e.is_a?(Timeout::ExitException)
       raise(StandardError, "#{e.message} (#{e.class.name})")
-    ensure
-      $fb = $judge = $options = $loog = $epoch = $kickoff = nil
     end
+  ensure
+    $fb = $judge = $options = $loog = $epoch = $kickoff = nil
   end
   # rubocop:enable Metrics/MethodLength
 
