@@ -48,7 +48,7 @@ class Judges::Print
     o = args[1]
     if o.nil?
       raise(ArgumentError, 'Either provide output file name or use --auto') unless opts['auto']
-      o = File.join(File.dirname(f), File.basename(f).gsub(/\.[^.]*$/, ''))
+      o = File.join(File.dirname(f), File.basename(f, File.extname(f)))
       o = "#{o}.#{fmt}"
     end
     sidecar = "#{o}.judges-options"
