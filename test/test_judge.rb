@@ -78,6 +78,16 @@ class TestJudge < Minitest::Test
     end
   end
 
+  def test_clears_global_and_local_after_the_judge
+    Dir.mktmpdir do |d|
+      dir = File.join(d, 'noop')
+      save_it(File.join(dir, 'noop.rb'), '$fb.insert.what = "x"')
+      Judges::Judge.new(dir, nil, Loog::NULL).run(Factbase.new, { some: 1 }, { some: 2 }, {})
+      assert_nil($global, 'the $global of the judge outlives it')
+      assert_nil($local, 'the $local of the judge outlives it')
+    end
+  end
+
   def test_with_broken_ruby_syntax
     assert_raises(StandardError) do
       Dir.mktmpdir do |d|
