@@ -7,6 +7,7 @@ require 'baza-rb'
 require 'elapsed'
 require 'fileutils'
 require 'iri'
+require 'tempfile'
 require 'typhoeus'
 require_relative '../../judges'
 
@@ -32,8 +33,7 @@ class Judges::Download
   def run(opts, args)
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     raise(StandardError, 'The download command needs the network, while --offline is set') if opts['offline']
-    jname = args[0]
-    path = args[1]
+    jname, path = args
     name = File.basename(path)
     baza = BazaRb.new(
       opts['host'], opts['port'].to_i, opts['token'],
@@ -50,13 +50,14 @@ class Judges::Download
       end
       @loog.info("Durable ##{id} ('#{name}') found in '#{jname}'")
       baza.durable_lock(id, opts['owner'] || 'default')
-      tmp = "#{path}.part"
       begin
-        baza.durable_load(id, tmp)
-        FileUtils.mv(tmp, path)
-        throw(:"👍 Downloaded durable ##{id} to #{path} (#{File.size(path)} bytes)")
+        Tempfile.create([name, '.part'], File.dirname(path)) do |tmp|
+          tmp.close
+          baza.durable_load(id, tmp.path)
+          FileUtils.mv(tmp.path, path)
+          throw(:"👍 Downloaded durable ##{id} to #{path} (#{File.size(path)} bytes)")
+        end
       ensure
-        FileUtils.rm_f(tmp)
         baza.durable_unlock(id, opts['owner'] || 'default')
       end
     end
