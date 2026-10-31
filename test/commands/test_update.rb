@@ -237,6 +237,28 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_refuses_an_absent_options_file
+    Dir.mktmpdir do |d|
+      error =
+        assert_raises(StandardError) do
+          Judges::Update.new(Loog::NULL).run(
+            { 'options-file' => File.join(d, 'absent.txt') }, [d, File.join(d, 'base.fb')]
+          )
+        end
+      assert_includes(error.message, 'The options file is absent', error.message)
+    end
+  end
+
+  def test_refuses_a_directory_as_options_file
+    Dir.mktmpdir do |d|
+      error =
+        assert_raises(StandardError) do
+          Judges::Update.new(Loog::NULL).run({ 'options-file' => d }, [d, File.join(d, 'base.fb')])
+        end
+      assert_includes(error.message, 'The options file is a directory', error.message)
+    end
+  end
+
   def test_terminates_on_lifetime
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), 'sleep 999')
