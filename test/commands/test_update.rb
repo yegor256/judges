@@ -44,6 +44,21 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_checks_options_before_importing_factbase
+    [
+      { 'timeout' => 30, 'lifetime' => 20 },
+      { 'options-file' => 'absent-options.txt' }
+    ].each do |opts|
+      Dir.mktmpdir do |d|
+        file = File.join(d, 'base.fb')
+        File.binwrite(file, Factbase.new.tap { |fb| fb.insert.value = 7 }.export)
+        loog = Loog::Buffer.new
+        assert_raises(StandardError) { Judges::Update.new(loog).run(opts, [d, file]) }
+        refute_includes(loog.to_s, 'imported from', loog.to_s)
+      end
+    end
+  end
+
   def test_build_factbase_from_scratch
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), 'return if $fb.size > 2; $fb.insert.zzz = $options.foo_bar + 1')
