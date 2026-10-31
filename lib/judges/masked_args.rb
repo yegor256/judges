@@ -15,11 +15,9 @@ require_relative '../judges'
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
 class Judges::MaskedArgs
-  SECRETS = %w[--token].freeze
+  LONG = /\A--(?<name>[a-z-]+)(?:=(?<value>.*))?\z/m
 
-  OPTIONS = %w[-o --option].freeze
-
-  SENSITIVE = /\A(?<key>[a-z_0-9]*(?:token|secret|password|key))=(?<value>.+)\z/i
+  SENSITIVE = /\A\s*(?<key>[a-z_0-9]*(?:token|secret|password|key))\s*=\s*(?<value>.+)\z/i
 
   # Initialize.
   # @param [Array<String>] args The arguments, as they arrived
@@ -41,13 +39,25 @@ class Judges::MaskedArgs
   # @param [String, nil] prev The argument before it, if any
   # @return [String] The argument, safe to print
   def hidden(arg, prev)
-    return mask(arg) if SECRETS.include?(prev)
-    return pairs(arg) if OPTIONS.include?(prev)
-    opt = SECRETS.find { |s| arg.start_with?("#{s}=") }
-    return "#{opt}=#{mask(arg[(opt.length + 1)..])}" if opt
-    opt = OPTIONS.find { |s| arg.start_with?("#{s}=") }
-    return "#{opt}=#{pairs(arg[(opt.length + 1)..])}" if opt
+    before = LONG.match(prev.to_s)
+    return mask(arg) if before && before[:value].nil? && named?(before[:name], 'token', 3)
+    return pairs(arg) if prev == '-o' || (before && before[:value].nil? && named?(before[:name], 'option', 1))
+    return "-o#{pairs(arg[2..])}" if arg.start_with?('-o') && !arg.start_with?('--')
+    m = LONG.match(arg)
+    return pairs(arg) if m.nil? || m[:value].nil?
+    return "--#{m[:name]}=#{mask(m[:value])}" if named?(m[:name], 'token', 3)
+    return "--#{m[:name]}=#{pairs(m[:value])}" if named?(m[:name], 'option', 1)
     pairs(arg)
+  end
+
+  # Is it a long option name, the way +OptionParser+ accepts it, which is
+  # the full name or any of its prefixes?
+  # @param [String] name The name, without the leading dashes
+  # @param [String] full The full name of the option
+  # @param [Integer] min How many characters are enough to recognize it
+  # @return [Boolean] True if the name stands for the option
+  def named?(name, full, min)
+    name.length >= min && full.start_with?(name)
   end
 
   # Hide the value of a "key=value" pair whose key names a secret.
