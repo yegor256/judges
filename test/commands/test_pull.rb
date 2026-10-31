@@ -106,7 +106,7 @@ class TestPull < Minitest::Test
     stub_request(:get, 'http://example.org/recent/foo.txt').to_return(body: '42')
     stub_request(:get, 'http://example.org/finished/42').to_return(body: 'yes')
     stub_request(:get, 'http://example.org/exit/42.txt').to_return(body: '0')
-    unlock = stub_request(:post, %r{http://example.org/unlock/foo}).to_return(status: 302)
+    stub_request(:post, %r{http://example.org/unlock/foo}).to_return(status: 302)
     fb = Factbase.new
     fb.insert.foo = 42
     stub_request(:get, 'http://example.org/pull/42.fb').to_return(body: fb.export, headers: {})
@@ -118,12 +118,13 @@ class TestPull < Minitest::Test
           'port' => 80,
           'ssl' => false,
           'wait' => 10,
-          'owner' => 'none'
+          'owner' => 'custom'
         },
         ['foo', File.join(d, 'base.fb')]
       )
     end
-    assert_requested(unlock)
+    assert_requested(:post, 'http://example.org/lock/foo', body: /owner=custom/)
+    assert_requested(:post, 'http://example.org/unlock/foo', body: /owner=custom/)
   end
 
   def test_fail_pull_when_job_is_broken
