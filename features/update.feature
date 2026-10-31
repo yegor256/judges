@@ -36,7 +36,7 @@ Feature: Update
     Then I run bin/judges with "update --quiet --summary=append --max-cycles 1 . simple.fb"
     Then I run bin/judges with "inspect simple.fb"
     Then Stdout contains "Summary fact found"
-    Then Stdout contains "errors:"
+    Then Stdout contains "error: ["
     And Exit code is zero
 
   Scenario: Delete a previous summary fact and create new one
@@ -44,7 +44,7 @@ Feature: Update
     Then I have a "buggy/buggy.rb" file with content: "this is an intentional bug"
     Then I run bin/judges with "update --quiet --summary=add --max-cycles 1 . simple.fb"
     Then Exit code is zero
-    Then Stdout contains "Summary fact added"
+    Then Stdout contains "error added to the summary"
     Then I run bin/judges with "update --quiet --summary=add --max-cycles 1 . simple.fb"
     Then Exit code is zero
     And Stdout contains "Summary fact deleted"
