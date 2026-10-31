@@ -43,7 +43,7 @@ class Judges::Pull
     name = args[0]
     elapsed(@loog, level: Logger::INFO) do
       if baza.name_exists?(name)
-        baza.lock(name, opts['owner'])
+        baza.lock(name, opts['owner'] || 'default')
         begin
           jid = baza.recent(name)
           unless baza.exit_code(jid).zero?
@@ -53,7 +53,7 @@ class Judges::Pull
           fb.import(baza.pull(wait(name, baza, jid, opts['wait'])))
           Judges::Impex.new(@loog, args[1]).export(fb)
         ensure
-          baza.unlock(name, opts['owner'])
+          baza.unlock(name, opts['owner'] || 'default')
         end
         throw(:"👍 Pulled #{fb.size} facts by name '#{name}'")
       else
