@@ -241,7 +241,10 @@ class Judges::Test
   # @param [Boolean] assert Whether to check the expected XPaths after the runs
   # @return [Range] The range of runs that were made
   def test_one(fb, opts, judge, tname, yaml, assert: true)
-    options = Judges::Options.new(opts['option']) + Judges::Options.new(yaml['options'])
+    options =
+      Judges::Options.new(timeout: yaml['timeout']&.to_f) +
+      Judges::Options.new(opts['option']) +
+      Judges::Options.new(yaml['options'])
     runs = opts['runs'] || yaml['runs'] || 1
     timeout = yaml['timeout']
     (1..runs).each do |r|
