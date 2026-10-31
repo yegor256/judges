@@ -65,6 +65,12 @@ Then(/^Stdout contains "([^"]*)"$/) do |txt|
   raise(StandardError, "STDOUT doesn't contain '#{txt}':\n#{@stdout}") unless @stdout.include?(txt)
 end
 
+Then(/^Stdout contains "([^"]*)" before "([^"]*)"$/) do |first, second|
+  a = @stdout.index(first)
+  b = @stdout.index(second)
+  raise(StandardError, "STDOUT doesn't contain '#{first}' before '#{second}':\n#{@stdout}") unless a && b && a < b
+end
+
 Then(/^Stdout is empty$/) do
   raise(StandardError, "STDOUT is not empty:\n#{@stdout}") unless @stdout == ''
 end
