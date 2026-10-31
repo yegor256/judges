@@ -8,6 +8,7 @@ require 'loog'
 require 'tmpdir'
 require_relative '../lib/judges'
 require_relative '../lib/judges/judge'
+require_relative '../lib/judges/options'
 require_relative 'test__helper'
 
 # Test.
@@ -21,6 +22,33 @@ class TestJudge < Minitest::Test
       fb = Factbase.new
       Judges::Judge.new(d, nil, Loog::NULL).run(fb, {}, {}, {})
       assert_equal(1, fb.size)
+    end
+  end
+
+  def test_does_not_leak_options_through_env
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, "#{File.basename(d)}.rb"), '$fb.insert.seen = ENV.fetch("JUDGE_LEAK_FLAG", "absent")')
+      judge = Judges::Judge.new(d, nil, Loog::NULL)
+      first = Factbase.new
+      judge.run(first, {}, {}, Judges::Options.new('JUDGE_LEAK_FLAG' => 'first'))
+      assert_equal('first', first.query('(always)').each.first.seen)
+      assert_nil(ENV.fetch('JUDGE_LEAK_FLAG', nil))
+      second = Factbase.new
+      judge.run(second, {}, {}, Judges::Options.new)
+      assert_equal('absent', second.query('(always)').each.first.seen)
+    end
+  end
+
+  def test_restores_env_after_failure
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, "#{File.basename(d)}.rb"), 'raise "boom"')
+      ENV['JUDGE_LEAK_KEPT'] = 'before'
+      judge = Judges::Judge.new(d, nil, Loog::NULL)
+      options = Judges::Options.new('JUDGE_LEAK_KEPT' => 'during')
+      assert_raises(StandardError) { judge.run(Factbase.new, {}, {}, options) }
+      assert_equal('before', ENV.fetch('JUDGE_LEAK_KEPT', nil))
+    ensure
+      ENV.delete('JUDGE_LEAK_KEPT')
     end
   end
 
