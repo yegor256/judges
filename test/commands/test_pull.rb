@@ -165,4 +165,59 @@ class TestPull < Minitest::Test
       end.message
     )
   end
+
+  def test_original_error_on_unlock_failure
+    WebMock.disable_net_connect!
+    stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
+    stub_request(:post, %r{http://example.org/lock/foo}).to_return(status: 302)
+    stub_request(:get, 'http://example.org/exists/foo').to_return(body: 'yes')
+    stub_request(:get, 'http://example.org/recent/foo.txt').to_return(body: '42')
+    stub_request(:get, 'http://example.org/finished/42').to_return(body: 'yes')
+    stub_request(:get, 'http://example.org/exit/42.txt').to_return(body: '1')
+    stub_request(:get, 'http://example.org/stdout/42.txt').to_return(body: 'broken')
+    stub_request(:post, %r{http://example.org/unlock/foo}).to_return(status: 503)
+    loog = Loog::Buffer.new
+    Dir.mktmpdir do |d|
+      e =
+        assert_raises(StandardError) do
+          Judges::Pull.new(loog).run(
+            {
+              'token' => '000', 'host' => 'example.org', 'port' => 80,
+              'ssl' => false, 'wait' => 10, 'owner' => 'none', 'retries' => 1
+            },
+            ['foo', File.join(d, 'base.fb')]
+          )
+        end
+      assert_includes(e.message, 'expire it')
+      assert_includes(loog.to_s, 'Failed to unlock')
+    end
+  end
+
+  def test_unlock_error_on_clean_success
+    WebMock.disable_net_connect!
+    stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
+    stub_request(:post, %r{http://example.org/lock/foo}).to_return(status: 302)
+    stub_request(:get, 'http://example.org/exists/foo').to_return(body: 'yes')
+    stub_request(:get, 'http://example.org/recent/foo.txt').to_return(body: '42')
+    stub_request(:get, 'http://example.org/finished/42').to_return(body: 'yes')
+    stub_request(:get, 'http://example.org/exit/42.txt').to_return(body: '0')
+    stub_request(:post, %r{http://example.org/unlock/foo}).to_return(status: 503)
+    fb = Factbase.new
+    fb.insert.foo = 42
+    stub_request(:get, 'http://example.org/pull/42.fb').to_return(body: fb.export, headers: {})
+    Dir.mktmpdir do |d|
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Pull.new(Loog::NULL).run(
+            {
+              'token' => '000', 'host' => 'example.org', 'port' => 80,
+              'ssl' => false, 'wait' => 10, 'owner' => 'none', 'retries' => 1
+            },
+            ['foo', File.join(d, 'base.fb')]
+          )
+        end.message,
+        '503'
+      )
+    end
+  end
 end
