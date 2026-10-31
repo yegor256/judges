@@ -216,6 +216,22 @@ class TestPrint < Minitest::Test
     end
   end
 
+  def test_auto_refuses_format_extension_collision
+    Dir.mktmpdir do |d|
+      factbase = File.join(d, 'report.json')
+      File.binwrite(factbase, Factbase.new.tap { |fb| fb.insert.what = 'kept' }.export)
+      before = File.binread(factbase)
+      error =
+        assert_raises(ArgumentError) do
+          Judges::Print.new(Loog::NULL).run({ 'format' => 'json', 'auto' => true }, [factbase])
+        end
+      assert_includes(error.message, '--auto', error.message)
+      assert_includes(error.message, 'overwrite', error.message)
+      assert_equal(before, File.binread(factbase), 'input factbase must stay intact')
+      Factbase.new.import(before)
+    end
+  end
+
   def test_reprints_when_output_options_change
     Dir.mktmpdir do |d|
       f = File.join(d, 'base.fb')
