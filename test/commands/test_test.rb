@@ -384,4 +384,41 @@ class TestTest < Minitest::Test
       Judges::Test.new(Loog::NULL).run({}, [d])
     end
   end
+
+  def test_refuses_unknown_key_in_pack
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      save_it(File.join(d, 'foo/t1.yml'), "input: []\nexpect:\n  - /fb[count(f)=42]\n")
+      loog = Loog::Buffer.new
+      assert_raises(StandardError) do
+        Judges::Test.new(loog).run({}, [d])
+      end
+      assert_includes(loog.to_s, "Unknown key 'expect' in")
+      assert_includes(loog.to_s, 'known keys are: after, assert_once')
+    end
+  end
+
+  def test_refuses_unknown_inputs_key
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      save_it(File.join(d, 'foo/t2.yml'), "inputs: []\nexpected: []\n")
+      loog = Loog::Buffer.new
+      assert_raises(StandardError) do
+        Judges::Test.new(loog).run({}, [d])
+      end
+      assert_includes(loog.to_s, "Unknown key 'inputs' in")
+    end
+  end
+
+  def test_refuses_unknown_expected_failures_key
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      save_it(File.join(d, 'foo/t3.yml'), "input: []\nexpected_failures:\n  - boom\n")
+      loog = Loog::Buffer.new
+      assert_raises(StandardError) do
+        Judges::Test.new(loog).run({}, [d])
+      end
+      assert_includes(loog.to_s, "Unknown key 'expected_failures' in")
+    end
+  end
 end

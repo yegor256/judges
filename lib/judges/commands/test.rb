@@ -26,6 +26,8 @@ require_relative '../../judges/to_rel'
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
 class Judges::Test
+  KEYS = %w[after assert_once before category expected expected_failure input options repeat runs skip timeout].freeze
+
   # Initialize.
   # @param [Loog] loog Logging facility
   def initialize(loog)
@@ -115,6 +117,8 @@ class Judges::Test
       start = Time.now
       begin
         yaml = YAML.load_file(f, permitted_classes: [Time])
+        unknown = yaml.is_a?(Hash) ? (yaml.keys - KEYS).first : nil
+        raise(StandardError, "Unknown key '#{unknown}' in #{f.to_rel}, known keys are: #{KEYS.join(', ')}") if unknown
         next if skip_test?(buf, f, yaml, opts)
         buf.info("🛠️ Testing #{f.to_rel}:")
         count += run_single_test(judge, buf, opts, judges, yaml, badge)
