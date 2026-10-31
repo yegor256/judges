@@ -107,4 +107,20 @@ class TestJudge < Minitest::Test
       end
     end
   end
+
+  def test_passes_interrupt_through
+    Dir.mktmpdir do |d|
+      dir = File.join(d, 'foo')
+      save_it(File.join(dir, 'foo.rb'), 'raise Interrupt')
+      assert_raises(Interrupt) { Judges::Judge.new(dir, nil, Loog::NULL).run(Factbase.new, {}, {}, {}) }
+    end
+  end
+
+  def test_passes_exit_through
+    Dir.mktmpdir do |d|
+      dir = File.join(d, 'foo')
+      save_it(File.join(dir, 'foo.rb'), 'exit 1')
+      assert_raises(SystemExit) { Judges::Judge.new(dir, nil, Loog::NULL).run(Factbase.new, {}, {}, {}) }
+    end
+  end
 end

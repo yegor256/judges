@@ -3,6 +3,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require 'backtrace'
 require 'elapsed'
 require 'factbase/tallied'
 require 'octokit'
@@ -88,7 +89,7 @@ class Judges::Judge
       e = Judges::PrettyException.new(e) if e.is_a?(Octokit::ServerError)
       @loog.error(Backtrace.new(e))
       raise(e) if e.is_a?(StandardError)
-      raise(e) if e.is_a?(Timeout::ExitException)
+      raise(e) if [Timeout::ExitException, SignalException, SystemExit].any? { |c| e.is_a?(c) }
       raise(StandardError, "#{e.message} (#{e.class.name})")
     ensure
       $fb = $judge = $options = $loog = $epoch = $kickoff = nil
