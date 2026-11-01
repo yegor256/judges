@@ -31,7 +31,7 @@ class Judges::Judges
   # @param [String] lib Library directory
   # @param [Loog] loog Logging facility
   # @param [Time] epoch Start time
-  # @param [String] shuffle Prefix for names of judges to shuffle
+  # @param [String] shuffle Prefix of judges to keep in place, all other judges are shuffled
   # @param [Array<String>] boost Names/patterns of judges to boost in priority (supports '*' wildcards)
   # @param [Array<String>] demote Names/patterns of judges to demote in priority (supports '*' wildcards)
   # @param [Integer] seed Random seed for judge ordering (default: 0)
