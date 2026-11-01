@@ -28,7 +28,7 @@ class Judges::Upload
   # @param [Hash] opts Command line options (start with '--')
   # @param [Array] args List of command line arguments
   # @raise [RuntimeError] If not exactly two arguments provided
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def run(opts, args)
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     raise(StandardError, 'The upload command needs the network, while --offline is set') if opts['offline']
@@ -69,5 +69,4 @@ class Judges::Upload
       end
     end
   end
-  # rubocop:enable Metrics/MethodLength
 end
