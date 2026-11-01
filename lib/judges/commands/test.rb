@@ -36,7 +36,7 @@ class Judges::Test
   # @param [Hash] opts Command line options (start with '--')
   # @param [Array] args List of command line arguments
   # @raise [RuntimeError] If not exactly one argument provided
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def run(opts, args)
     raise(ArgumentError, 'Exactly one argument required') unless args.size == 1
     dir = args[0]
@@ -79,7 +79,6 @@ class Judges::Test
       @loog.info("The following judges are available to use with the --judge option:\n  #{visible.join("\n  ")}")
     end
   end
-  # rubocop:enable Metrics/MethodLength
 
   private
 
@@ -236,10 +235,10 @@ class Judges::Test
   # @param [Factbase] fb The factbase to use
   # @param [Hash] opts The command line options
   # @param [Judges::Judge] judge The judge to run
-  # @param [String] tname The name of the test (without .rb suffix)
+  # @param [String] tname The name of the test pack without .yml, or the name of the judge for a before judge
   # @param [Hash] yaml The YAML to be tested
-  # @param [Boolean] assert Should we assert (TRUE) or simply skip (FALSE)?
-  # @return [nil] Always NIL
+  # @param [Boolean] assert Whether to check the expected XPaths after the runs
+  # @return [Range] The range of runs that were made
   def test_one(fb, opts, judge, tname, yaml, assert: true)
     options = Judges::Options.new(opts['option']) + Judges::Options.new(yaml['options'])
     runs = opts['runs'] || yaml['runs'] || 1
