@@ -57,7 +57,7 @@ class Judges::Judge
   # @param [Judges::Options] options Command-line options object
   # @return [nil] Nothing
   # @raise [RuntimeError] If the lib directory doesn't exist, the script can't be loaded, or execution fails
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def run(fb, global, local, options)
     $fb = fb
     $judge = File.basename(@dir)
@@ -94,7 +94,6 @@ class Judges::Judge
       $fb = $judge = $options = $loog = $epoch = $kickoff = nil
     end
   end
-  # rubocop:enable Metrics/MethodLength
 
   # Returns the name of the judge.
   #
