@@ -19,6 +19,11 @@ require_relative '../judges/to_rel'
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
 class Judges::Impex
+  # The sidecar path that records which Baza job a local file was pulled from.
+  def self.marker(file)
+    "#{file}.judges-snapshot"
+  end
+
   # Initialize a new Impex instance.
   #
   # @param [Loog] loog Logging facility for recording import/export operations

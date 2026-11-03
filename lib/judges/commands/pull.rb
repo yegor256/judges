@@ -32,7 +32,6 @@ class Judges::Pull
   def run(opts, args)
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     raise(StandardError, 'The pull command needs the network, while --offline is set') if opts['offline']
-    fb = Factbase.new
     baza = BazaRb.new(
       opts['host'], opts['port'].to_i, opts['token'],
       ssl: opts['ssl'],
@@ -50,8 +49,9 @@ class Judges::Pull
             @loog.warn("STDOUT of the job ##{jid} (from the server):\n#{baza.stdout(jid)}")
             raise(StandardError, "The job ##{jid} ('#{name}') is broken, maybe you should expire it")
           end
-          fb.import(baza.pull(wait(name, baza, jid, opts['wait'])))
+          fb = Factbase.new.tap { |base| base.import(baza.pull(wait(name, baza, jid, opts['wait']))) }
           Judges::Impex.new(@loog, args[1]).export(fb)
+          File.binwrite(Judges::Impex.marker(args[1]), jid.to_s)
         ensure
           baza.unlock(name, opts['owner'])
         end
