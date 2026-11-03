@@ -237,7 +237,7 @@ class JudgesGLI extend GLI::App
     c.flag([:host], default_value: 'api.zerocracy.com')
     c.desc 'Server TCP port number'
     c.flag([:port], default_value: 443, type: Integer)
-    c.desc 'Connection and read timeout in seconds'
+    c.desc 'Connection and whole request timeout in seconds'
     c.flag([:timeout], default_value: 30, type: Integer)
     c.desc 'Enable SSL connection'
     c.switch([:ssl], default_value: true)
@@ -263,7 +263,7 @@ class JudgesGLI extend GLI::App
     c.flag([:host], default_value: 'api.zerocracy.com')
     c.desc 'Server TCP port number'
     c.flag([:port], default_value: 443, type: Integer)
-    c.desc 'Connection and read timeout in seconds'
+    c.desc 'Connection and whole request timeout in seconds'
     c.flag([:timeout], default_value: 30, type: Integer)
     c.desc 'Enable SSL connection'
     c.switch([:ssl], default_value: true)
@@ -283,7 +283,7 @@ class JudgesGLI extend GLI::App
     c.flag([:host], default_value: 'api.zerocracy.com')
     c.desc 'Server TCP port number'
     c.flag([:port], default_value: 443, type: Integer)
-    c.desc 'Connection and read timeout in seconds'
+    c.desc 'Connection and whole request timeout in seconds'
     c.flag([:timeout], default_value: 30, type: Integer)
     c.desc 'Enable SSL connection'
     c.switch([:ssl], default_value: true)
@@ -303,7 +303,7 @@ class JudgesGLI extend GLI::App
     c.flag([:host], default_value: 'api.zerocracy.com')
     c.desc 'Server TCP port number'
     c.flag([:port], default_value: 443, type: Integer)
-    c.desc 'Connection and read timeout in seconds'
+    c.desc 'Connection and whole request timeout in seconds'
     c.flag([:timeout], default_value: 30, type: Integer)
     c.desc 'Enable SSL connection'
     c.switch([:ssl], default_value: true)
