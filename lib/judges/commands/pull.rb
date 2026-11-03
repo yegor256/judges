@@ -6,6 +6,7 @@
 require 'baza-rb'
 require 'elapsed'
 require 'iri'
+require 'timeout'
 require 'typhoeus'
 require_relative '../../judges'
 require_relative '../../judges/impex'
@@ -50,7 +51,7 @@ class Judges::Pull
             @loog.warn("STDOUT of the job ##{jid} (from the server):\n#{baza.stdout(jid)}")
             raise(StandardError, "The job ##{jid} ('#{name}') is broken, maybe you should expire it")
           end
-          fb.import(baza.pull(wait(name, baza, jid, opts['wait'])))
+          fb.import(pulled(name, baza, jid, opts['wait']))
           Judges::Impex.new(@loog, args[1]).export(fb)
         ensure
           baza.unlock(name, opts['owner'])
@@ -63,6 +64,13 @@ class Judges::Pull
   end
 
   private
+
+  def pulled(name, baza, id, limit)
+    wait(name, baza, id, limit)
+    Timeout.timeout([limit, 1].max) { baza.pull(id) }
+  rescue Timeout::Error
+    raise(StandardError, "Time is over, the job ##{id} ('#{name}') is still not completed")
+  end
 
   def wait(name, baza, id, limit)
     raise(StandardError, 'Waiting time is nil') if limit.nil?
