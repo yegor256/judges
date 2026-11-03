@@ -8,5 +8,7 @@
     "rdoc",
     "diff-lcs",
     "yard"
-  ]
+  ],
+  "automerge": true,
+  "platformAutomerge": false
 }
