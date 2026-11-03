@@ -8,6 +8,7 @@ require 'elapsed'
 require 'iri'
 require 'typhoeus'
 require_relative '../../judges'
+require_relative '../../judges/owner'
 
 # The +upload+ command, to send a durable to Zerocracy.
 #
@@ -33,6 +34,7 @@ class Judges::Upload
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     raise(StandardError, 'The upload command needs the network, while --offline is set') if opts['offline']
     jname = args[0]
+    owner = Judges::Owner.new(opts['owner']).to_s
     path = args[1]
     raise(StandardError, "File not found: #{path}") unless File.file?(path)
     name = File.basename(path)
@@ -60,12 +62,12 @@ class Judges::Upload
       end
       size = File.size(path)
       id = id.to_i
-      baza.durable_lock(id, opts['owner'] || 'default')
+      baza.durable_lock(id, owner)
       begin
         baza.durable_save(id, path)
         throw(:"👍 Uploaded #{path} to #{kind} durable '#{name}' in '#{jname}' (ID: #{id}, #{size} bytes)")
       ensure
-        baza.durable_unlock(id, opts['owner'] || 'default')
+        baza.durable_unlock(id, owner)
       end
     end
   end

@@ -9,6 +9,7 @@ require 'iri'
 require 'typhoeus'
 require_relative '../../judges'
 require_relative '../../judges/impex'
+require_relative '../../judges/owner'
 
 # The +push+ command.
 #
@@ -33,6 +34,7 @@ class Judges::Push
     raise(ArgumentError, 'Exactly two arguments required: <name> and <path>') unless args.size == 2
     raise(StandardError, 'The push command needs the network, while --offline is set') if opts['offline']
     name = args[0]
+    owner = Judges::Owner.new(opts['owner']).to_s
     fb = Judges::Impex.new(@loog, args[1]).import
     baza = BazaRb.new(
       opts['host'], opts['port'].to_i, opts['token'],
@@ -43,12 +45,12 @@ class Judges::Push
       compress: opts.fetch('zip', true)
     )
     elapsed(@loog, level: Logger::INFO) do
-      baza.lock(name, opts['owner'])
+      baza.lock(name, owner)
       begin
         baza.push(name, fb.export, opts['meta'] || [])
         throw(:"👍 Pushed #{fb.size} facts to baza")
       ensure
-        baza.unlock(name, opts['owner'])
+        baza.unlock(name, owner)
       end
     end
   end
