@@ -36,6 +36,28 @@ class TestJoin < Minitest::Test
     end
   end
 
+  def test_copies_every_value_of_a_property
+    Dir.mktmpdir do |d|
+      master = File.join(d, 'master.fb')
+      one = Factbase.new
+      one.insert.zz = 5
+      File.binwrite(master, one.export)
+      slave = File.join(d, 'slave.fb')
+      two = Factbase.new
+      two.insert.then do |f|
+        f.label = 'bug'
+        f.label = 'urgent'
+      end
+      File.binwrite(slave, two.export)
+      Judges::Join.new(Loog::NULL).run({}, [master, slave])
+      fb = Factbase.new
+      fb.import(File.binread(master))
+      copied = fb.query('(exists label)').each.to_a.first
+      refute_nil(copied)
+      assert_equal(%w[bug urgent], copied['label'], 'every value of the property must be copied')
+    end
+  end
+
   def test_refuses_to_join_a_factbase_with_itself
     Dir.mktmpdir do |d|
       file = File.join(d, 'self.fb')
