@@ -12,3 +12,9 @@ Feature: Misc
   Scenario: Version can be printed
     When I run bin/judges with "--version"
     Then Exit code is zero
+
+  Scenario: Unicode symbols are replaced with ASCII
+    When I run bin/judges with "--ascii test ./fixtures"
+    Then Exit code is zero
+    And Stdout contains "> Testing"
+    And Stdout contains "+ All 3 judge(s) and 3 tests passed"
