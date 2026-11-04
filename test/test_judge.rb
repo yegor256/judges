@@ -78,6 +78,21 @@ class TestJudge < Minitest::Test
     end
   end
 
+  def test_sets_kickoff_value_correctly
+    Dir.mktmpdir do |d|
+      j = 'this_is_it'
+      dir = File.join(d, j)
+      save_it(File.join(dir, "#{j}.rb"), '$local[:kickoff] = $kickoff')
+      local = {}
+      before = Time.now
+      Judges::Judge.new(dir, nil, Loog::NULL, epoch: before - 60).run(Factbase.new, {}, local, {})
+      kickoff = local[:kickoff]
+      assert_kind_of(Time, kickoff, 'The judge must see $kickoff')
+      assert_operator(kickoff, :>=, before, '$kickoff must not be earlier than the start of the run')
+      assert_operator(kickoff, :<=, Time.now, '$kickoff must not be later than the end of the run')
+    end
+  end
+
   def test_with_broken_ruby_syntax
     assert_raises(StandardError) do
       Dir.mktmpdir do |d|
