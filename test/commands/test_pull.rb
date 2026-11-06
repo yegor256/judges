@@ -37,6 +37,29 @@ class TestPull < Minitest::Test
     end
   end
 
+  def test_falls_back_to_the_default_owner
+    seen = []
+    fake = Object.new
+    fb = Factbase.new
+    fake.define_singleton_method(:name_exists?) { |_name| true }
+    fake.define_singleton_method(:lock) { |_name, owner| seen << owner }
+    fake.define_singleton_method(:unlock) { |_name, owner| seen << owner }
+    fake.define_singleton_method(:recent) { |_name| 42 }
+    fake.define_singleton_method(:exit_code) { |_id| 0 }
+    fake.define_singleton_method(:finished?) { |_id| true }
+    fake.define_singleton_method(:pull) { |_id| fb.export }
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      BazaRb.stub(:new, ->(*_args, **_kwargs) { fake }) do
+        Judges::Pull.new(Loog::NULL).run(
+          { 'token' => '000', 'host' => 'example.org', 'port' => 80, 'ssl' => false, 'wait' => 1 },
+          ['foo', file]
+        )
+      end
+      assert_equal(%w[default default], seen)
+    end
+  end
+
   def test_pull_when_job_finishes_inside_wait_budget
     WebMock.disable_net_connect!
     stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
