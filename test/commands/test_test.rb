@@ -86,13 +86,15 @@ class TestTest < Minitest::Test
             foo: 42
         expected:
           - /fb[count(f)=1]
-          - /fb/f[foo/v='42']
-          - /fb/f[bar/v='5']
+          - /fb/f[foo='42']
+          - /fb/f[bar='5']
         YAML
       )
+      loog = Loog::Buffer.new
       assert_raises(StandardError) do
-        Judges::Test.new(Loog::NULL).run({}, [d])
+        Judges::Test.new(loog).run({}, [d])
       end
+      assert_includes(loog.to_s, "/fb/f[bar='5']", loog.to_s)
     end
   end
 
@@ -171,9 +173,11 @@ class TestTest < Minitest::Test
           - /fb[count(f)=1]
         YAML
       )
-      assert_raises(StandardError) do
-        Judges::Test.new(Loog::NULL).run({ 'judge' => [File.basename(dir)] }, [d])
-      end
+      e =
+        assert_raises(StandardError) do
+          Judges::Test.new(Loog::NULL).run({ 'judge' => ['foo'] }, [d])
+        end
+      assert_includes(e.message, 'failed', e.message)
     end
   end
 
@@ -392,6 +396,16 @@ class TestTest < Minitest::Test
       loog = Loog::Buffer.new
       assert_raises(StandardError) { Judges::Test.new(loog).run({}, [d]) }
       assert_equal(%w[ERROR ERROR OK], %w[aaa/x bbb/y ccc/z].map { |t| loog.to_s[/#{t}\s+\S+\s+(\w+)/, 1] })
+    end
+  end
+
+  def test_shares_global_with_before_judge
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'setup/setup.rb'), '$global[:token] = "abc"')
+      save_it(File.join(d, 'user/user.rb'), 'raise "no token" if $global[:token].nil?; $fb.insert.what = "user"')
+      save_it(File.join(d, 'user/x.yml'), "before:\n  - setup\nexpected:\n  - /fb/f[what='user']")
+      Judges::Test.new(Loog::NULL).run({ 'judge' => ['user'] }, [d])
+      assert_path_exists(d)
     end
   end
 
