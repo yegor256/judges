@@ -190,11 +190,11 @@ class JudgesGLI extend GLI::App
     c.desc 'Print only facts matching the specified expression'
     c.flag([:query], default_value: '(always)')
     c.desc 'Comma-separated list of columns to display in HTML output (no spaces)'
-    c.flag([:columns], default_value: 'when,what')
+    c.flag([:columns])
     c.desc 'Comma-separated list of columns to highlight while rendering (no spaces)'
-    c.flag([:highlighted], default_value: 'stale,tombstone')
+    c.flag([:highlighted])
     c.desc 'Comma-separated list of columns to hide from rendering (no spaces)'
-    c.flag([:hidden], default_value: '_id,_time,_version,_job')
+    c.flag([:hidden])
     c.desc 'Force printing even if the target file exists and is newer than the factbase (up to date)'
     c.switch([:force], default_value: false)
     run_it(c, 'print')
