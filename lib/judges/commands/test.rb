@@ -174,8 +174,7 @@ class Judges::Test
         # rubocop:disable Lint/RescueException
       rescue Exception => e
         # rubocop:enable Lint/RescueException
-        raise(e) if e.is_a?(StandardError)
-        raise(e) if e.is_a?(Timeout::ExitException)
+        raise(e) if e.is_a?(StandardError) || e.is_a?(Timeout::ExitException)
         raise(StandardError, "#{e.message} (#{e.class.name})")
       ensure
         $fb = previous[0]
