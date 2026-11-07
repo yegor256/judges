@@ -194,6 +194,24 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_runs_flag_overrides_runs_of_the_pack
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = $fb.size')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        runs: 1
+        input: []
+        expected:
+          - /fb[count(f)=3]
+        YAML
+      )
+      loog = Loog::Buffer.new
+      Judges::Test.new(loog).run({ 'runs' => 3 }, [d])
+      assert_includes(loog.to_s, 'All 1 judge(s) and 1 tests passed', loog.to_s)
+    end
+  end
+
   def test_with_expected_failure
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), 'raise "this is intentional";')
