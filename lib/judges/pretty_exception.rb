@@ -21,6 +21,6 @@ class Judges::PrettyException < SimpleDelegator
   undef_method :kind_of?
 
   def message
-    __getobj__.message.ellipsized(100, :right)
+    __getobj__.message.encode(Encoding::UTF_8, invalid: :replace, undef: :replace).ellipsized(100, :right)
   end
 end
