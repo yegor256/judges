@@ -210,9 +210,18 @@
       <xsl:when test="string-length($cols) &gt; 0">
         <td>
           <xsl:variable name="c" select="substring-before(concat($cols, ','), ',')"/>
-          <xsl:call-template name="value">
-            <xsl:with-param name="v" select="$f/*[name()=$c]"/>
-          </xsl:call-template>
+          <xsl:choose>
+            <xsl:when test="$f/*[name()=$c] and contains(concat(',', $hidden, ','), concat(',', $c, ','))">
+              <span class="hidden" title="{$f/*[name()=$c]}">
+                <xsl:value-of select="$c"/>
+              </span>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:call-template name="value">
+                <xsl:with-param name="v" select="$f/*[name()=$c]"/>
+              </xsl:call-template>
+            </xsl:otherwise>
+          </xsl:choose>
         </td>
         <xsl:call-template name="td">
           <xsl:with-param name="cols" select="substring-after($cols, ',')"/>
