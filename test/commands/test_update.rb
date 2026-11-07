@@ -447,6 +447,22 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_reports_judges_skipped_by_fail_fast
+    assert_match(%r{bbb\s+0\.000\s+1\s+N/A\s+SKIPPED \(fail-fast\)}, failfast('fail-fast' => true))
+  end
+
+  def test_leaves_out_unasked_judges_when_failing
+    log = failfast('fail-fast' => true, 'judge' => ['aaa'])
+    assert_match(%r{aaa\s+\S+\s+\d+\s+N/A\s+ERROR}, log)
+    refute_match(/^\s+bbb\s/, log)
+  end
+
+  def test_runs_the_other_judges_without_fail_fast
+    log = failfast({})
+    refute_includes(log, 'SKIPPED (fail-fast)', log)
+    assert_match(/bbb\s+\S+\s+\d+\s+\S+\s+OK/, log)
+  end
+
   def test_exports_churn_to_file_on_lifetime
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1; sleep 999')
@@ -594,6 +610,25 @@ class TestUpdate < Minitest::Test
       fb.import(File.binread(file))
       xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
       assert_empty(xml.xpath('/fb/f[foo]'), xml)
+    end
+  end
+
+  private
+
+  def failfast(opts)
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'aaa/aaa.rb'), "raise 'boom'")
+      save_it(File.join(d, 'bbb/bbb.rb'), '$fb.insert.foo = 1')
+      loog = Loog::Buffer.new
+      begin
+        Judges::Update.new(loog).run(
+          { 'statistics' => true, 'max-cycles' => 1, 'quiet' => true, 'boost' => ['aaa'] }.merge(opts),
+          [d, File.join(d, 'base.fb')]
+        )
+      rescue StandardError => e
+        loog.info(e.message)
+      end
+      loog.to_s
     end
   end
 end
