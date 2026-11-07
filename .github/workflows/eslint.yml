@@ -3,6 +3,8 @@
 ---
 # yamllint disable rule:line-length
 name: eslint
+permissions:
+  contents: read
 'on':
   push:
     branches:
