@@ -44,7 +44,7 @@ class Judges::Print
     raise(ArgumentError, "Unknown format '#{fmt}', use one of #{FORMATS.join(', ')}") unless FORMATS.include?(fmt)
     f = args[0]
     fb = Judges::Impex.new(@loog, f).import
-    fb.query("(not #{opts['query']})").delete! unless opts['query'].nil?
+    fb.query("(not #{opts['query']})").delete! unless opts['query'].to_s.empty?
     o = args[1]
     if o.nil?
       raise(ArgumentError, 'Either provide output file name or use --auto') unless opts['auto']
