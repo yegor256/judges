@@ -72,8 +72,8 @@ class Judges::Judge
     unless @lib.nil?
       raise(StandardError, "Lib dir #{@lib.to_rel} is absent") unless File.exist?(@lib)
       raise(StandardError, "Lib #{@lib.to_rel} is not a directory") unless File.directory?(@lib)
-      Dir.glob(File.join(@lib, '*.rb')).each do |f|
-        require_relative(File.absolute_path(f))
+      Dir.glob('*.rb', base: @lib).each do |f|
+        require_relative(File.absolute_path(File.join(@lib, f)))
       end
     end
     s = File.join(@dir, script)
