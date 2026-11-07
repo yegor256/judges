@@ -124,4 +124,25 @@ class TestJudge < Minitest::Test
       end
     end
   end
+
+  def test_returns_absolute_test_paths
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'pack', 'alpha', 'alpha.rb'), '')
+      save_it(File.join(d, 'pack', 'alpha', 'check.yml'), "---\nfoo: 42")
+      save_it(File.join(d, 'pack', 'alpha', 'beta.yml'), "---\nfoo: 42")
+      save_it(File.join(d, 'pack', 'empty', 'empty.rb'), '')
+      Dir.chdir(d) do
+        files = Judges::Judge.new('pack/alpha', nil, Loog::NULL).tests
+        files.each { |f| assert_equal(File.absolute_path(f), f, "#{f} is not absolute") }
+        assert_equal(%w[beta.yml check.yml], files.map { |f| File.basename(f) })
+        Dir.chdir(File.join(d, 'pack', 'empty')) do
+          files.each { |f| assert(File.file?(f), "#{f} is not usable after chdir") }
+        end
+        assert_empty(Judges::Judge.new('pack/empty', nil, Loog::NULL).tests)
+        absolute = Judges::Judge.new(File.join(d, 'pack', 'alpha'), nil, Loog::NULL).tests
+        absolute.each { |f| assert_equal(File.absolute_path(f), f, "#{f} is not absolute") }
+        assert_equal(files.map { |f| File.basename(f) }, absolute.map { |f| File.basename(f) })
+      end
+    end
+  end
 end
