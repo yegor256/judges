@@ -24,10 +24,23 @@ class TestAssets < Minitest::Test
   end
 
   def test_header_stays_visible
-    css = File.read(CSS)
-    refute_match(/@media/, css, 'thead must be restored without duplicating the 1024px breakpoint')
-    assert_match(/table\s+thead\s*\{[^}]*display:\s*table-header-group/, css)
-    refute_match(/!important/, css)
+    css = File.read(File.join(__dir__, '../assets/index.css')).gsub(%r{/\*.*?\*/}m, '')
+    rule = css[/table\s+thead\s*\{[^}]*\}/]
+    refute_nil(rule, 'the "table thead" rule is missing')
+    assert_match(/display:\s*table-header-group/, rule)
+    refute_match(/!important/, rule)
+    before = css[0...css.index(rule)]
+    assert_equal(0, before.count('{') - before.count('}'), 'the rule must not sit inside a media query')
+  end
+
+  # Tacit hides thead, so our stylesheet has to win the cascade by loading after it.
+  def test_css_loads_after_tacit
+    xsl = File.read(File.join(__dir__, '../assets/index.xsl'))
+    tacit = xsl.index('tacit-css')
+    local = xsl.index('yegor256.github.io/judges/assets/index.css')
+    refute_nil(tacit, 'Tacit is not linked')
+    refute_nil(local, 'the local stylesheet is not linked')
+    assert_operator(tacit, :<, local, 'index.css must load after Tacit')
   end
 
   private
