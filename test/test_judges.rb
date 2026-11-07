@@ -100,6 +100,29 @@ class TestJudges < Minitest::Test
     end
   end
 
+  def test_boosts_only_the_judge_with_that_exact_name
+    nested do |d, plain|
+      assert_equal(['foo'] + (plain - ['foo']), Judges::Judges.new(d, nil, Loog::NULL, boost: ['foo']).each.map(&:name))
+    end
+  end
+
+  def test_demotes_only_the_judge_with_that_exact_name
+    nested do |d, plain|
+      assert_equal(
+        (plain - ['foo']) + ['foo'],
+        Judges::Judges.new(d, nil, Loog::NULL, demote: ['foo']).each.map(&:name)
+      )
+    end
+  end
+
+  def test_boosts_by_a_wildcard_only_as_prefix
+    nested do |d, _|
+      list = Judges::Judges.new(d, nil, Loog::NULL, boost: ['foo*']).each.map(&:name)
+      assert_equal(%w[foo foobar], list[0..1].sort, list)
+      refute_includes(list[0..1], 'xfoo', list)
+    end
+  end
+
   def test_demotes_judges
     Dir.mktmpdir do |d|
       names = %w[alpha beta gamma delta epsilon].sort
@@ -297,5 +320,14 @@ class TestJudges < Minitest::Test
       assert_raises(ArgumentError) { Judges::Judges.new(nil, nil, Loog::NULL) }.message,
       'The directory is nil'
     )
+  end
+
+  private
+
+  def nested
+    Dir.mktmpdir do |d|
+      %w[alpha foo foobar xfoo zoo].each { |n| save_it(File.join(d, n, "#{n}.rb"), 'puts 1') }
+      yield(d, Judges::Judges.new(d, nil, Loog::NULL).each.map(&:name))
+    end
   end
 end
