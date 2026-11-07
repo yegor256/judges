@@ -51,6 +51,36 @@ class TestMaskedArgs < Minitest::Test
     end
   end
 
+  def test_hides_an_upper_case_token_inside_an_option
+    line = Judges::MaskedArgs.new(%w[update --option=GITHUB_TOKEN=ghp_abcdef1234567890]).to_s
+    refute_includes(line, 'ghp_abcdef1234567890', line)
+    assert_equal('update --option=GITHUB_TOKEN=ghp_************7890', line)
+  end
+
+  def test_hides_a_mixed_case_key_after_short_option
+    line = Judges::MaskedArgs.new(['update', '-o', 'Api_Key=sk-0123456789abcdef']).to_s
+    refute_includes(line, 'sk-0123456789abcdef', line)
+    assert_equal('update -o Api_Key=sk-0***********cdef', line)
+  end
+
+  def test_hides_an_upper_case_following_secret
+    line = Judges::MaskedArgs.new(['update', '--option', 'DB_PASSWORD=SUPERSECRET123']).to_s
+    refute_includes(line, 'SUPERSECRET123', line)
+  end
+
+  def test_hides_a_capitalized_secret_inside_an_option
+    line = Judges::MaskedArgs.new(%w[--option=My_Secret=SUPERSECRET123]).to_s
+    refute_includes(line, 'SUPERSECRET123', line)
+    assert_equal('--option=My_Secret=SUPE******T123', line)
+  end
+
+  def test_keeps_an_upper_case_plain_option
+    assert_equal(
+      'update --option=REPOSITORIES=zerocracy/fbe',
+      Judges::MaskedArgs.new(%w[update --option=REPOSITORIES=zerocracy/fbe]).to_s
+    )
+  end
+
   def test_keeps_an_option_that_is_not_a_secret
     assert_equal(
       'update --option=repositories=zerocracy/fbe',
