@@ -78,7 +78,7 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
   end
 
   def build_options(opts)
-    options = Judges::Options.new(timeout: opts['timeout']&.to_f, lifetime: opts['lifetime']&.to_f)
+    options = Judges::Options.new({ timeout: opts['timeout']&.to_f, lifetime: opts['lifetime']&.to_f }.compact)
     if options.lifetime && options.timeout && options.lifetime < options.timeout * 1.1
       raise(
         StandardError,
