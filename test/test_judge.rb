@@ -107,4 +107,19 @@ class TestJudge < Minitest::Test
       end
     end
   end
+
+  def test_rejects_lib_that_is_a_file
+    Dir.mktmpdir do |d|
+      dir = File.join(d, 'foo')
+      save_it(File.join(dir, 'foo.rb'), '$fb.insert')
+      file = File.join(d, 'lib.rb')
+      save_it(file, 'x = 1')
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Judge.new(dir, file, Loog::NULL).run(Factbase.new, {}, {}, {})
+        end.message,
+        'is not a directory'
+      )
+    end
+  end
 end
