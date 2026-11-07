@@ -53,6 +53,25 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_refuses_a_run_count_below_one
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 4')
+      save_it(
+        File.join(d, 'foo/something.yml'),
+        <<-YAML
+        input: []
+        expected:
+          - /fb[count(f)=0]
+        YAML
+      )
+      e =
+        assert_raises(ArgumentError) do
+          Judges::Test.new(Loog::NULL).run({ 'runs' => 0 }, [d])
+        end
+      assert_includes(e.message, 'The --runs must be positive', e.message)
+    end
+  end
+
   def test_negative
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.query("(eq foo 42)").each { |f| f.bar = 4 }')
