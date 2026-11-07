@@ -157,7 +157,9 @@
     <tr>
       <td class="empty">
         <xsl:attribute name="colspan">
-          <xsl:value-of select="string-length($columns) - string-length(translate($columns, ',', '')) + 2"/>
+          <xsl:call-template name="width">
+            <xsl:with-param name="cols" select="$columns"/>
+          </xsl:call-template>
         </xsl:attribute>
         <xsl:text>nothing</xsl:text>
       </td>
@@ -182,6 +184,22 @@
       </xsl:when>
       <xsl:otherwise>
         <col class="w50"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+  <xsl:template name="width">
+    <xsl:param name="cols"/>
+    <xsl:choose>
+      <xsl:when test="string-length($cols) &gt; 0">
+        <xsl:variable name="rest">
+          <xsl:call-template name="width">
+            <xsl:with-param name="cols" select="substring-after($cols, ',')"/>
+          </xsl:call-template>
+        </xsl:variable>
+        <xsl:value-of select="$rest + 1"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:text>1</xsl:text>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
