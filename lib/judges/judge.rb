@@ -85,10 +85,10 @@ class Judges::Judge
     rescue Exception => e
       # rubocop:enable Lint/RescueException
       raise(e) if e.is_a?(RuntimeError) && e.message == 'skip'
+      raise(e) if e.is_a?(Timeout::ExitException)
       e = Judges::PrettyException.new(e) if e.is_a?(Octokit::ServerError)
       @loog.error(Backtrace.new(e))
       raise(e) if e.is_a?(StandardError)
-      raise(e) if e.is_a?(Timeout::ExitException)
       raise(StandardError, "#{e.message} (#{e.class.name})")
     ensure
       $fb = $judge = $options = $loog = $epoch = $kickoff = nil
