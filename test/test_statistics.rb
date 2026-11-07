@@ -70,6 +70,16 @@ class TestStatistics < Minitest::Test
     assert_includes(output, 'test-judge')
   end
 
+  def test_keeps_recorded_churn_when_caller_changes_it
+    stats = Judges::Statistics.new
+    churn = Factbase::Churn.new(1, 0, 0)
+    stats.record('test-judge', 1.0, 'OK', churn)
+    churn.append(9, 0, 0)
+    buffer = Loog::Buffer.new
+    stats.report(buffer)
+    assert_includes(buffer.to_s, '1i/0d/0a')
+  end
+
   def test_record_without_churn
     stats = Judges::Statistics.new
     stats.record('test-judge', 1.0, 'OK')
