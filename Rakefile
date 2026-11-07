@@ -22,10 +22,14 @@ ENV['RACK_ENV'] = 'test'
 
 task default: %i[clean test features picks rubocop yard]
 
+desc 'Delete the coverage report of the previous run'
+task :uncover do
+  Rake::Cleaner.cleanup_files(['coverage'])
+end
+
 require 'rake/testtask'
 desc 'Run all unit tests'
-Rake::TestTask.new(:test) do |test|
-  Rake::Cleaner.cleanup_files(['coverage'])
+Rake::TestTask.new(test: :uncover) do |test|
   test.libs << 'lib' << 'test'
   test.pattern = 'test/**/test_*.rb'
   test.warning = true
@@ -43,8 +47,7 @@ task :picks do
 end
 
 require 'cucumber/rake/task'
-Cucumber::Rake::Task.new(:features) do |t|
-  Rake::Cleaner.cleanup_files(['coverage'])
+Cucumber::Rake::Task.new(features: :uncover) do |t|
   t.cucumber_opts = %w[--no-color --retry=2 --fail-fast --backtrace --order=random]
 end
 Cucumber::Rake::Task.new(:'features:html') do |t|
