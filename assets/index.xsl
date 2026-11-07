@@ -236,7 +236,24 @@
                   </span>
                 </xsl:when>
                 <xsl:otherwise>
-                  <span class="hidden" title="{.}">
+                  <span class="hidden">
+                    <xsl:attribute name="title">
+                      <xsl:choose>
+                        <xsl:when test="v">
+                          <xsl:text>[</xsl:text>
+                          <xsl:for-each select="v">
+                            <xsl:if test="position() &gt; 1">
+                              <xsl:text>, </xsl:text>
+                            </xsl:if>
+                            <xsl:value-of select="."/>
+                          </xsl:for-each>
+                          <xsl:text>]</xsl:text>
+                        </xsl:when>
+                        <xsl:otherwise>
+                          <xsl:value-of select="."/>
+                        </xsl:otherwise>
+                      </xsl:choose>
+                    </xsl:attribute>
                     <xsl:value-of select="name()"/>
                   </span>
                 </xsl:otherwise>
