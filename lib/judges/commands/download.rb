@@ -9,6 +9,7 @@ require 'fileutils'
 require 'iri'
 require 'typhoeus'
 require_relative '../../judges'
+require_relative '../../judges/durable_name'
 
 # The +download+ command.
 #
@@ -34,7 +35,7 @@ class Judges::Download
     raise(StandardError, 'The download command needs the network, while --offline is set') if opts['offline']
     jname = args[0]
     path = args[1]
-    name = File.basename(path)
+    name = Judges::DurableName.new(path).to_s
     baza = BazaRb.new(
       opts['host'], opts['port'].to_i, opts['token'],
       ssl: opts['ssl'],

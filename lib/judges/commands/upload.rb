@@ -8,6 +8,7 @@ require 'elapsed'
 require 'iri'
 require 'typhoeus'
 require_relative '../../judges'
+require_relative '../../judges/durable_name'
 
 # The +upload+ command, to send a durable to Zerocracy.
 #
@@ -35,7 +36,7 @@ class Judges::Upload
     jname = args[0]
     path = args[1]
     raise(StandardError, "File not found: #{path}") unless File.file?(path)
-    name = File.basename(path)
+    name = Judges::DurableName.new(path).to_s
     baza = BazaRb.new(
       opts['host'], opts['port'].to_i, opts['token'],
       ssl: opts['ssl'],
