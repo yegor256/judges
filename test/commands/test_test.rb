@@ -33,6 +33,29 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_refuses_a_pack_with_two_documents
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert')
+      save_it(
+        File.join(d, 'foo/two.yml'),
+        <<~YAML
+          expected:
+            - /fb[count(f)=1]
+          ---
+          expected:
+            - /fb[count(f)=2]
+        YAML
+      )
+      log = Loog::Buffer.new
+      e =
+        assert_raises(StandardError) do
+          Judges::Test.new(log).run({}, [d])
+        end
+      assert_includes(e.message, 'foo/two', e.message)
+      assert_includes(log.to_s, 'one YAML document', log.to_s)
+    end
+  end
+
   def test_refuses_a_judge_name_that_matches_nothing
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 4')
