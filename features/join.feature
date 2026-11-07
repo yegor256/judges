@@ -8,8 +8,6 @@ Feature: Join
     Given I make a temp directory
     Then I run bin/judges with "--verbose eval first.fb '$fb.insert.foo = 42'"
     Then I run bin/judges with "--verbose eval second.fb '$fb.insert.foo = 42'"
-    Then I run bin/judges with "update . first.fb"
-    Then I run bin/judges with "update . second.fb"
     Then I run bin/judges with "join first.fb second.fb"
     Then Exit code is zero
     And Stdout contains "joined"
