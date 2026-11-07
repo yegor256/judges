@@ -10,3 +10,8 @@
 module Judges
   VERSION = '0.0.0' unless const_defined?(:VERSION)
 end
+
+# When judge skips its execution.
+# rubocop:disable Lint/InheritException
+class Judges::Skip < Exception; end
+# rubocop:enable Lint/InheritException

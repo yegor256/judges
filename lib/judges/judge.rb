@@ -84,7 +84,8 @@ class Judges::Judge
       # rubocop:disable Lint/RescueException
     rescue Exception => e
       # rubocop:enable Lint/RescueException
-      raise(e) if e.is_a?(RuntimeError) && e.message == 'skip'
+      raise(Judges::Skip, e.message) if e.is_a?(RuntimeError) && e.message == 'skip'
+      raise(e) if e.is_a?(Judges::Skip)
       e = Judges::PrettyException.new(e) if e.is_a?(Octokit::ServerError)
       @loog.error(Backtrace.new(e))
       raise(e) if e.is_a?(StandardError)
