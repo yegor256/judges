@@ -197,4 +197,11 @@ class TestOptions < Minitest::Test
     assert_equal('third', opts.name)
     assert_equal('third', opts.NAME)
   end
+
+  def test_prints_what_its_docblock_shows
+    assert_equal(
+      "DEBUG → \"****\"\nTOKEN → \"supe********oken\"",
+      Judges::Options.new(%w[token=supersecrettoken debug=true]).to_s
+    )
+  end
 end
