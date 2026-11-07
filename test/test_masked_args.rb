@@ -51,11 +51,36 @@ class TestMaskedArgs < Minitest::Test
     end
   end
 
+  def test_hides_an_abbreviated_token
+    refute_includes(Judges::MaskedArgs.new(%w[pull --tok=SUPERSECRET123]).to_s, 'SUPERSECRET123')
+    refute_includes(Judges::MaskedArgs.new(%w[pull --tok SUPERSECRET123]).to_s, 'SUPERSECRET123')
+  end
+
+  def test_hides_an_abbreviated_option
+    refute_includes(Judges::MaskedArgs.new(%w[update --opt=token=SUPERSECRET123]).to_s, 'SUPERSECRET123')
+    refute_includes(Judges::MaskedArgs.new(['update', '--opt', 'token=SUPERSECRET123']).to_s, 'SUPERSECRET123')
+  end
+
+  def test_hides_a_token_glued_to_the_short_option
+    line = Judges::MaskedArgs.new(%w[update -otoken=ghp_SUPERSECRET123 j]).to_s
+    refute_includes(line, 'ghp_SUPERSECRET123', line)
+    assert_equal('update -otoken=ghp_**********T123 j', line)
+  end
+
+  def test_hides_a_token_with_spaces
+    line = Judges::MaskedArgs.new(['update', '--option=token = ghp_SUPERSECRET123']).to_s
+    refute_includes(line, 'ghp_SUPERSECRET123', line)
+  end
+
   def test_keeps_an_option_that_is_not_a_secret
     assert_equal(
       'update --option=repositories=zerocracy/fbe',
       Judges::MaskedArgs.new(%w[update --option=repositories=zerocracy/fbe]).to_s
     )
+  end
+
+  def test_keeps_a_flag_that_only_looks_like_the_token
+    assert_equal('pull --timeout=30 -o a=b', Judges::MaskedArgs.new(%w[pull --timeout=30 -o a=b]).to_s)
   end
 
   def test_keeps_everything_else
