@@ -26,6 +26,7 @@ class TestDownload < Minitest::Test
     stub_request(:post, %r{https://example.org/durables/42/unlock}).to_return(status: 302)
     Dir.mktmpdir do |d|
       file = File.join(d, 'downloaded.txt')
+      File.write("#{file}.part", 'existing sibling')
       Judges::Download.new(Loog::NULL).run(
         {
           'token' => '000',
@@ -37,6 +38,9 @@ class TestDownload < Minitest::Test
         ['myjudge', file]
       )
       assert_equal(content, File.read(file))
+      assert_path_exists("#{file}.part")
+      assert_equal('existing sibling', File.read("#{file}.part"))
+      assert_equal(['downloaded.txt', 'downloaded.txt.part'], Dir.children(d).sort)
     end
   end
 
@@ -74,6 +78,7 @@ class TestDownload < Minitest::Test
     Dir.mktmpdir do |d|
       file = File.join(d, 'data.fb')
       File.write(file, 'good local copy')
+      File.write("#{file}.part", 'existing sibling')
       assert_raises(StandardError) do
         Judges::Download.new(Loog::NULL).run(
           { 'token' => '000', 'host' => 'example.org', 'port' => 80, 'ssl' => false, 'retries' => 1 },
@@ -81,7 +86,9 @@ class TestDownload < Minitest::Test
         )
       end
       assert_equal('good local copy', File.read(file))
-      assert_equal(['data.fb'], Dir.children(d))
+      assert_path_exists("#{file}.part")
+      assert_equal('existing sibling', File.read("#{file}.part"))
+      assert_equal(['data.fb', 'data.fb.part'], Dir.children(d).sort)
     end
   end
 
