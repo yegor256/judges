@@ -415,10 +415,19 @@ class TestUpdate < Minitest::Test
 
   def test_seed_parameter_is_passed_through
     Dir.mktmpdir do |d|
-      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert')
-      file = File.join(d, 'base.fb')
-      Judges::Update.new(Loog::NULL).run({ 'seed' => 42, 'max-cycles' => 1, 'timeout' => 1 }, [d, file])
-      assert_path_exists(file)
+      %w[alpha beta gamma delta epsilon zeta eta theta].each do |n|
+        save_it(File.join(d, n, "#{n}.rb"), '$fb.insert')
+      end
+      plain = Judges::Judges.new(d, nil, Loog::NULL).each.map(&:name)
+      [42, 99].each do |seed|
+        log = Loog::Buffer.new
+        Judges::Update.new(log).run({ 'seed' => seed, 'max-cycles' => 1 }, [d, File.join(d, "base#{seed}.fb")])
+        assert_equal(
+          Judges::Judges.new(d, nil, Loog::NULL, seed:).each.map(&:name),
+          log.to_s.scan(/Running (\w+) \(#/).flatten, "The --seed=#{seed} must reach the judges"
+        )
+        refute_equal(plain, log.to_s.scan(/Running (\w+) \(#/).flatten, "The --seed=#{seed} must change the order")
+      end
     end
   end
 
