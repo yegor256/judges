@@ -50,6 +50,18 @@ class Judges::Options
     to_h.empty?
   end
 
+  # Fetch an option by name.
+  #
+  # @param [Symbol, String] name The option name, case-insensitive
+  # @return [Object] The option value
+  # @raise [KeyError] If the option is absent
+  # @example Fetch an option
+  #   options = Judges::Options.new(['token=abc123'])
+  #   options[:token] # => "abc123"
+  def [](name)
+    lookup(name)
+  end
+
   # Merge with another Options object.
   #
   # Creates a new Options instance containing values from both this instance
@@ -118,6 +130,16 @@ class Judges::Options
 
   private
 
+  def lookup(name)
+    k = symbol(name)
+    raise(KeyError, "Option '#{name}' is absent") unless to_h.key?(k)
+    to_h[k]
+  end
+
+  def symbol(name)
+    name.to_s.strip.upcase.to_sym
+  end
+
   def mask(value)
     return '*' * value.length if value.length <= 8
     "#{value[0..3]}#{'*' * (value.length - 8)}#{value[-4..]}"
@@ -179,6 +201,30 @@ class Judges::Options
   end
 
   others do |*args|
-    to_h[args[0].upcase.to_sym]
+    lookup(args[0])
+  end
+
+  public
+
+  # Check whether an option or a real method is available.
+  #
+  # Replaces the gem's always-true version, so the standard implementation
+  # (which consults respond_to_missing?) applies.
+  #
+  # @param [Symbol, String] name The name to check
+  # @param [Boolean] include_private Whether private methods count as available
+  # @return [Boolean] true if the option exists or the method is real
+  # @example Check an option
+  #   options = Judges::Options.new(['token=abc123'])
+  #   options.respond_to?(:token) # => true
+  #   options.respond_to?(:bogus) # => false
+  def respond_to?(name, include_private = false) # rubocop:disable Elegant/GoodMethodName, Style/OptionalBooleanParameter
+    super
+  end
+
+  private
+
+  def respond_to_missing?(name, include_private = false)
+    to_h.key?(symbol(name)) || super
   end
 end
