@@ -194,6 +194,23 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_asserts_after_every_run_when_asked
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(File.join(d, 'foo/x.yml'), "runs: 3\nassert_once: false\ninput: []\nexpected:\n  - /fb[count(f)=3]")
+      assert_raises(StandardError) { Judges::Test.new(Loog::NULL).run({}, [d]) }
+    end
+  end
+
+  def test_asserts_only_after_last_run
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(File.join(d, 'foo/x.yml'), "runs: 3\ninput: []\nexpected:\n  - /fb[count(f)=3]")
+      Judges::Test.new(Loog::NULL).run({}, [d])
+      assert_path_exists(d)
+    end
+  end
+
   def test_with_expected_failure
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), 'raise "this is intentional";')
