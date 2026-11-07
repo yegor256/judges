@@ -376,6 +376,23 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_runs_another_cycle_after_facts_change
+    Dir.mktmpdir do |d|
+      save_it(
+        File.join(d, 'alpha/alpha.rb'),
+        '$fb.query("(and (exists who) (absent name))").each { |f| f.name = "jeff" }'
+      )
+      save_it(File.join(d, 'beta/beta.rb'), '$fb.query("(and (exists issue) (absent who))").each { |f| f.who = 7 }')
+      file = File.join(d, 'base.fb')
+      File.binwrite(file, Factbase.new.tap { |fb| fb.insert.issue = 1 }.export)
+      Judges::Update.new(Loog::NULL).run({ 'max-cycles' => 5, 'boost' => 'alpha' }, [d, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      fact = fb.query('(exists issue)').each.first
+      assert_equal(['jeff'], fact['name'], "alpha must see the 'who' that beta set in the cycle before: #{fact}")
+    end
+  end
+
   def test_fails_when_no_judges_used
     assert_raises(StandardError) do
       Dir.mktmpdir do |d|
