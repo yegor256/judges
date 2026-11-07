@@ -3,6 +3,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require 'backtrace'
 require 'elapsed'
 require 'factbase/tallied'
 require 'octokit'
@@ -87,6 +88,7 @@ class Judges::Judge
       raise(e) if e.is_a?(RuntimeError) && e.message == 'skip'
       e = Judges::PrettyException.new(e) if e.is_a?(Octokit::ServerError)
       @loog.error(Backtrace.new(e))
+      raise(StandardError, "#{e.message} (#{e.class.name})") if e.is_a?(UncaughtThrowError)
       raise(e) if e.is_a?(StandardError)
       raise(e) if e.is_a?(Timeout::ExitException)
       raise(StandardError, "#{e.message} (#{e.class.name})")
