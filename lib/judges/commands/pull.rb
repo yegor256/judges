@@ -5,8 +5,6 @@
 
 require 'baza-rb'
 require 'elapsed'
-require 'iri'
-require 'typhoeus'
 require_relative '../../judges'
 require_relative '../../judges/impex'
 
