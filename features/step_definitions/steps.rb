@@ -5,6 +5,7 @@
 
 require 'English'
 require 'securerandom'
+require 'shellwords'
 require 'tmpdir'
 
 Before do
@@ -36,7 +37,7 @@ Given(/^I have a "([^"]*)" file with content:$/) do |file, text|
 end
 
 When(%r{^I run bin/judges with "([^"]*)"$}) do |arg|
-  home = File.join(File.dirname(__FILE__), '../..')
+  home = Shellwords.escape(File.expand_path('../..', __dir__))
   arg.gsub!('{FAKE-NAME}') { "fake#{SecureRandom.hex(8)}" }
   cmd = "ruby -I#{home}/lib #{home}/bin/judges #{arg}"
   cmd = "GLI_DEBUG=true #{cmd}" unless Gem.win_platform?
