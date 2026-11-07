@@ -3,6 +3,13 @@
  * SPDX-License-Identifier: MIT
  */
 
+$.tablesorter.addParser({
+  id: 'iso8601',
+  is: (text) => /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/.test(text),
+  format: (text) => text,
+  type: 'text'
+});
+
 $(() => {
   $('#facts').tablesorter();
 });
