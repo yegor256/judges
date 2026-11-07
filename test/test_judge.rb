@@ -107,4 +107,16 @@ class TestJudge < Minitest::Test
       end
     end
   end
+
+  def test_does_not_complete_on_timeout
+    Dir.mktmpdir do |d|
+      dir = File.join(d, 'foo')
+      save_it(File.join(dir, 'foo.rb'), 'sleep 5')
+      loog = Loog::Buffer.new
+      assert_raises(Timeout::Error) do
+        Timeout.timeout(0.3) { Judges::Judge.new(dir, nil, loog).run(Factbase.new, {}, {}, {}) }
+      end
+      refute_includes(loog.to_s, 'foo completed')
+    end
+  end
 end
