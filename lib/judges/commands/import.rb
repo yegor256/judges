@@ -66,11 +66,20 @@ class Judges::Import
       raise(StandardError, "The file #{file.to_rel} must hold an array of facts, while #{yaml.class} found")
     end
     yaml.each_with_index do |fact, index|
-      next if fact.is_a?(Hash)
-      raise(
-        StandardError,
-        "The fact ##{index} in #{file.to_rel} must be a map of properties, while #{fact.class} found"
-      )
+      unless fact.is_a?(Hash)
+        raise(
+          StandardError,
+          "The fact ##{index} in #{file.to_rel} must be a map of properties, while #{fact.class} found"
+        )
+      end
+      fact.each_key do |key|
+        next if key.is_a?(String)
+        raise(
+          StandardError,
+          "The key #{key} of the fact ##{index} in #{file.to_rel} is not a string, " \
+          "quote it if you meant 'on', 'off', 'yes' or 'no'"
+        )
+      end
     end
     yaml
   end
