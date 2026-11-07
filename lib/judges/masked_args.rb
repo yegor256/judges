@@ -64,6 +64,7 @@ class Judges::MaskedArgs
   # @return [String] The same length, mostly asterisks
   def mask(txt)
     return '*' * txt.length if txt.length <= 8
-    "#{txt[0..3]}#{'*' * (txt.length - 8)}#{txt[-4..]}"
+    edge = [txt.length / 8, 4].min
+    "#{txt[0, edge]}#{'*' * (txt.length - (edge * 2))}#{txt[-edge..]}"
   end
 end

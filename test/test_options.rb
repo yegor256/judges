@@ -92,7 +92,7 @@ class TestOptions < Minitest::Test
   def test_converts_to_string
     s = Judges::Options.new('foo' => 44, 'bar' => 'long-string-maybe-secret').to_s
     assert_includes(s, 'FOO → 44 (Integer)', s)
-    assert_includes(s, '"long****************cret"', s)
+    assert_includes(s, '"lon******************ret"', s)
   end
 
   def test_masks_short_values
@@ -101,10 +101,16 @@ class TestOptions < Minitest::Test
     assert_includes(rendered, '"*******"', rendered)
   end
 
+  def test_masks_most_of_a_nine_character_value
+    rendered = Judges::Options.new('password' => 'Pa55word!').to_s
+    refute_includes(rendered, 'Pa55', rendered)
+    assert_includes(rendered, '"P*******!"', rendered)
+  end
+
   def test_masks_a_long_number
     rendered = Judges::Options.new('token' => 1_234_567_890_123_456).to_s
     refute_includes(rendered, '1234567890123456', rendered)
-    assert_includes(rendered, 'TOKEN → 1234********3456 (Integer)', rendered)
+    assert_includes(rendered, 'TOKEN → 12************56 (Integer)', rendered)
   end
 
   def test_masks_a_secret_that_became_a_number
