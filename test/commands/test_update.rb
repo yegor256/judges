@@ -596,4 +596,22 @@ class TestUpdate < Minitest::Test
       assert_empty(xml.xpath('/fb/f[foo]'), xml)
     end
   end
+
+  def test_tells_how_many_errors_the_summary_holds
+    [[%w[first second], 'with 2 errors:'], [[], 'with no errors:']].each do |errs, expected|
+      Dir.mktmpdir do |d|
+        save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.what = "x"')
+        file = File.join(d, 'base.fb')
+        fb = Factbase.new
+        fb.insert.then do |f|
+          f.what = 'judges-summary'
+          errs.each { |e| f.error = e }
+        end
+        File.binwrite(file, fb.export)
+        log = Loog::Buffer.new
+        Judges::Update.new(log).run({ 'quiet' => true, 'summary' => 'append', 'max-cycles' => 1 }, [d, file])
+        assert_includes(log.to_s, "A summary found, #{expected}", log.to_s)
+      end
+    end
+  end
 end
