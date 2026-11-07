@@ -79,7 +79,9 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
 
   def build_options(opts)
     options = Judges::Options.new(timeout: opts['timeout']&.to_f, lifetime: opts['lifetime']&.to_f)
-    if options.lifetime && options.timeout && options.lifetime < options.timeout * 1.1
+    lifetime = options.lifetime && Rational(options.lifetime.to_s)
+    timeout = options.timeout && Rational(options.timeout.to_s)
+    if lifetime && timeout && lifetime * 10 < timeout * 11
       raise(
         StandardError,
         "The --timeout=#{options.timeout} must be at least 10 percent smaller than --lifetime=#{options.lifetime}"
