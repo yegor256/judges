@@ -85,7 +85,6 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
         "The --timeout=#{options.timeout} must be at least 10 percent smaller than --lifetime=#{options.lifetime}"
       )
     end
-    options += Judges::Options.new(opts['option'])
     if opts['options-file']
       options += Judges::Options.new(
         File.readlines(opts['options-file'])
@@ -95,6 +94,7 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
       )
       @loog.debug("Options loaded from #{opts['options-file']}")
     end
+    options += Judges::Options.new(opts['option'])
     if options.empty?
       @loog.debug('No options provided by the --option flag')
     else
