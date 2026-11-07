@@ -5,7 +5,8 @@
 
 require_relative 'test__helper'
 
-# Tests that the stylesheet keeps its pale labels readable on the white page.
+# Tests that the stylesheet keeps its pale labels readable on the white page
+# and its table headers visible below the 1024px breakpoint.
 # Author:: Yegor Bugayenko (yegor256@gmail.com)
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
@@ -20,6 +21,13 @@ class TestAssets < Minitest::Test
 
   def test_empty_marker_is_readable_on_white
     assert_operator(contrast(color('.empty')), :>=, 4.5, 'the .empty marker is too pale on white')
+  end
+
+  def test_header_stays_visible
+    css = File.read(CSS)
+    refute_match(/@media/, css, 'thead must be restored without duplicating the 1024px breakpoint')
+    assert_match(/table\s+thead\s*\{[^}]*display:\s*table-header-group/, css)
+    refute_match(/!important/, css)
   end
 
   private

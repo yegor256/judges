@@ -8,6 +8,7 @@ section { width: 100%; }
 article { border: none; }
 header img { width: 3em; height: 3em; }
 table { table-layout: fixed; }
+table thead { display: table-header-group; }
 td { word-wrap: break-word; }
 .sorter { cursor: pointer; }
 .S { color: #4A5240; }
