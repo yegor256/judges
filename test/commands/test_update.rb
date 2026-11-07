@@ -329,6 +329,23 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_appends_one_value_per_property
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert')
+      file = File.join(d, 'base.fb')
+      3.times do
+        Judges::Update.new(Loog::NULL).run({ 'quiet' => true, 'summary' => 'append', 'max-cycles' => 1 }, [d, file])
+      end
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      sums = fb.query('(eq what "judges-summary")').each.to_a
+      assert_equal(1, sums.size)
+      %w[what when version seconds cycles inserted deleted added].each do |a|
+        assert_equal(1, sums.first[a].size, "The summary has many values of '#{a}'")
+      end
+    end
+  end
+
   def test_appends_to_existing_summary
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), 'mistake here')
