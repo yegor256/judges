@@ -137,7 +137,7 @@ class JudgesGLI extend GLI::App
     c.switch([:'fail-fast'], default_value: false)
     c.desc 'Add a summary fact to the factbase'
     c.flag([:summary], must_match: %w[off add append], default_value: 'off')
-    c.desc 'Use default logging facility'
+    c.desc 'Log every operation on the factbase (visible with --verbose)'
     c.switch([:log], default_value: true)
     c.desc 'Show execution statistics for each judge'
     c.switch([:statistics], default_value: false)
@@ -151,7 +151,7 @@ class JudgesGLI extend GLI::App
   desc 'Evaluate a single Ruby expression against the factbase'
   arg_name '<factbase> <expression>'
   command :eval do |c|
-    c.desc 'Use default logging facility'
+    c.desc 'Log every operation on the factbase (visible with --verbose)'
     c.switch([:log], default_value: true)
     run_it(c, 'eval')
   end
@@ -165,7 +165,7 @@ class JudgesGLI extend GLI::App
   desc 'Import YAML into a factbase'
   arg_name '<factbase> <yaml>'
   command :import do |c|
-    c.desc 'Use default logging facility'
+    c.desc 'Log every operation on the factbase (visible with --verbose)'
     c.switch([:log], default_value: true)
     run_it(c, 'import')
   end
@@ -223,7 +223,7 @@ class JudgesGLI extend GLI::App
     c.flag([:lib])
     c.desc 'Suppress output even if tests fail or none are executed'
     c.switch([:quiet], default_value: false)
-    c.desc 'Use default logging facility'
+    c.desc 'Log every operation on the factbase (visible with --verbose)'
     c.switch([:log], default_value: true)
     run_it(c, 'test')
   end
