@@ -71,4 +71,25 @@ class TestEval < Minitest::Test
       assert_includes(error.message, expr, error.message)
     end
   end
+
+  def test_fails_on_an_uncaught_throw
+    Dir.mktmpdir do |d|
+      error =
+        assert_raises(StandardError) do
+          Judges::Eval.new(Loog::NULL).run({}, [File.join(d, 'base.fb'), '$fb.insert.foo = 1; throw :done'])
+        end
+      assert_includes(error.message, 'threw :done', error.message)
+      assert_instance_of(UncaughtThrowError, error.cause)
+    end
+  end
+
+  def test_fails_on_a_stray_throw
+    Dir.mktmpdir do |d|
+      error =
+        assert_raises(StandardError) do
+          Judges::Eval.new(Loog::NULL).run({}, [File.join(d, 'base.fb'), 'catch(:a) { throw :a }; throw :b'])
+        end
+      assert_includes(error.message, 'threw :b', error.message)
+    end
+  end
 end
