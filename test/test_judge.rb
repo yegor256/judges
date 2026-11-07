@@ -37,6 +37,19 @@ class TestJudge < Minitest::Test
     end
   end
 
+  def test_hides_constants_of_one_judge_from_another
+    Dir.mktmpdir do |d|
+      first = File.join(d, 'first')
+      save_it(File.join(first, 'first.rb'), 'FIRST_LIMIT = 42')
+      second = File.join(d, 'second')
+      save_it(File.join(second, 'second.rb'), '$local[:seen] = defined?(FIRST_LIMIT) && FIRST_LIMIT')
+      local = {}
+      Judges::Judge.new(first, nil, Loog::NULL).run(Factbase.new, {}, {}, {})
+      Judges::Judge.new(second, nil, Loog::NULL).run(Factbase.new, {}, local, {})
+      assert_nil(local[:seen], 'A constant of one judge must not be visible to another one')
+    end
+  end
+
   def test_passes_local_vars_between_tests
     Dir.mktmpdir do |d|
       save_it(
