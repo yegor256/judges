@@ -94,8 +94,8 @@ class Judges::Test
     bad =
       Dir.glob(File.join(dir, '*'))
         .select { |d| File.directory?(d) }
-        .reject { |d| File.exist?(File.join(d, "#{File.basename(d)}.rb")) }
-        .map { |d| "#{File.basename(d)}/#{File.basename(d)}.rb is absent" }
+        .reject { |d| File.file?(File.join(d, "#{File.basename(d)}.rb")) }
+        .map { |d| "#{File.basename(d)}/#{File.basename(d)}.rb is absent or not a file" }
     return if bad.empty?
     raise(
       StandardError,
