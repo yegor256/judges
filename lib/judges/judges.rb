@@ -60,6 +60,22 @@ class Judges::Judges
     Judges::Judge.new(d, @lib, @loog, epoch: @epoch)
   end
 
+  # Makes sure that every given name is the name of a judge.
+  #
+  # @param [Array<String>, nil] names The names to check, usually from the --judge option
+  # @param [Boolean] strict Fail on an unknown name (TRUE) or only warn about it (FALSE)
+  # @return [Judges::Judges] Itself
+  # @raise [StandardError] If at least one name matches no judge and +strict+ is set
+  def known(names, strict: true)
+    all = each.map(&:name)
+    bad = Array(names).reject { |n| all.include?(n) }
+    return self if bad.empty?
+    msg = "No judge matches --judge=#{bad.join(',')}, while these are available: #{all.join(', ')}"
+    raise(StandardError, msg) if strict
+    @loog.warn(msg)
+    self
+  end
+
   # Iterates over all valid judges in the directory.
   #
   # This method discovers all judge directories, validates them (ensuring they contain
