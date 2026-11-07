@@ -49,7 +49,8 @@ class Judges::Impex
   #   fb = impex.import(strict: false) # Returns empty factbase if file missing
   def import(strict: true)
     fb = Factbase.new
-    if File.exist?(@file) && !File.directory?(@file)
+    empty = !strict && File.file?(@file) && File.empty?(@file)
+    if File.exist?(@file) && !File.directory?(@file) && !empty
       elapsed(@loog, level: Logger::INFO) do
         fb.import(File.binread(@file))
         throw(:"The factbase imported from #{@file.to_rel} (#{File.size(@file)} bytes, #{fb.size} facts)")
