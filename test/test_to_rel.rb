@@ -33,6 +33,14 @@ class TestToRel < Minitest::Test
     end
   end
 
+  def test_quotes_a_file_name_with_a_space
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'my file.rb')
+      FileUtils.touch(file)
+      assert_match(/\A".*my file\.rb"\z/, file.to_rel)
+    end
+  end
+
   def test_quotes_dir_name_with_its_slash
     Dir.mktmpdir do |d|
       dir = File.join(d, 'my judges')
