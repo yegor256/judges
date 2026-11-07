@@ -98,6 +98,16 @@ class Judges::Options
     end.sort.join("\n")
   end
 
+  # Render the options for inspection, with the values hidden as in +to_s+.
+  #
+  # Without it Ruby would dump the instance variables, which hold every value
+  # in clear text, so +p $options+ in a judge would print the secrets.
+  #
+  # @return [String] The masked options inside of the object notation
+  def inspect
+    "#<#{self.class.name} #{to_s.tr("\n", ';')}>"
+  end
+
   # Convert options to hash.
   #
   # Converts the raw pairs into a normalized hash with the following transformations:

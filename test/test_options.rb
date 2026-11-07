@@ -95,6 +95,18 @@ class TestOptions < Minitest::Test
     assert_includes(s, '"long****************cret"', s)
   end
 
+  def test_hides_values_in_inspect
+    inspected = Judges::Options.new('github_token' => 'ghp_SECRET1234567890').inspect
+    refute_includes(inspected, 'ghp_SECRET1234567890', inspected)
+    assert_includes(inspected, 'GITHUB_TOKEN', inspected)
+    assert_includes(inspected, 'ghp', inspected)
+  end
+
+  def test_hides_values_in_pretty_print
+    printed = Judges::Options.new('password' => 'hunter2hunter2').pretty_inspect
+    refute_includes(printed, 'hunter2hunter2', printed)
+  end
+
   def test_masks_short_values
     rendered = Judges::Options.new('token' => 'hunter2').to_s
     refute_includes(rendered, 'hunter2', rendered)
