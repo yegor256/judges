@@ -36,6 +36,7 @@ class Judges::Upload
     path = args[1]
     raise(StandardError, "File not found: #{path}") unless File.file?(path)
     name = File.basename(path)
+    raise(ArgumentError, "The --timeout must be positive: #{opts['timeout']}") if (opts['timeout'] || 30).to_f <= 0
     baza = BazaRb.new(
       opts['host'], opts['port'].to_i, opts['token'],
       ssl: opts['ssl'],

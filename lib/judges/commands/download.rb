@@ -35,12 +35,12 @@ class Judges::Download
     jname = args[0]
     path = args[1]
     name = File.basename(path)
+    raise(ArgumentError, "The --timeout must be positive: #{opts['timeout']}") if (opts['timeout'] || 30).to_f <= 0
     baza = BazaRb.new(
       opts['host'], opts['port'].to_i, opts['token'],
       ssl: opts['ssl'],
       timeout: (opts['timeout'] || 30).to_f,
-      loog: @loog,
-      retries: (opts['retries'] || 3).to_i
+      loog: @loog, retries: (opts['retries'] || 3).to_i
     )
     elapsed(@loog, level: Logger::INFO) do
       id = baza.durable_find(jname, name)

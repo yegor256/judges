@@ -3,6 +3,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require 'factbase'
 require 'loog'
 require 'webmock/minitest'
 require_relative '../../lib/judges'
@@ -79,6 +80,17 @@ class TestPush < Minitest::Test
         )
       end
       assert_in_delta(0.5, seen)
+    end
+  end
+
+  def test_refuses_zero_timeout
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      File.binwrite(file, Factbase.new.export)
+      assert_includes(
+        assert_raises(ArgumentError) { Judges::Push.new(Loog::NULL).run({ 'timeout' => 0 }, ['foo', file]) }.message,
+        '--timeout'
+      )
     end
   end
 
