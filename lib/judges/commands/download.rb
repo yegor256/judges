@@ -34,6 +34,7 @@ class Judges::Download
     raise(StandardError, 'The download command needs the network, while --offline is set') if opts['offline']
     jname = args[0]
     path = args[1]
+    FileUtils.mkdir_p(File.dirname(path))
     name = File.basename(path)
     baza = BazaRb.new(
       opts['host'], opts['port'].to_i, opts['token'],
