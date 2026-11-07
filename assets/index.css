@@ -16,6 +16,6 @@ td { word-wrap: break-word; }
 .F { color: #5C0029; }
 .BR { color: #B6C649; }
 .highlighted{ background-color: #FFFF5F; }
-.hidden { color: #C1C1C1; }
+.hidden { color: #767676; }
 .w50 { width: 50%; }
-.empty { color: lightgray; font-family: sans-serif; }
+.empty { color: #767676; font-family: sans-serif; }
