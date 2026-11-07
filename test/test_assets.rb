@@ -25,9 +25,9 @@ class TestAssets < Minitest::Test
   private
 
   def color(selector)
-    block = File.read(CSS)[/#{Regexp.escape(selector)}\s*\{([^}]*)\}/, 1]
-    raise(StandardError, "#{selector} has no rule in #{CSS}") if block.nil?
-    found = block[/\bcolor:\s*([^;]+);/, 1]
+    blocks = File.read(CSS).scan(/#{Regexp.escape(selector)}\s*\{([^}]*)\}/).flatten
+    raise(StandardError, "#{selector} has no rule in #{CSS}") if blocks.empty?
+    found = blocks.filter_map { |b| b[/(?:\A|;)\s*color:\s*([^;]+);/, 1] }.last
     raise(StandardError, "#{selector} has no color in #{CSS}") if found.nil?
     hex = NAMED.fetch(found.strip.downcase, found.strip)
     unless hex.match?(/\A#[0-9A-Fa-f]{6}\z/)
