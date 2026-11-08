@@ -216,6 +216,32 @@ class TestPrint < Minitest::Test
     end
   end
 
+  def test_skips_import_when_output_is_up_to_date
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert
+      File.binwrite(f, fb.export)
+      output = File.join(d, 'result.yaml')
+      Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml' }, [f, output])
+      File.binwrite(f, 'not a factbase')
+      File.utime(Time.now - 60, Time.now - 60, f)
+      Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml' }, [f, output])
+      assert_equal(1, YAML.load_file(output).size)
+    end
+  end
+
+  def test_requires_output_before_import
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'base.fb')
+      File.binwrite(f, 'not a factbase')
+      assert_includes(
+        assert_raises(ArgumentError) { Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml' }, [f]) }.message,
+        'Either provide output file name or use --auto'
+      )
+    end
+  end
+
   def test_reprints_when_output_options_change
     Dir.mktmpdir do |d|
       f = File.join(d, 'base.fb')

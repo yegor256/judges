@@ -43,8 +43,6 @@ class Judges::Print
     fmt = opts['format']&.downcase
     raise(ArgumentError, "Unknown format '#{fmt}', use one of #{FORMATS.join(', ')}") unless FORMATS.include?(fmt)
     f = args[0]
-    fb = Judges::Impex.new(@loog, f).import
-    fb.query("(not #{opts['query']})").delete! unless opts['query'].nil?
     o = args[1]
     if o.nil?
       raise(ArgumentError, 'Either provide output file name or use --auto') unless opts['auto']
@@ -58,6 +56,8 @@ class Judges::Print
     FileUtils.mkdir_p(File.dirname(o))
     stamp = stamp(opts, fmt)
     return if skip?(opts, f, o, sidecar, stamp)
+    fb = Judges::Impex.new(@loog, f).import
+    fb.query("(not #{opts['query']})").delete! unless opts['query'].nil?
     elapsed(@loog, level: Logger::INFO) { write(o, sidecar, stamp, fmt, opts, fb) }
   end
 
