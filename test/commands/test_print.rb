@@ -251,6 +251,25 @@ class TestPrint < Minitest::Test
     end
   end
 
+  def test_reports_absent_factbase
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert
+      File.binwrite(f, fb.export)
+      y = File.join(d, 'base.yaml')
+      printer = Judges::Print.new(Loog::NULL)
+      printer.run({ 'format' => 'yaml' }, [f, y])
+      FileUtils.rm_f(f)
+      assert_includes(
+        assert_raises(StandardError) do
+          printer.run({ 'format' => 'yaml' }, [f, y])
+        end.message,
+        'absent'
+      )
+    end
+  end
+
   def test_requires_output_before_import
     Dir.mktmpdir do |d|
       f = File.join(d, 'base.fb')

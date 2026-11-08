@@ -86,7 +86,7 @@ class Judges::Print
   end
 
   def skip?(opts, factbase, output, sidecar, stamp)
-    return false if opts['force'] || !cached?(output, sidecar, stamp)
+    return false if opts['force'] || !File.file?(factbase) || !cached?(output, sidecar, stamp)
     if File.mtime(factbase) <= File.mtime(output)
       @loog.info("No need to print to #{output.to_rel}, since it's up to date (#{File.size(output)} bytes)")
       return true
