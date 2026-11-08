@@ -78,6 +78,41 @@ class TestPrint < Minitest::Test
     end
   end
 
+  def test_rejects_output_identical_to_input
+    Dir.mktmpdir do |dir|
+      source = File.join(dir, 'source.fb')
+      fb = Factbase.new
+      fb.insert.what = 'kept'
+      original = fb.export
+      File.binwrite(source, original)
+      assert_includes(
+        assert_raises(ArgumentError) do
+          Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml' }, [source, source])
+        end.message,
+        'must not overwrite the input'
+      )
+      assert_equal(original, File.binread(source))
+    end
+  end
+
+  def test_reports_output_that_is_a_directory
+    Dir.mktmpdir do |dir|
+      source = File.join(dir, 'source.fb')
+      fb = Factbase.new
+      fb.insert.what = 'kept'
+      File.binwrite(source, fb.export)
+      output = File.join(dir, 'source.yaml')
+      printer = Judges::Print.new(Loog::NULL)
+      printer.run({ 'format' => 'yaml' }, [source, output])
+      FileUtils.rm_f(output)
+      FileUtils.mkdir_p(output)
+      assert_raises(Errno::EISDIR) do
+        printer.run({ 'format' => 'yaml' }, [source, output])
+      end
+      assert_path_exists(output)
+    end
+  end
+
   def test_print_to_html
     WebMock.disable_net_connect!
     stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(body: 'nothing')

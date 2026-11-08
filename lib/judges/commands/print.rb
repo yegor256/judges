@@ -53,6 +53,7 @@ class Judges::Print
     if File.exist?(sidecar) && File.identical?(f, sidecar)
       raise(ArgumentError, 'The cache sidecar must not overwrite the input factbase')
     end
+    raise(ArgumentError, 'The output must not overwrite the input factbase') if File.exist?(o) && File.identical?(f, o)
     FileUtils.mkdir_p(File.dirname(o))
     stamp = stamp(opts.merge('factbase' => Digest::SHA256.file(f).hexdigest), fmt)
     return if skip?(opts, f, o, sidecar, stamp)
@@ -102,7 +103,7 @@ class Judges::Print
   end
 
   def cached?(output, sidecar, stamp)
-    File.exist?(output) && File.exist?(sidecar) && File.binread(sidecar) == stamp
+    File.file?(output) && File.exist?(sidecar) && File.binread(sidecar) == stamp
   end
 
   def to_html(opts, fb)
