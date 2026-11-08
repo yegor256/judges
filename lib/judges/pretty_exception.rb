@@ -20,7 +20,11 @@ class Judges::PrettyException < SimpleDelegator
   undef_method :instance_of?
   undef_method :kind_of?
 
-  def message
+  def to_s
     __getobj__.message.ellipsized(100, :right)
+  end
+
+  def message
+    to_s
   end
 end

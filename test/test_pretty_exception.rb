@@ -32,4 +32,9 @@ class TestPrettyException < Minitest::Test
   def test_refuses_a_nil_exception
     assert_includes(assert_raises(ArgumentError) { Judges::PrettyException.new(nil) }.message, 'The exception is nil')
   end
+
+  def test_ellipsizes_interpolated_message
+    txt = 'test ' * 50
+    assert_equal("was: #{txt.ellipsized(100, :right)}", "was: #{Judges::PrettyException.new(RuntimeError.new(txt))}")
+  end
 end
