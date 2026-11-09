@@ -122,7 +122,7 @@ GEM
     ffi (1.17.4-x86_64-linux-musl)
     gli (2.22.2)
       ostruct
-    hashdiff (1.2.1)
+    hashdiff (1.2.2)
     iri (0.11.8)
     json (2.21.2)
     language_server-protocol (3.17.0.6)
