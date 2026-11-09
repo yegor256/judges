@@ -32,4 +32,10 @@ class TestPrettyException < Minitest::Test
   def test_refuses_a_nil_exception
     assert_includes(assert_raises(ArgumentError) { Judges::PrettyException.new(nil) }.message, 'The exception is nil')
   end
+
+  def test_keeps_short_message_when_raised
+    txt = 'test ' * 50
+    pretty = Judges::PrettyException.new(RuntimeError.new(txt))
+    assert_equal(txt.ellipsized(100, :right), assert_raises(RuntimeError) { raise(pretty) }.message)
+  end
 end
