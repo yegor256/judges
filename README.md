@@ -26,7 +26,7 @@ global variables available to it:
   of [Loog](https://www.rubydoc.info/gems/loog/0.5.1/Loog),
   where `.info` and `.debug` logs are welcome;
 * `$options` — a holder of options coming from either the `--option` command
-  line flag or the `.yml`/`.yaml` file during testing;
+  line flag or the test pack during testing;
 * `$local` — a hash map that is cleaned up when the execution of
   a judge is finished;
 * `$global` — a hash map that is never cleaned up;
@@ -34,7 +34,7 @@ global variables available to it:
 * `$epoch` — the time moment when the plugin was started;
 * `$kickoff` — the time moment when a judge was started.
 
-Every `.yml` or `.yaml` file must be formatted as such:
+Every test pack must be formatted as such:
 
 ```yaml
 before:
@@ -127,8 +127,8 @@ The `update` command runs all judges in repeated cycles until the
   [GitHub Actions](https://docs.github.com/en/actions) require a
   directed acyclic graph defined upfront; judges require none.
 
-Every judge directory contains `.yml` test files alongside its `.rb`
-  script. A YAML file declares the initial facts (`input`), the count
+Every judge directory contains test packs alongside its `.rb`
+  script. A pack declares the initial facts (`input`), the count
   of judge executions (`runs`), prerequisite judges (`before`),
   post-condition scripts (`after`), and
   [XPath](https://www.w3.org/TR/xpath/) assertions the factbase must
