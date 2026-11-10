@@ -273,11 +273,7 @@ class Judges::Test
   end
 
   def capture(fbx, judge, options, timeout, global)
-    if timeout
-      Timeout.timeout(timeout) { judge.run(fbx, global, {}, options) }
-    else
-      judge.run(fbx, global, {}, options)
-    end
+    (timeout ? Timeout.timeout(timeout) { judge.run(fbx, global, {}, options) } : judge.run(fbx, global, {}, options))
     nil
   rescue Timeout::Error
     raise(StandardError, "Test timed out after #{timeout} seconds")
