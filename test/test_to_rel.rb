@@ -54,6 +54,7 @@ class TestToRel < Minitest::Test
       Dir.chdir(current) do
         assert_equal('../sibling/', File.join(Dir.pwd, '..', 'sibling').to_rel)
       end
+    end
   end
 
   def test_quotes_a_file_name_with_a_space
