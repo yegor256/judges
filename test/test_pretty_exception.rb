@@ -54,4 +54,11 @@ class TestPrettyException < Minitest::Test
     assert_predicate(exp.message, :valid_encoding?)
     assert_includes(exp.message, "\uFFFD")
   end
+
+  def test_keeps_a_short_utf_message
+    txt = 'café'
+    exp = Judges::PrettyException.new(RuntimeError.new(txt.encode(Encoding::UTF_16LE)))
+    assert_equal(txt, exp.message)
+    assert_equal(Encoding::UTF_8, exp.message.encoding)
+  end
 end
