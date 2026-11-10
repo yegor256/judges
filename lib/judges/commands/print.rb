@@ -46,6 +46,7 @@ class Judges::Print
     fb = Judges::Impex.new(@loog, f).import
     fb.query("(not #{opts['query']})").delete! unless opts['query'].nil?
     o = args[1]
+    raise(ArgumentError, "Options must come before the arguments, but '#{o}' found") if o.to_s.start_with?('--')
     if o.nil?
       raise(ArgumentError, 'Either provide output file name or use --auto') unless opts['auto']
       o = File.join(File.dirname(f), File.basename(f).gsub(/\.[^.]*$/, ''))
