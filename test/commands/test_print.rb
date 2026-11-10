@@ -142,6 +142,21 @@ class TestPrint < Minitest::Test
     end
   end
 
+  def test_xml_report_declares_english_language
+    Dir.mktmpdir do |d|
+      factbase = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert.what = 'test'
+      File.binwrite(factbase, fb.export)
+      html = File.join(d, 'base.html')
+      Judges::Print.new(Loog::NULL).run(
+        { 'format' => 'html', 'offline' => true, 'title' => 'English only' }, [factbase, html]
+      )
+      refute_includes(File.read(html), 'xml:lang')
+      assert_match(/<html lang="en">/, File.read(html))
+    end
+  end
+
   def test_empty_columns_render_default_ones
     WebMock.disable_net_connect!
     stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(body: 'nothing')
