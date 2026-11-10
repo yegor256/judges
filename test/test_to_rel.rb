@@ -74,7 +74,7 @@ class TestToRel < Minitest::Test
           define_method(:relative_path_from) { |_other| "../#{'../' * 60}" }
         end.new
       Pathname.stub(:new, fake) do
-        assert_match(%r{\A"/.*my judges/"\z}, dir.to_rel)
+        assert_equal("\"#{File.absolute_path(dir)}/\"", dir.to_rel)
       end
     end
   end
