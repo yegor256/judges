@@ -11,7 +11,6 @@ require 'fileutils'
 require 'nokogiri'
 require 'retries'
 require 'time'
-require 'typhoeus'
 require_relative '../../judges'
 require_relative '../../judges/impex'
 
@@ -124,6 +123,7 @@ class Judges::Print
 
   def sha256(opts, asset)
     return 'sha256-offline' if opts['offline']
+    require('typhoeus')
     with_retries do
       url = "https://yegor256.github.io/judges/assets/#{asset}"
       http = Typhoeus::Request.get(url, timeout: 30, connecttimeout: 10)
