@@ -64,6 +64,6 @@ class Judges::Categories
 
   def list(value)
     return [] if value.nil?
-    Array(value).flat_map { |v| v.to_s.split(',') }
+    Array(value).flat_map { |v| v.to_s.split(',').map(&:strip) }
   end
 end
