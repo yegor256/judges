@@ -36,7 +36,7 @@ class Judges::Download
     path = args[1]
     name = File.basename(path)
     baza = BazaRb.new(
-      opts['host'], opts['port'].to_i, opts['token'],
+      opts['host'], opts['port'].to_i, token(opts),
       ssl: opts['ssl'],
       timeout: (opts['timeout'] || 30).to_f,
       loog: @loog,
@@ -60,5 +60,12 @@ class Judges::Download
         baza.durable_unlock(id, opts['owner'] || 'default')
       end
     end
+  end
+
+  private
+
+  def token(opts)
+    raise(StandardError, 'The --token option is required for the download command') if opts['token'].to_s.empty?
+    opts['token']
   end
 end

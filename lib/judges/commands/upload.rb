@@ -37,7 +37,7 @@ class Judges::Upload
     raise(StandardError, "File not found: #{path}") unless File.file?(path)
     name = File.basename(path)
     baza = BazaRb.new(
-      opts['host'], opts['port'].to_i, opts['token'],
+      opts['host'], opts['port'].to_i, token(opts),
       ssl: opts['ssl'],
       timeout: (opts['timeout'] || 30).to_f,
       loog: @loog,
@@ -68,5 +68,12 @@ class Judges::Upload
         baza.durable_unlock(id, opts['owner'] || 'default')
       end
     end
+  end
+
+  private
+
+  def token(opts)
+    raise(StandardError, 'The --token option is required for the upload command') if opts['token'].to_s.empty?
+    opts['token']
   end
 end

@@ -3,6 +3,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require 'factbase'
 require 'loog'
 require 'webmock/minitest'
 require_relative '../../lib/judges'
@@ -138,6 +139,24 @@ class TestDownload < Minitest::Test
       )
       refute_path_exists(file)
     end
+  end
+
+  def test_fails_without_token
+    WebMock.disable_net_connect!
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      File.binwrite(file, Factbase.new.export)
+      base = { 'host' => 'example.org', 'port' => 80, 'ssl' => false }
+      [{}, { 'token' => '' }].each do |extra|
+        assert_equal(
+          'The --token option is required for the download command',
+          assert_raises(StandardError) do
+            Judges::Download.new(Loog::NULL).run(base.merge(extra), ['foo', file])
+          end.message
+        )
+      end
+    end
+    assert_not_requested(:any, /example\.org/)
   end
 
   def test_fails_when_offline
