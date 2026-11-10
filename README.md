@@ -127,7 +127,7 @@ The `update` command runs all judges in repeated cycles until the
   [GitHub Actions](https://docs.github.com/en/actions) require a
   directed acyclic graph defined upfront; judges require none.
 
-Every judge directory contains `.yml` or `.yaml` test files alongside its `.rb`
+Every judge directory contains `.yml` test files alongside its `.rb`
   script. A YAML file declares the initial facts (`input`), the count
   of judge executions (`runs`), prerequisite judges (`before`),
   post-condition scripts (`after`), and
