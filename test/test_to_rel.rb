@@ -78,16 +78,17 @@ class TestToRel < Minitest::Test
       end
     end
   end
+
+  def test_keeps_absolute_when_relative_is_longer
     Dir.mktmpdir do |d|
-      FileUtils.touch(File.join(d, 'plain.rb'))
-      FileUtils.mkdir_p(File.join(d, 'plain'))
-      Dir.chdir(d) do
-        [File.join(d, 'plain.rb'), File.join(d, 'plain')].each do |path|
-          assert_equal(
-            File.absolute_path(path), path.to_rel.delete_prefix('"').delete_suffix('"').delete_suffix('/'),
-            "#{path} was spelled longer"
-          )
-        end
+      abs = File.absolute_path(File.join(d, 'plain.rb'))
+      FileUtils.touch(abs)
+      fake =
+        Class.new do
+          define_method(:relative_path_from) { |_other| "../#{'../' * 60}plain.rb" }
+        end.new
+      Pathname.stub(:new, fake) do
+        assert_equal(abs, abs.to_rel)
       end
     end
   end
