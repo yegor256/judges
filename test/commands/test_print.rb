@@ -170,6 +170,24 @@ class TestPrint < Minitest::Test
     end
   end
 
+  def test_footer_counts_every_fact
+    WebMock.disable_net_connect!
+    stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(body: 'nothing')
+    stub_request(:get, 'https://yegor256.github.io/judges/assets/index.js').to_return(body: 'nothing')
+    fb = Factbase.new
+    fb.insert.note = 'one' * 500
+    fb.insert.note = 'two' * 500
+    Dir.mktmpdir do |d|
+      factbase = File.join(d, 'base.fb')
+      html = File.join(d, 'base.html')
+      File.binwrite(factbase, fb.export)
+      Judges::Print.new(Loog::NULL).run({ 'format' => 'html', 'columns' => 'note' }, [factbase, html])
+      footer = Nokogiri::HTML(File.read(html)).at_css('footer').text
+      assert_match(/Factbase: 2 facts, version/, footer)
+      refute_includes(footer, (File.size(factbase) - 1).to_s)
+    end
+  end
+
   def test_refuses_an_unknown_format
     Dir.mktmpdir do |d|
       f = File.join(d, 'base.fb')
