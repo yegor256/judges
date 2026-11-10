@@ -64,4 +64,18 @@ class TestToRel < Minitest::Test
       assert_match(%r{\A".*my judges/"\z}, dir.to_rel)
     end
   end
+
+  def test_quotes_an_absolute_spaced_directory
+    Dir.mktmpdir do |d|
+      dir = File.join(d, 'my judges')
+      FileUtils.mkdir_p(dir)
+      fake =
+        Class.new do
+          define_method(:relative_path_from) { |_other| "../#{'../' * 60}" }
+        end.new
+      Pathname.stub(:new, fake) do
+        assert_match(%r{\A"/.*my judges/"\z}, dir.to_rel)
+      end
+    end
+  end
 end
