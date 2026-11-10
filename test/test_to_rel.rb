@@ -78,4 +78,27 @@ class TestToRel < Minitest::Test
       end
     end
   end
+    Dir.mktmpdir do |d|
+      FileUtils.touch(File.join(d, 'plain.rb'))
+      FileUtils.mkdir_p(File.join(d, 'plain'))
+      Dir.chdir(d) do
+        [File.join(d, 'plain.rb'), File.join(d, 'plain')].each do |path|
+          assert_equal(
+            File.absolute_path(path), path.to_rel.delete_prefix('"').delete_suffix('"').delete_suffix('/'),
+            "#{path} was spelled longer"
+          )
+        end
+      end
+    end
+  end
+
+  def test_quotes_a_file_inside_a_dir_with_a_space
+    Dir.mktmpdir do |d|
+      dir = File.join(d, 'my judges')
+      FileUtils.mkdir_p(dir)
+      FileUtils.touch(File.join(dir, 'plain.rb'))
+      assert_match(%r{\A".*my judges/"\z}, dir.to_rel)
+      assert_match(%r{\A".*my judges/plain\.rb"\z}, File.join(dir, 'plain.rb').to_rel)
+    end
+  end
 end
