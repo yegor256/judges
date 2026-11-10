@@ -145,4 +145,17 @@ class TestJudge < Minitest::Test
       end
     end
   end
+
+  def test_normalizes_the_dots_in_a_test_path
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'pack', 'alpha', 'alpha.rb'), '')
+      save_it(File.join(d, 'pack', 'alpha', 'check.yml'), "---\nfoo: 42")
+      Dir.chdir(d) do
+        files = Judges::Judge.new(File.join('pack', '..', 'pack', 'alpha'), nil, Loog::NULL).tests
+        assert_equal(['check.yml'], files.map { |f| File.basename(f) })
+        refute_includes(files.first, '..')
+        assert(File.file?(files.first))
+      end
+    end
+  end
 end
