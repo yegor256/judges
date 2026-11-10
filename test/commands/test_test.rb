@@ -402,4 +402,23 @@ class TestTest < Minitest::Test
       Judges::Test.new(Loog::NULL).run({}, [d])
     end
   end
+
+  def test_expected_failure_list_checks_the_message
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'raise "another joke"')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        expected_failure:
+          - a joke
+        YAML
+      )
+      log = Loog::Buffer.new
+      assert_raises(StandardError) do
+        Judges::Test.new(log).run({}, [d])
+      end
+      assert_includes(log.to_s, 'this is not what was expected', log.to_s)
+    end
+  end
 end
