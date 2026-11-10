@@ -6,8 +6,6 @@
 require 'baza-rb'
 require 'elapsed'
 require 'fileutils'
-require 'iri'
-require 'typhoeus'
 require_relative '../../judges'
 
 # The +download+ command.

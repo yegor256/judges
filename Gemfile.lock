@@ -9,7 +9,6 @@ PATH
       ellipsized (~> 0.3)
       factbase (~> 0.16)
       gli (~> 2.21)
-      iri (~> 0.11)
       loog (~> 0.6)
       moments (~> 0.3)
       nokogiri (~> 1.10)

@@ -5,8 +5,6 @@
 
 require 'baza-rb'
 require 'elapsed'
-require 'iri'
-require 'typhoeus'
 require_relative '../../judges'
 
 # The +upload+ command, to send a durable to Zerocracy.
