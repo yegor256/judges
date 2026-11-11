@@ -1,9 +1,18 @@
 {
+  "engines": {
+    "node": "^20.19.0 || ^22.13.0 || >=24"
+  },
   "devDependencies": {
     "@eslint/js": "^10.0.0",
-    "eslint": "^10.0.0"
+    "eslint": "10.14.0"
   },
   "overrides": {
-    "minimatch": "^11.0.1"
+    "eslint": {
+      "minimatch": "11.0.5"
+    },
+    "@eslint/config-array": {
+      "minimatch": "11.0.5"
+    },
+    "@isaacs/nonrecursive-glob-match": "1.1.0"
   }
 }
