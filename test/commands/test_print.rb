@@ -106,10 +106,33 @@ class TestPrint < Minitest::Test
       printer.run({ 'format' => 'yaml' }, [source, output])
       FileUtils.rm_f(output)
       FileUtils.mkdir_p(output)
-      assert_raises(Errno::EISDIR) do
-        printer.run({ 'format' => 'yaml' }, [source, output])
-      end
-      assert_path_exists(output)
+      assert_includes(
+        assert_raises(ArgumentError) { printer.run({ 'format' => 'yaml' }, [source, output]) }.message,
+        'is a directory, not a file'
+      )
+      assert(File.directory?(output), 'the directory was replaced by a file')
+      assert_empty(Dir.children(output))
+    end
+  end
+
+  def test_rejects_output_linked_to_a_file
+    skip('Creating symbolic links requires extra privileges on Windows') if OS.windows?
+    Dir.mktmpdir do |dir|
+      source = File.join(dir, 'source.fb')
+      fb = Factbase.new
+      fb.insert.what = 'kept'
+      File.binwrite(source, fb.export)
+      target = File.join(dir, 'target.yaml')
+      File.binwrite(target, 'untouched')
+      output = File.join(dir, 'linked.yaml')
+      File.symlink(target, output)
+      assert_includes(
+        assert_raises(ArgumentError) do
+          Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml' }, [source, output])
+        end.message,
+        'is a symbolic link, not a file'
+      )
+      assert_equal('untouched', File.binread(target))
     end
   end
 
@@ -276,12 +299,32 @@ class TestPrint < Minitest::Test
       fb.insert.what = 'alpha'
       File.binwrite(f, fb.export)
       y = File.join(d, 'base.yaml')
+      Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml' }, [f, y])
+      assert_equal(1, YAML.load_file(y).size)
+      older = File.mtime(f) - 60
+      File.utime(older, older, f)
+      loog = Loog::Buffer.new
+      Judges::Print.new(loog).run({ 'format' => 'yaml' }, [f, y])
+      assert_includes(loog.to_s, 'No need to print', loog.to_s)
+      refute_includes(loog.to_s, 'imported from', 'the factbase was imported although the output was up to date')
+      assert_equal(1, YAML.load_file(y).size)
+    end
+  end
+
+  def test_reimports_a_corrupt_factbase
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert.what = 'alpha'
+      File.binwrite(f, fb.export)
+      y = File.join(d, 'base.yaml')
       printer = Judges::Print.new(Loog::NULL)
       printer.run({ 'format' => 'yaml' }, [f, y])
       assert_equal(1, YAML.load_file(y).size)
       File.binwrite(f, 'not a factbase at all')
-      File.utime(Time.now - 3600, Time.now - 3600, f)
-      printer.run({ 'format' => 'yaml' }, [f, y])
+      older = File.mtime(f) - 60
+      File.utime(older, older, f)
+      assert_raises(TypeError) { printer.run({ 'format' => 'yaml' }, [f, y]) }
       assert_equal(1, YAML.load_file(y).size)
     end
   end
