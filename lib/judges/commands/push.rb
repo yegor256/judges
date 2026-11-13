@@ -31,6 +31,7 @@ class Judges::Push
   # @raise [RuntimeError] If not exactly two arguments provided
   def run(opts, args)
     raise(ArgumentError, 'Exactly two arguments required: <name> and <path>') unless args.size == 2
+    raise(StandardError, 'The push command needs the network, while --offline is set') if opts['offline']
     name = args[0]
     fb = Judges::Impex.new(@loog, args[1]).import
     baza = BazaRb.new(

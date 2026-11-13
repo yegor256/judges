@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'factbase/to_xml'
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require 'factbase/to_xml'
 require 'loog'
 require 'nokogiri'
 require_relative '../../lib/judges'
@@ -91,6 +91,21 @@ class TestImport < Minitest::Test
           Judges::Import.new(Loog::NULL).run({}, [yaml, File.join(d, 'base.fb')])
         end
       assert_includes(error.message, 'must be a map of properties, while String found', error.message)
+    end
+  end
+
+  def test_refuses_a_directory_as_yaml
+    Dir.mktmpdir do |d|
+      dir = File.join(d, 'input.yml')
+      FileUtils.mkdir_p(dir)
+      file = File.join(d, 'base.fb')
+      e =
+        assert_raises(StandardError) do
+          Judges::Import.new(Loog::NULL).run({}, [dir, file])
+        end
+      assert_instance_of(StandardError, e)
+      assert_includes(e.message, 'is a directory', e.message)
+      refute_path_exists(file)
     end
   end
 end

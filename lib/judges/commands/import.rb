@@ -31,6 +31,7 @@ class Judges::Import
   def run(opts, args)
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     raise(StandardError, "File not found #{args[0].to_rel}") unless File.exist?(args[0])
+    raise(StandardError, "The path #{args[0].to_rel} is a directory, not a file") if File.directory?(args[0])
     elapsed(@loog, level: Logger::INFO) do
       yaml = facts(args[0])
       @loog.info("YAML loaded from #{args[0].to_rel} (#{yaml.size} facts)")
