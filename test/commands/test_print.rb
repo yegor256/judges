@@ -78,6 +78,64 @@ class TestPrint < Minitest::Test
     end
   end
 
+  def test_rejects_output_identical_to_input
+    Dir.mktmpdir do |dir|
+      source = File.join(dir, 'source.fb')
+      fb = Factbase.new
+      fb.insert.what = 'kept'
+      original = fb.export
+      File.binwrite(source, original)
+      assert_includes(
+        assert_raises(ArgumentError) do
+          Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml' }, [source, source])
+        end.message,
+        'must not overwrite the input'
+      )
+      assert_equal(original, File.binread(source))
+    end
+  end
+
+  def test_reports_output_that_is_a_directory
+    Dir.mktmpdir do |dir|
+      source = File.join(dir, 'source.fb')
+      fb = Factbase.new
+      fb.insert.what = 'kept'
+      File.binwrite(source, fb.export)
+      output = File.join(dir, 'source.yaml')
+      printer = Judges::Print.new(Loog::NULL)
+      printer.run({ 'format' => 'yaml' }, [source, output])
+      FileUtils.rm_f(output)
+      FileUtils.mkdir_p(output)
+      assert_includes(
+        assert_raises(ArgumentError) { printer.run({ 'format' => 'yaml' }, [source, output]) }.message,
+        'is a directory, not a file'
+      )
+      assert(File.directory?(output), 'the directory was replaced by a file')
+      assert_empty(Dir.children(output))
+    end
+  end
+
+  def test_rejects_output_linked_to_a_file
+    skip('Creating symbolic links requires extra privileges on Windows') if OS.windows?
+    Dir.mktmpdir do |dir|
+      source = File.join(dir, 'source.fb')
+      fb = Factbase.new
+      fb.insert.what = 'kept'
+      File.binwrite(source, fb.export)
+      target = File.join(dir, 'target.yaml')
+      File.binwrite(target, 'untouched')
+      output = File.join(dir, 'linked.yaml')
+      File.symlink(target, output)
+      assert_includes(
+        assert_raises(ArgumentError) do
+          Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml' }, [source, output])
+        end.message,
+        'is a symbolic link, not a file'
+      )
+      assert_equal('untouched', File.binread(target))
+    end
+  end
+
   def test_print_to_html
     WebMock.disable_net_connect!
     stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(body: 'nothing')
@@ -231,6 +289,75 @@ class TestPrint < Minitest::Test
       assert_path_exists(y)
       Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml', 'auto' => true }, [f])
       assert_equal(File.mtime(y), File.mtime(y))
+    end
+  end
+
+  def test_skips_import_when_output_is_up_to_date
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert.what = 'alpha'
+      File.binwrite(f, fb.export)
+      y = File.join(d, 'base.yaml')
+      Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml' }, [f, y])
+      assert_equal(1, YAML.load_file(y).size)
+      older = File.mtime(f) - 60
+      File.utime(older, older, f)
+      loog = Loog::Buffer.new
+      Judges::Print.new(loog).run({ 'format' => 'yaml' }, [f, y])
+      assert_includes(loog.to_s, 'No need to print', loog.to_s)
+      refute_includes(loog.to_s, 'imported from', 'the factbase was imported although the output was up to date')
+      assert_equal(1, YAML.load_file(y).size)
+    end
+  end
+
+  def test_reimports_a_corrupt_factbase
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert.what = 'alpha'
+      File.binwrite(f, fb.export)
+      y = File.join(d, 'base.yaml')
+      printer = Judges::Print.new(Loog::NULL)
+      printer.run({ 'format' => 'yaml' }, [f, y])
+      assert_equal(1, YAML.load_file(y).size)
+      File.binwrite(f, 'not a factbase at all')
+      older = File.mtime(f) - 60
+      File.utime(older, older, f)
+      assert_raises(TypeError) { printer.run({ 'format' => 'yaml' }, [f, y]) }
+      assert_equal(1, YAML.load_file(y).size)
+    end
+  end
+
+  def test_reports_absent_factbase
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert
+      File.binwrite(f, fb.export)
+      y = File.join(d, 'base.yaml')
+      printer = Judges::Print.new(Loog::NULL)
+      printer.run({ 'format' => 'yaml' }, [f, y])
+      FileUtils.rm_f(f)
+      assert_includes(
+        assert_raises(StandardError) do
+          printer.run({ 'format' => 'yaml' }, [f, y])
+        end.message,
+        'absent'
+      )
+    end
+  end
+
+  def test_requires_output_before_import
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'base.fb')
+      File.binwrite(f, 'not a factbase at all')
+      assert_includes(
+        assert_raises(ArgumentError) do
+          Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml' }, [f])
+        end.message,
+        'Either provide output file name or use --auto'
+      )
     end
   end
 

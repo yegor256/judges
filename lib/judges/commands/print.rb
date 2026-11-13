@@ -43,8 +43,6 @@ class Judges::Print
     fmt = opts['format']&.downcase
     raise(ArgumentError, "Unknown format '#{fmt}', use one of #{FORMATS.join(', ')}") unless FORMATS.include?(fmt)
     f = args[0]
-    fb = Judges::Impex.new(@loog, f).import
-    fb.query("(not #{opts['query']})").delete! unless opts['query'].nil?
     o = args[1]
     if o.nil?
       raise(ArgumentError, 'Either provide output file name or use --auto') unless opts['auto']
@@ -52,16 +50,28 @@ class Judges::Print
       o = "#{o}.#{fmt}"
     end
     sidecar = "#{o}.judges-options"
-    if File.exist?(sidecar) && File.identical?(f, sidecar)
-      raise(ArgumentError, 'The cache sidecar must not overwrite the input factbase')
-    end
+    guard(f, o, sidecar)
     FileUtils.mkdir_p(File.dirname(o))
-    stamp = stamp(opts.merge('factbase' => Digest::SHA256.file(f).hexdigest), fmt)
+    stamp = stamp(opts.merge('factbase' => File.file?(f) ? Digest::SHA256.file(f).hexdigest : ''), fmt)
     return if skip?(opts, f, o, sidecar, stamp)
+    fb = Judges::Impex.new(@loog, f).import
+    fb.query("(not #{opts['query']})").delete! unless opts['query'].nil?
     elapsed(@loog, level: Logger::INFO) { write(o, sidecar, stamp, fmt, opts, fb) }
   end
 
   private
+
+  # Refuse paths that would destroy the input or be unusable as a target.
+  def guard(factbase, output, sidecar)
+    if File.identical?(factbase, sidecar)
+      raise(ArgumentError, 'The cache sidecar must not overwrite the input factbase')
+    end
+    raise(ArgumentError, 'The output must not overwrite the input factbase') if File.identical?(factbase, output)
+    raise(ArgumentError, "The output #{output.to_rel} is a directory, not a file") if File.directory?(output)
+    raise(ArgumentError, "The cache sidecar #{sidecar.to_rel} is a directory, not a file") if File.directory?(sidecar)
+    raise(ArgumentError, "The output #{output.to_rel} is a symbolic link, not a file") if File.symlink?(output)
+    raise(ArgumentError, "The cache sidecar #{sidecar.to_rel} is a symbolic link, not a file") if File.symlink?(sidecar)
+  end
 
   def write(output, sidecar, stamp, fmt, opts, fb)
     File.binwrite(output, render(fmt, opts, fb))
@@ -85,8 +95,10 @@ class Judges::Print
     end
   end
 
+  # Only a regular file can be a cache hit; an absent, directory or pipe input
+  # reaches the import, which owns the error message for it.
   def skip?(opts, factbase, output, sidecar, stamp)
-    return false if opts['force'] || !cached?(output, sidecar, stamp)
+    return false if opts['force'] || !File.file?(factbase) || !cached?(output, sidecar, stamp)
     if File.mtime(factbase) <= File.mtime(output)
       @loog.info("No need to print to #{output.to_rel}, since it's up to date (#{File.size(output)} bytes)")
       return true
@@ -102,7 +114,7 @@ class Judges::Print
   end
 
   def cached?(output, sidecar, stamp)
-    File.exist?(output) && File.exist?(sidecar) && File.binread(sidecar) == stamp
+    File.file?(output) && File.file?(sidecar) && File.binread(sidecar) == stamp
   end
 
   def to_html(opts, fb)
