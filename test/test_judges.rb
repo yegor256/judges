@@ -3,7 +3,9 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require 'fileutils'
 require 'loog'
+require 'os'
 require 'tmpdir'
 require_relative '../lib/judges'
 require_relative '../lib/judges/judges'
@@ -100,6 +102,34 @@ class TestJudges < Minitest::Test
         end.message,
         'has no boo.rb inside'
       )
+    end
+  end
+
+  def test_skips_judge_whose_script_is_a_directory
+    Dir.mktmpdir do |d|
+      FileUtils.mkdir_p(File.join(d, 'fake', 'fake.rb'))
+      assert_empty(Judges::Judges.new(d, nil, Loog::NULL).each.to_a)
+    end
+  end
+
+  def test_script_refuses_a_directory
+    Dir.mktmpdir do |d|
+      FileUtils.mkdir_p(File.join(d, 'foo', 'foo.rb'))
+      assert_includes(
+        assert_raises(StandardError) { Judges::Judge.new(File.join(d, 'foo'), nil, Loog::NULL).script }.message,
+        'No foo.rb script'
+      )
+    end
+  end
+
+  def test_accepts_a_symlinked_script
+    skip('Creating symbolic links requires extra privileges on Windows') if OS.windows?
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo', 'real.rb'), '')
+      File.symlink(File.join(d, 'foo', 'real.rb'), File.join(d, 'foo', 'foo.rb'))
+      collection = Judges::Judges.new(d, nil, Loog::NULL)
+      assert_equal(['foo'], collection.each.map(&:name))
+      assert_equal('foo.rb', collection.get('foo').script)
     end
   end
 

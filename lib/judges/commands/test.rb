@@ -26,6 +26,8 @@ require_relative '../../judges/to_rel'
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
 class Judges::Test
+  WRONG_LAYOUT = 'The layout of %s is wrong, every judge directory must hold a script named after it: %s'
+
   # Initialize.
   # @param [Loog] loog Logging facility
   def initialize(loog)
@@ -67,7 +69,7 @@ class Judges::Test
       print_test_summary(times, errors, tested, tests)
     end
     unless errors.empty?
-      raise(StandardError, "#{errors.size} tests failed") unless opts['quiet']
+      raise(StandardError, "#{errors.size} tests failed: #{errors.join(', ')}") unless opts['quiet']
       @loog.debug('Not failing the build with test failures, due to the --quiet option')
     end
     return unless tested.zero? || tests.zero?
@@ -94,26 +96,23 @@ class Judges::Test
     bad =
       Dir.glob(File.join(dir, '*'))
         .select { |d| File.directory?(d) }
-        .reject { |d| File.exist?(File.join(d, "#{File.basename(d)}.rb")) }
-        .map { |d| "#{File.basename(d)}/#{File.basename(d)}.rb is absent" }
-    return if bad.empty?
-    raise(
-      StandardError,
-      "The layout of #{dir.to_rel} is wrong, every judge directory must hold " \
-      "a script named after it: #{bad.join('; ')}"
-    )
+        .reject { |d| File.file?(File.join(d, "#{File.basename(d)}.rb")) }
+        .map { |d| "#{File.basename(d)}/#{File.basename(d)}.rb is absent or not a file" }
+    raise(StandardError, format(WRONG_LAYOUT, dir.to_rel, bad.join('; '))) unless bad.empty?
   end
 
   def run_judge_tests(judge, buf, opts, judges, visible, times, errors)
     count = 0
     judge.tests.each do |f|
-      tname = File.basename(f).gsub(/\.yml$/, '')
+      tname = File.basename(f).gsub(/\.ya?ml$/, '')
       visible << "  #{judge.name}/#{tname}"
       next unless include?(opts, judge.name, tname)
       badge = "#{judge.name}/#{tname}"
       start = Time.now
       begin
-        yaml = YAML.load_file(f, permitted_classes: [Time])
+        docs = YAML.safe_load_stream(File.read(f), filename: f, permitted_classes: [Time])
+        raise(StandardError, "The pack #{f.to_rel} must hold one YAML document, not #{docs.size}") if docs.size > 1
+        yaml = docs.first
         next if skip_test?(buf, f, yaml, opts)
         buf.info("🛠️ Testing #{f.to_rel}:")
         count += run_single_test(judge, buf, opts, judges, yaml, badge)
@@ -146,7 +145,7 @@ class Judges::Test
       raise(ArgumentError, "A finite timeout is expected, but #{timeout.inspect} provided")
     end
     fb = Factbase.new
-    prepare(fb, yaml)
+    prepare(fb, yaml, badge)
     global = {}
     yaml['before']&.each do |n|
       j = judges.get(n).with_loog(buf)
@@ -207,13 +206,14 @@ class Judges::Test
     judges.any? { |n| n.match?(%r{^#{Regexp.escape(name)}(/#{re})?$}) }
   end
 
-  def prepare(fb, yaml)
+  def prepare(fb, yaml, badge)
     id = 1
     inputs = yaml['input']
     repeat = yaml['repeat']&.to_i || 1
     raise(ArgumentError, 'The repeat value must be at least 1') if repeat < 1
     repeat.times do
-      inputs&.each do |i|
+      Array(inputs).each do |i|
+        raise(ArgumentError, "The input of #{badge} must be a list of facts") unless i.is_a?(Hash)
         f = fb.insert
         i.each do |k, vv|
           if vv.is_a?(Array)
@@ -271,11 +271,7 @@ class Judges::Test
   end
 
   def capture(fbx, judge, options, timeout, global)
-    if timeout
-      Timeout.timeout(timeout) { judge.run(fbx, global, {}, options) }
-    else
-      judge.run(fbx, global, {}, options)
-    end
+    (timeout ? Timeout.timeout(timeout) { judge.run(fbx, global, {}, options) } : judge.run(fbx, global, {}, options))
     nil
   rescue Timeout::Error
     raise(StandardError, "Test timed out after #{timeout} seconds")

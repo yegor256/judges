@@ -127,18 +127,20 @@ class Judges::Judge
   # @raise [RuntimeError] If the expected script file is not found in the judge directory
   def script
     b = "#{File.basename(@dir)}.rb"
-    files = Dir.glob(File.join(@dir, '*.rb')).map { |f| File.basename(f) }
+    files = Dir.glob(File.join(@dir, '*.rb')).select { |f| File.file?(f) }.map { |f| File.basename(f) }
     raise(StandardError, "No #{b} script in #{@dir.to_rel} among #{files}") unless files.include?(b)
     b
   end
 
   # Returns all YAML test files in the judge directory.
   #
-  # Test files are expected to have a .yml extension and contain test data
-  # used to validate the judge's behavior.
+  # Test files are expected to have a .yml or .yaml extension and contain test
+  # data used to validate the judge's behavior.
   #
-  # @return [Array<String>] Array of absolute paths to all .yml files in the judge directory
+  # @return [Array<String>] Array of absolute paths to all .yml and .yaml files in the judge directory
   def tests
-    Dir.glob(File.join(@dir, '*.yml')).sort_by { |path| File.basename(path) }
+    Dir.glob(File.join(@dir, '*.{yml,yaml}'))
+      .map { |path| File.absolute_path(path) }
+      .sort_by { |path| File.basename(path) }
   end
 end
