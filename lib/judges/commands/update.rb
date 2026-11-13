@@ -42,10 +42,11 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
   # @raise [RuntimeError] If not exactly two arguments provided or directory is missing
   def run(opts, args)
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
-    dir = args[0]
+    dir = File.expand_path(args[0])
     raise(StandardError, "The directory is absent: #{dir.to_rel}") unless File.directory?(dir)
+    opts = opts.merge(%w[lib churn].to_h { |k| [k, opts[k]&.then { |v| File.expand_path(v) }] })
     guard(opts['churn'], args[1]) if opts['churn']
-    impex = Judges::Impex.new(@loog, args[1])
+    impex = Judges::Impex.new(@loog, File.expand_path(args[1]))
     fb = impex.import(strict: false)
     fb = Factbase::Logged.new(fb, @loog) if opts['log']
     options = build_options(opts)
