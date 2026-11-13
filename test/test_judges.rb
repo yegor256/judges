@@ -79,6 +79,30 @@ class TestJudges < Minitest::Test
     end
   end
 
+  def test_refuses_a_file_as_a_judge
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'boo/boo.rb'), 'hey')
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Judges.new(d, nil, Loog::NULL).get('boo/boo.rb')
+        end.message,
+        'a directory is expected'
+      )
+    end
+  end
+
+  def test_refuses_a_directory_without_a_script
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'boo/hello.rb'), 'hey')
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Judges.new(d, nil, Loog::NULL).get('boo')
+        end.message,
+        'has no boo.rb inside'
+      )
+    end
+  end
+
   def test_list_only_direct_subdirs
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'first/first.rb'), '')
@@ -185,10 +209,14 @@ class TestJudges < Minitest::Test
 
   def test_demote_with_wildcard_patterns
     Dir.mktmpdir do |d|
-      names = %w[alpha beta zzz_gamma zzz_delta epsilon].sort
+      names = %w[alpha beta zzz_gamma zzz_delta epsilon omega].sort
       names.each do |n|
         save_it(File.join(File.join(d, n), "#{n}.rb"), 'puts 1')
       end
+      refute_equal(
+        %w[zzz_delta zzz_gamma], Judges::Judges.new(d, nil, Loog::NULL).each.to_a.map(&:name)[-2..].sort,
+        'the zzz judges are last even without demotion'
+      )
       demoted = Judges::Judges.new(d, nil, Loog::NULL, demote: ['zzz*']).each.to_a.map(&:name)[-2..]
       assert_includes(demoted, 'zzz_gamma')
       assert_includes(demoted, 'zzz_delta')

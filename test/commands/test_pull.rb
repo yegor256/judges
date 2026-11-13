@@ -15,6 +15,59 @@ require_relative '../test__helper'
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
 class TestPull < Minitest::Test
+  def test_wait_uses_monotonic_time
+    checks = 0
+    baza = Object.new
+    baza.define_singleton_method(:finished?) do |_id|
+      checks += 1
+      checks > 3
+    end
+    pull = Judges::Pull.new(Loog::NULL)
+    tick = 0
+    wall = Time.now
+    Process.stub(:clock_gettime, ->(_clock) { tick += 1 }) do
+      Time.stub(:now, -> { wall -= 3600 }) do
+        pull.stub(:sleep, ->(_seconds) {}) do
+          assert_includes(
+            assert_raises(StandardError) { pull.__send__(:wait, 'foo', baza, 42, 1.5) }.message,
+            'Time is over'
+          )
+        end
+      end
+    end
+  end
+
+  def test_pull_when_job_finishes_inside_wait_budget
+    WebMock.disable_net_connect!
+    stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
+    stub_request(:post, %r{http://example.org/lock/foo}).to_return(status: 302)
+    stub_request(:get, 'http://example.org/exists/foo').to_return(body: 'yes')
+    stub_request(:get, 'http://example.org/recent/foo.txt').to_return(body: '42')
+    stub_request(:get, 'http://example.org/finished/42').to_return({ body: 'no' }, { body: 'yes' })
+    stub_request(:get, 'http://example.org/exit/42.txt').to_return(body: '0')
+    stub_request(:post, %r{http://example.org/unlock/foo}).to_return(status: 302)
+    fb = Factbase.new
+    fb.insert.foo = 42
+    stub_request(:get, 'http://example.org/pull/42.fb').to_return(body: fb.export, headers: {})
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      Judges::Pull.new(Loog::NULL).run(
+        {
+          'token' => '000',
+          'host' => 'example.org',
+          'port' => 80,
+          'ssl' => false,
+          'wait' => 1,
+          'owner' => 'none'
+        },
+        ['foo', file]
+      )
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_equal(1, fb.query('(eq foo 42)').each.to_a.size)
+    end
+  end
+
   def test_pull_simple_factbase
     WebMock.disable_net_connect!
     stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
@@ -43,6 +96,55 @@ class TestPull < Minitest::Test
       fb = Factbase.new
       fb.import(File.binread(file))
     end
+  end
+
+  def test_waits_for_the_job_before_locking
+    WebMock.disable_net_connect!
+    polls = 0
+    stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
+    stub_request(:post, %r{http://example.org/lock/foo}).to_return { { status: polls > 1 ? 302 : 409 } }
+    stub_request(:get, 'http://example.org/exists/foo').to_return(body: 'yes')
+    stub_request(:get, 'http://example.org/recent/foo.txt').to_return(body: '42')
+    stub_request(:get, 'http://example.org/finished/42').to_return do
+      polls += 1
+      { body: polls > 1 ? 'yes' : 'no' }
+    end
+    stub_request(:get, 'http://example.org/exit/42.txt').to_return(body: '0')
+    unlock = stub_request(:post, %r{http://example.org/unlock/foo}).to_return(status: 302)
+    fb = Factbase.new
+    fb.insert.foo = 42
+    stub_request(:get, 'http://example.org/pull/42.fb').to_return(body: fb.export, headers: {})
+    pull = Judges::Pull.new(Loog::NULL)
+    Dir.mktmpdir do |d|
+      pull.stub(:sleep, ->(_seconds) {}) do
+        pull.run(
+          { 'token' => '000', 'host' => 'example.org', 'port' => 80, 'ssl' => false, 'wait' => 10, 'owner' => 'none' },
+          ['foo', File.join(d, 'base.fb')]
+        )
+      end
+    end
+    assert_requested(unlock)
+  end
+
+  def test_fails_on_timeout_without_locking
+    WebMock.disable_net_connect!
+    stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
+    lock = stub_request(:post, %r{http://example.org/lock/foo}).to_return(status: 302)
+    stub_request(:get, 'http://example.org/exists/foo').to_return(body: 'yes')
+    stub_request(:get, 'http://example.org/recent/foo.txt').to_return(body: '42')
+    stub_request(:get, 'http://example.org/finished/42').to_return(body: 'no')
+    Dir.mktmpdir do |d|
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Pull.new(Loog::NULL).run(
+            { 'token' => '000', 'host' => 'example.org', 'port' => 80, 'ssl' => false, 'wait' => 0, 'owner' => 'none' },
+            ['foo', File.join(d, 'base.fb')]
+          )
+        end.message,
+        'Time is over'
+      )
+    end
+    assert_not_requested(lock)
   end
 
   def test_unlocks_baza_on_success
@@ -101,5 +203,15 @@ class TestPull < Minitest::Test
         end
       assert_includes(e.message, 'expire it', e)
     end
+  end
+
+  def test_fails_when_offline
+    WebMock.disable_net_connect!
+    assert_equal(
+      'The pull command needs the network, while --offline is set',
+      assert_raises(StandardError) do
+        Judges::Pull.new(Loog::NULL).run({ 'offline' => true }, ['foo', 'file.fb'])
+      end.message
+    )
   end
 end

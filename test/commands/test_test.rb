@@ -64,13 +64,15 @@ class TestTest < Minitest::Test
             foo: 42
         expected:
           - /fb[count(f)=1]
-          - /fb/f[foo/v='42']
-          - /fb/f[bar/v='5']
+          - /fb/f[foo='42']
+          - /fb/f[bar='5']
         YAML
       )
+      loog = Loog::Buffer.new
       assert_raises(StandardError) do
-        Judges::Test.new(Loog::NULL).run({}, [d])
+        Judges::Test.new(loog).run({}, [d])
       end
+      assert_includes(loog.to_s, "/fb/f[bar='5']", loog.to_s)
     end
   end
 
@@ -149,9 +151,11 @@ class TestTest < Minitest::Test
           - /fb[count(f)=1]
         YAML
       )
-      assert_raises(StandardError) do
-        Judges::Test.new(Loog::NULL).run({ 'judge' => [File.basename(dir)] }, [d])
-      end
+      e =
+        assert_raises(StandardError) do
+          Judges::Test.new(Loog::NULL).run({ 'judge' => ['foo'] }, [d])
+        end
+      assert_includes(e.message, 'failed', e.message)
     end
   end
 
@@ -221,6 +225,41 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_empty_expected_failure_pass
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        expected_failure: []
+        expected:
+          - /fb/f[foo='42']
+        YAML
+      )
+      Judges::Test.new(Loog::NULL).run({}, [d])
+      assert_path_exists(d)
+    end
+  end
+
+  def test_empty_expected_failure_fail
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'raise "boom error"')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        expected_failure: []
+        YAML
+      )
+      loog = Loog::Buffer.new
+      assert_raises(StandardError) do
+        Judges::Test.new(loog).run({}, [d])
+      end
+      assert_includes(loog.to_s, 'boom error')
+    end
+  end
+
   def test_with_timeout_success
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
@@ -236,6 +275,27 @@ class TestTest < Minitest::Test
       )
       Judges::Test.new(Loog::NULL).run({}, [d])
       assert_path_exists(d)
+    end
+  end
+
+  def test_refuses_an_infinite_timeout
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        timeout: .inf
+        YAML
+      )
+      loog = Loog::Buffer.new
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Test.new(loog).run({}, [d])
+        end.message,
+        '1 tests failed'
+      )
+      assert_includes(loog.to_s, 'A finite timeout is expected')
     end
   end
 
@@ -299,6 +359,31 @@ class TestTest < Minitest::Test
         assert_raises(StandardError) { Judges::Test.new(Loog::NULL).run({}, [d]) }.message,
         'bar/bar.rb is absent'
       )
+    end
+  end
+
+  def test_goes_on_after_broken_after_script
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'aaa/aaa.rb'), '$fb.insert.foo = 1')
+      save_it(File.join(d, 'aaa/x.yml'), "after:\n  - absent.rb")
+      save_it(File.join(d, 'bbb/bbb.rb'), '$fb.insert.foo = 1')
+      save_it(File.join(d, 'bbb/broken.rb'), 'this is (( broken')
+      save_it(File.join(d, 'bbb/y.yml'), "after:\n  - broken.rb")
+      save_it(File.join(d, 'ccc/ccc.rb'), '$fb.insert.foo = 1')
+      save_it(File.join(d, 'ccc/z.yml'), 'input: []')
+      loog = Loog::Buffer.new
+      assert_raises(StandardError) { Judges::Test.new(loog).run({}, [d]) }
+      assert_equal(%w[ERROR ERROR OK], %w[aaa/x bbb/y ccc/z].map { |t| loog.to_s[/#{t}\s+\S+\s+(\w+)/, 1] })
+    end
+  end
+
+  def test_shares_global_with_before_judge
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'setup/setup.rb'), '$global[:token] = "abc"')
+      save_it(File.join(d, 'user/user.rb'), 'raise "no token" if $global[:token].nil?; $fb.insert.what = "user"')
+      save_it(File.join(d, 'user/x.yml'), "before:\n  - setup\nexpected:\n  - /fb/f[what='user']")
+      Judges::Test.new(Loog::NULL).run({ 'judge' => ['user'] }, [d])
+      assert_path_exists(d)
     end
   end
 

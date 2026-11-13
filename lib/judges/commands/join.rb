@@ -34,6 +34,7 @@ class Judges::Join
   # @raise [RuntimeError] If not exactly two arguments provided
   def run(_opts, args)
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
+    raise(ArgumentError, "Can't join #{args[0].to_rel} with itself") if File.identical?(args[0], args[1])
     master = Judges::Impex.new(@loog, args[0])
     slave = Judges::Impex.new(@loog, args[1])
     elapsed(@loog, level: Logger::INFO) do

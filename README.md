@@ -42,6 +42,7 @@ before:
 category: slow
 runs: 1
 skip: false
+timeout: 30
 repeat: 20
 input:
   -
@@ -74,6 +75,11 @@ The `repeat` (default: `1`) makes the `input` to be repeated multiple times
 The `runs` (default: `1`) is the number of times the `.rb` script should
 be executed. After each execution, all expected XPath expressions are validated.
 
+The `skip` (default: `false`) turns the test off, it is not executed at all.
+
+The `timeout` (default: none) is the number of seconds each run of the judge
+may take, the test fails when a run takes longer.
+
 The `before` (default: `[]`) is a list of judges that must be executed before
 the current one.
 
@@ -81,16 +87,17 @@ The `after` (default: `[]`) is a list of relative file names
 of Ruby scripts that are executed after the judge
 (`$fb` and `$loog` are passed into them).
 
-The `expected_failure` (default: `[]`) is a list of strings that must
-be present in the message of the exception being raised.
+The `expected_failure` (default: `[]`) is a list of strings; the exception
+being raised is accepted when its message contains at least one of them.
 
 ## Architecture
 
 The core data structure is a
   [Factbase](https://github.com/yegor256/factbase) — a flat, schemaless,
   binary-serialized collection of facts (records with named attributes)
-  held in memory during a run. Facts are queried via
-  [XPath](https://www.w3.org/TR/xpath/) expressions rather than SQL.
+  held in memory during a run. Facts are queried with factbase
+  S-expressions rather than SQL, while XPath is used only by the
+  assertions of test packs.
   There is no schema to migrate, no ORM layer, and no database process
   to manage. The factbase binary file is read at the start of each
   `update` run and written back on exit, making state portable and
@@ -132,8 +139,9 @@ Every judge directory contains `.yml` test files alongside its `.rb`
 
 The `push` and `pull` commands exchange the binary factbase with a
   remote [Baza](https://github.com/yegor256/baza.rb) server via a
-  named-lock protocol. `pull` acquires the lock and downloads the
-  file; `push` uploads the modified file and releases the lock. This
+  named lock. Each of them takes the lock only for the time of its own
+  transfer and releases it before it returns: `pull` downloads the
+  file, `push` uploads the modified one. This
   lets distributed CI pipelines share a single evolving factbase
   across multiple jobs without running a database: each job pulls,
   runs `update` locally, and pushes back.
@@ -144,7 +152,7 @@ Read
 [these guidelines](https://www.yegor256.com/2014/04/15/github-guidelines.html).
 Make sure your build is green before you contribute
 your pull request. You will need to have
-[Ruby](https://www.ruby-lang.org/en/) 3.0+,
+[Ruby](https://www.ruby-lang.org/en/) 3.2+,
 [Bundler](https://bundler.io/), and
 [Tidy](https://www.html-tidy.org/) installed. Then:
 

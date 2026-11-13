@@ -8,6 +8,7 @@ require 'elapsed'
 require 'iri'
 require 'typhoeus'
 require_relative '../../judges'
+require_relative '../durable_placeholder'
 
 # The +upload+ command, to send a durable to Zerocracy.
 #
@@ -28,9 +29,10 @@ class Judges::Upload
   # @param [Hash] opts Command line options (start with '--')
   # @param [Array] args List of command line arguments
   # @raise [RuntimeError] If not exactly two arguments provided
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def run(opts, args)
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
+    raise(StandardError, 'The upload command needs the network, while --offline is set') if opts['offline']
     jname = args[0]
     path = args[1]
     raise(StandardError, "File not found: #{path}") unless File.file?(path)
@@ -44,11 +46,13 @@ class Judges::Upload
     )
     elapsed(@loog, level: Logger::INFO) do
       id = baza.durable_find(jname, name)
+      kind = 'existing'
       if id.nil? || id.to_s.strip.empty?
+        kind = 'new'
         tmp = Dir.mktmpdir
         begin
           f = File.join(tmp, name)
-          File.write(f, 'placeholder')
+          Judges::DurablePlaceholder.write(f)
           id = baza.durable_place(jname, f)
           @loog.info("Placed a placeholder to new durable '#{name}' in '#{jname}' (ID: #{id})")
         ensure
@@ -60,11 +64,10 @@ class Judges::Upload
       baza.durable_lock(id, opts['owner'] || 'default')
       begin
         baza.durable_save(id, path)
-        throw(:"👍 Uploaded #{path} to existing durable '#{name}' in '#{jname}' (ID: #{id}, #{size} bytes)")
+        throw(:"👍 Uploaded #{path} to #{kind} durable '#{name}' in '#{jname}' (ID: #{id}, #{size} bytes)")
       ensure
         baza.durable_unlock(id, opts['owner'] || 'default')
       end
     end
   end
-  # rubocop:enable Metrics/MethodLength
 end
