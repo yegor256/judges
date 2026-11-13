@@ -72,6 +72,9 @@ class TestUpdate < Minitest::Test
       file = File.join(d, 'base.fb')
       Judges::Update.new(Loog::NULL).run({ 'judge' => ['foo'] }, [d, file])
       assert_path_exists(file)
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_operator(fb.size, :>, 0, 'the selected foo judge must insert facts')
       assert_raises(StandardError) { Judges::Update.new(Loog::NULL).run({}, [d, file]) }
     end
   end
