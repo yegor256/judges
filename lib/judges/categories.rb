@@ -53,7 +53,7 @@ class Judges::Categories
   #   categories.ok?(nil) # => true (if enable list is empty)
   def ok?(cats)
     cats = [] if cats.nil?
-    cats = [cats] unless cats.is_a?(Array)
+    cats = (cats.is_a?(Array) ? cats : [cats]).map(&:to_s)
     return false if cats.any? { |c| @disable.any?(c) }
     return true if cats.any? { |c| @enable.any?(c) }
     return true if @enable.empty?

@@ -128,11 +128,11 @@ class Judges::Options
     pp
       .reject { |k, _| k.nil? }
       .compact
-      .reject { |k, _| k.is_a?(String) && k.empty? }
+      .reject { |k, _| k.to_s.strip.empty? }
       .to_h
       .transform_values { |v| v.nil? ? 'true' : v }
       .transform_values { |v| v.is_a?(String) ? v.strip : v }
-      .transform_values { |v| v.is_a?(String) && v.match?(/\A(?:0|[1-9][0-9]*)\z/) ? v.to_i : v }
+      .transform_values { |v| v.is_a?(String) && v.match?(/\A-?(?:0|[1-9][0-9]*)\z/) ? v.to_i : v }
       .transform_keys { |k| k.to_s.strip.upcase.to_sym }
   end
 
@@ -146,6 +146,7 @@ class Judges::Options
         .reject(&:empty?)
         .map { |s| s.split('=', 2) }
         .map { |a| a.size == 1 ? [a[0], 'true'] : a }
+        .map { |a| [a[0].strip.upcase, a[1]] }
         .reject { |a| a[0].empty? }
         .to_h
     end

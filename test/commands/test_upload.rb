@@ -28,7 +28,8 @@ class TestUpload < Minitest::Test
     Dir.mktmpdir do |d|
       file = File.join(d, 'upload.txt')
       File.write(file, content)
-      Judges::Upload.new(Loog::NULL).run(
+      loog = Loog::Buffer.new
+      Judges::Upload.new(loog).run(
         {
           'token' => '000',
           'host' => 'example.org',
@@ -38,7 +39,11 @@ class TestUpload < Minitest::Test
         },
         ['myjudge', file]
       )
+      assert_includes(loog.to_s, "Uploaded #{file} to new durable")
     end
+    assert_requested(:put, %r{https://example.org/durables/42}, times: 1)
+    assert_requested(:post, %r{https://example.org/durables/42/lock}, times: 1)
+    assert_requested(:post, %r{https://example.org/durables/42/unlock}, times: 1)
   end
 
   def test_upload_with_custom_owner
@@ -65,6 +70,9 @@ class TestUpload < Minitest::Test
         ['judge1', file]
       )
     end
+    assert_requested(:put, 'http://example.org/durables/123', times: 1)
+    assert_requested(:post, %r{http://example.org/durables/123/lock}, body: /owner=custom/, times: 1)
+    assert_requested(:post, %r{http://example.org/durables/123/unlock}, body: /owner=custom/, times: 1)
   end
 
   def test_fails_on_http_error
@@ -90,6 +98,39 @@ class TestUpload < Minitest::Test
     end
   end
 
+  def test_failed_save_leaves_marker
+    placed = nil
+    client = Object.new
+    client.define_singleton_method(:durable_find) { |*| '' }
+    client.define_singleton_method(:durable_place) do |_pname, path|
+      placed = File.binread(path)
+      42
+    end
+    client.define_singleton_method(:durable_lock) { |*| true }
+    client.define_singleton_method(:durable_save) { |*| raise(StandardError, 'save failed') }
+    client.define_singleton_method(:durable_unlock) { |*| true }
+    maker = ->(*_args, **_opts) { client }
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'test.txt')
+      File.write(file, 'content')
+      BazaRb.stub(:new, maker) do
+        assert_raises(StandardError) do
+          Judges::Upload.new(Loog::NULL).run(
+            {
+              'token' => '000',
+              'host' => 'example.org',
+              'port' => 80,
+              'ssl' => false,
+              'owner' => 'none'
+            },
+            ['somejudge', file]
+          )
+        end
+      end
+    end
+    assert_equal(Judges::DurablePlaceholder::CONTENT, placed)
+  end
+
   def test_fails_with_wrong_number_of_arguments
     assert_raises(ArgumentError) do
       Judges::Upload.new(Loog::NULL).run({}, ['only_one_arg'])
@@ -111,5 +152,15 @@ class TestUpload < Minitest::Test
         ['myjudge', '/nonexistent/file.txt']
       )
     end
+  end
+
+  def test_fails_when_offline
+    WebMock.disable_net_connect!
+    assert_equal(
+      'The upload command needs the network, while --offline is set',
+      assert_raises(StandardError) do
+        Judges::Upload.new(Loog::NULL).run({ 'offline' => true }, ['myjudge', 'file.txt'])
+      end.message
+    )
   end
 end

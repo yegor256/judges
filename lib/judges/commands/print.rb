@@ -25,7 +25,7 @@ require_relative '../../judges/impex'
 # License:: MIT
 class Judges::Print
   FORMATS = %w[yaml json xml html].freeze
-  OUTPUT_OPTIONS = %w[format query title columns hidden highlighted offline].freeze
+  OUTPUT_OPTIONS = %w[format query title columns hidden highlighted offline factbase].freeze
 
   # Initialize.
   # @param [Loog] loog Logging facility
@@ -36,9 +36,10 @@ class Judges::Print
   # Run the print command (called by the +bin/judges+ script).
   # @param [Hash] opts Command line options (start with '--')
   # @param [Array] args List of command line arguments
-  # @raise [RuntimeError] If no arguments provided
+  # @raise [ArgumentError] If the number of arguments is invalid
   def run(opts, args)
     raise(ArgumentError, 'At least one argument required') if args.empty?
+    raise(ArgumentError, 'At most two arguments accepted') if args.size > 2
     fmt = opts['format']&.downcase
     raise(ArgumentError, "Unknown format '#{fmt}', use one of #{FORMATS.join(', ')}") unless FORMATS.include?(fmt)
     f = args[0]
@@ -50,9 +51,12 @@ class Judges::Print
       o = File.join(File.dirname(f), File.basename(f).gsub(/\.[^.]*$/, ''))
       o = "#{o}.#{fmt}"
     end
-    FileUtils.mkdir_p(File.dirname(o))
-    stamp = stamp(opts, fmt)
     sidecar = "#{o}.judges-options"
+    if File.exist?(sidecar) && File.identical?(f, sidecar)
+      raise(ArgumentError, 'The cache sidecar must not overwrite the input factbase')
+    end
+    FileUtils.mkdir_p(File.dirname(o))
+    stamp = stamp(opts.merge('factbase' => Digest::SHA256.file(f).hexdigest), fmt)
     return if skip?(opts, f, o, sidecar, stamp)
     elapsed(@loog, level: Logger::INFO) { write(o, sidecar, stamp, fmt, opts, fb) }
   end
@@ -108,8 +112,8 @@ class Judges::Print
       Nokogiri::XSLT.quote_params(
         'title' => opts['title'],
         'date' => Time.now.utc.iso8601,
-        'columns' => opts['columns'].to_s.empty? ? 'when,what,who' : opts['columns'],
-        'hidden' => opts['hidden'] || '_id,_version,_time,_job',
+        'columns' => opts['columns'].to_s.empty? ? 'when,what' : opts['columns'],
+        'hidden' => opts['hidden'] || '_id,_time,_version,_job',
         'highlighted' => opts['highlighted'] || 'stale,tombstone',
         'version' => Judges::VERSION,
         'css_hash' => sha256(opts, 'index.css'),
@@ -122,13 +126,13 @@ class Judges::Print
     return 'sha256-offline' if opts['offline']
     with_retries do
       url = "https://yegor256.github.io/judges/assets/#{asset}"
-      http = Typhoeus::Request.get(url)
+      http = Typhoeus::Request.get(url, timeout: 30, connecttimeout: 10)
       raise(StandardError, "Timeout at #{url.inspect}") if http.timed_out?
       raise(StandardError, "Failed to load #{url.inspect}") unless http.code == 200
       "sha256-#{Base64.strict_encode64(Digest::SHA256.digest(http.body))}"
-    rescue StandardError => e
-      @loog.warn("Failed to fetch #{asset.inspect}, the page will load it without integrity check: #{e.message}")
-      ''
     end
+  rescue StandardError => e
+    @loog.warn("Failed to fetch #{asset.inspect}, the page will load it without integrity check: #{e.message}")
+    ''
   end
 end
