@@ -50,6 +50,8 @@ class JudgesGLI extend GLI::App
 
   subcommand_option_handling(:normal)
 
+  accept(Integer) { |value| Integer(value, 10) }
+
   desc 'Enable verbose mode with maximum logging'
   switch([:v, :verbose])
   desc 'Print diagnostic information about the environment, at the start'
