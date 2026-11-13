@@ -53,6 +53,26 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_prints_the_exception_of_a_failed_judge_once
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), "raise 'boom'")
+      save_it(File.join(d, 'foo/x.yml'), "input: []\n")
+      loog = Loog::Buffer.new
+      assert_raises(StandardError) { Judges::Test.new(loog).run({}, [d]) }
+      assert_equal(1, loog.to_s.scan('RuntimeError: boom').size, loog.to_s)
+    end
+  end
+
+  def test_prints_the_exception_of_a_failed_assertion
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(File.join(d, 'foo/x.yml'), "input: []\nexpected:\n  - /fb/f[bar]\n")
+      loog = Loog::Buffer.new
+      assert_raises(StandardError) { Judges::Test.new(loog).run({}, [d]) }
+      assert_equal(1, loog.to_s.scan("StandardError: foo/x doesn't match").size, loog.to_s)
+    end
+  end
+
   def test_negative
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.query("(eq foo 42)").each { |f| f.bar = 4 }')
