@@ -171,4 +171,46 @@ class TestStatistics < Minitest::Test
       'The time is nil'
     )
   end
+
+  def test_keeps_result_when_caller_mutates_it
+    stats = Judges::Statistics.new
+    result = +'OK'
+    stats.record('mutable-judge', 1.0, result)
+    result << ' (mutated)'
+    buffer = Loog::Buffer.new
+    stats.report(buffer)
+    output = buffer.to_s
+    assert_includes(output, 'OK')
+    refute_includes(output, 'mutated')
+  end
+
+  # rubocop:disable-next Elegant/GoodMethodName -- name mandated by #1239, 49 chars
+  def test_reused_result_buffer_keeps_distinct_outcomes
+    stats = Judges::Statistics.new
+    result = +'OK'
+    stats.record('reused-judge', 1.0, result)
+    result.replace('ERROR')
+    stats.record('reused-judge', 1.0, result)
+    buffer = Loog::Buffer.new
+    stats.report(buffer)
+    assert_includes(buffer.to_s, '1xOK, 1xERROR')
+  end
+
+  def test_accepts_frozen_result
+    stats = Judges::Statistics.new
+    result = 'OK'
+    assert_predicate(result, :frozen?)
+    stats.record('frozen-judge', 1.0, result)
+    buffer = Loog::Buffer.new
+    stats.report(buffer)
+    assert_includes(buffer.to_s, 'OK')
+  end
+
+  def test_accepts_nil_result
+    stats = Judges::Statistics.new
+    stats.record('nil-judge', 1.0, nil)
+    buffer = Loog::Buffer.new
+    stats.report(buffer)
+    assert_includes(buffer.to_s, 'nil-judge')
+  end
 end
