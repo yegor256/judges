@@ -33,6 +33,51 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_refuses_a_pack_with_two_documents
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert')
+      save_it(
+        File.join(d, 'foo/two.yml'),
+        <<~YAML
+          expected:
+            - /fb[count(f)=1]
+          ---
+          expected:
+            - /fb[count(f)=2]
+        YAML
+      )
+      log = Loog::Buffer.new
+      e =
+        assert_raises(StandardError) do
+          Judges::Test.new(log).run({}, [d])
+        end
+      assert_includes(e.message, 'foo/two', e.message)
+      assert_includes(log.to_s, 'one YAML document', log.to_s)
+    end
+  end
+
+  def test_refuses_input_that_is_not_a_list
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert')
+      save_it(
+        File.join(d, 'foo/map.yml'),
+        <<~YAML
+          input:
+            foo: 1
+          expected:
+            - /fb[count(f)=1]
+        YAML
+      )
+      log = Loog::Buffer.new
+      e =
+        assert_raises(StandardError) do
+          Judges::Test.new(log).run({}, [d])
+        end
+      assert_includes(e.message, '1 tests failed', e.message)
+      assert_includes(log.to_s, 'The input of foo/map must be a list of facts', log.to_s)
+    end
+  end
+
   def test_refuses_a_judge_name_that_matches_nothing
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 4')
@@ -358,6 +403,16 @@ class TestTest < Minitest::Test
       assert_includes(
         assert_raises(StandardError) { Judges::Test.new(Loog::NULL).run({}, [d]) }.message,
         'bar/bar.rb is absent'
+      )
+    end
+  end
+
+  def test_rejects_directory_named_as_script
+    Dir.mktmpdir do |d|
+      FileUtils.mkdir_p(File.join(d, 'foo', 'foo.rb'))
+      assert_includes(
+        assert_raises(StandardError) { Judges::Test.new(Loog::NULL).run({}, [d]) }.message,
+        'foo/foo.rb is absent or not a file'
       )
     end
   end
