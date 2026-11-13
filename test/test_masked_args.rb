@@ -14,29 +14,39 @@ class TestMaskedArgs < Minitest::Test
   def test_hides_a_token_glued_to_the_option
     line = Judges::MaskedArgs.new(%w[push --token=SUPERSECRET123 zzz]).to_s
     refute_includes(line, 'SUPERSECRET123', line)
-    assert_equal('push --token=SUPE******T123 zzz', line)
+    assert_equal('push --token=S************3 zzz', line)
   end
 
   def test_hides_a_token_that_follows_the_option
     line = Judges::MaskedArgs.new(['push', '--token', 'SUPERSECRET123', 'zzz']).to_s
     refute_includes(line, 'SUPERSECRET123', line)
-    assert_equal('push --token SUPE******T123 zzz', line)
+    assert_equal('push --token S************3 zzz', line)
   end
 
   def test_hides_a_short_token_entirely
     assert_equal('--token ******', Judges::MaskedArgs.new(['--token', 'abcdef']).to_s)
   end
 
+  def test_hides_most_of_a_nine_character_token
+    line = Judges::MaskedArgs.new(%w[push --token=Pa55word!]).to_s
+    refute_includes(line, 'Pa55', line)
+    assert_equal('push --token=P*******!', line)
+  end
+
+  def test_keeps_four_characters_at_most_on_each_side
+    assert_equal("--token aaaa#{'*' * 32}aaaa", Judges::MaskedArgs.new(['--token', 'a' * 40]).to_s)
+  end
+
   def test_hides_a_token_inside_an_option
     line = Judges::MaskedArgs.new(%w[update --option=github_token=ghp_SUPERSECRET123]).to_s
     refute_includes(line, 'ghp_SUPERSECRET123', line)
-    assert_equal('update --option=github_token=ghp_**********T123', line)
+    assert_equal('update --option=github_token=gh**************23', line)
   end
 
   def test_hides_a_token_inside_an_option_that_follows
     line = Judges::MaskedArgs.new(['update', '--option', 'zerocracy_token=ZRCY-SUPERSECRET']).to_s
     refute_includes(line, 'ZRCY-SUPERSECRET', line)
-    assert_equal('update --option zerocracy_token=ZRCY********CRET', line)
+    assert_equal('update --option zerocracy_token=ZR************ET', line)
   end
 
   def test_hides_a_token_after_the_short_option
