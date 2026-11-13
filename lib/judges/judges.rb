@@ -142,7 +142,7 @@ class Judges::Judges
   def discover_judges
     Dir.glob(File.join(@dir, '*')).each.to_a.filter_map do |d|
       next unless File.directory?(d)
-      next unless File.exist?(script(d))
+      next unless File.file?(script(d))
       Judges::Judge.new(File.absolute_path(d), @lib, @loog, epoch: @epoch)
     end
   end
