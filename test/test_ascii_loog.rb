@@ -82,7 +82,40 @@ class TestAsciiLoog < Minitest::Test
   def test_handles_binary_encoding
     buf = Loog::Buffer.new
     Judges::AsciiLoog.new(buf).info((+'👍 Success message').force_encoding('ASCII-8BIT'))
+    assert_includes(buf.to_s, '+ Success message')
     refute_includes(buf.to_s, '👍')
+  end
+
+  def test_handles_binary_with_invalid_bytes
+    buf = Loog::Buffer.new
+    Judges::AsciiLoog.new(buf).info((+"👍 \xFF bad byte").force_encoding('ASCII-8BIT'))
+    output = buf.to_s
+    assert_includes(output, '+')
+    assert_includes(output, 'bad byte')
+    refute_includes(output, '👍')
+  end
+
+  def test_handles_binary_with_cyrillic_and_symbols
+    buf = Loog::Buffer.new
+    Judges::AsciiLoog.new(buf).info((+'Привет ❌ failure').force_encoding('ASCII-8BIT'))
+    output = buf.to_s
+    assert_includes(output, '! failure')
+    assert_includes(output, 'Привет')
+    refute_includes(output, '❌')
+  end
+
+  def test_handles_frozen_binary_string
+    buf = Loog::Buffer.new
+    Judges::AsciiLoog.new(buf).info((+'👉 Frozen step').force_encoding('ASCII-8BIT').freeze)
+    output = buf.to_s
+    assert_includes(output, '> Frozen step')
+    refute_includes(output, '👉')
+  end
+
+  def test_handles_binary_without_unicode
+    buf = Loog::Buffer.new
+    Judges::AsciiLoog.new(buf).info((+'plain ascii payload').force_encoding('ASCII-8BIT'))
+    assert_includes(buf.to_s, 'plain ascii payload')
   end
 
   def test_handles_mixed_encodings
