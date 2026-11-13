@@ -3,6 +3,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require 'English'
 require 'baza-rb'
 require 'elapsed'
 require 'iri'
@@ -53,7 +54,7 @@ class Judges::Pull
           fb.import(baza.pull(jid))
           Judges::Impex.new(@loog, args[1]).export(fb)
         ensure
-          baza.unlock(name, opts['owner'])
+          unlock(baza, name, opts['owner'])
         end
         throw(:"👍 Pulled #{fb.size} facts by name '#{name}'")
       else
@@ -63,6 +64,20 @@ class Judges::Pull
   end
 
   private
+
+  # Unlock the factbase, preserving any in-flight exception.
+  # @param [BazaRb] baza The client
+  # @param [String] name The factbase name
+  # @param [String] owner The lock owner
+  def unlock(baza, name, owner)
+    inflight = $ERROR_INFO
+    baza.unlock(name, owner)
+  rescue StandardError => e
+    raise if inflight.nil? || inflight.is_a?(UncaughtThrowError)
+    msg = "Failed to unlock '#{name}': #{e.message}"
+    @loog&.warn(msg)
+    $loog&.warn(msg) if $loog && $loog != @loog
+  end
 
   def wait(name, baza, id, limit)
     raise(StandardError, 'Waiting time is nil') if limit.nil?
