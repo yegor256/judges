@@ -18,20 +18,20 @@ class TestAsciiLoog < Minitest::Test
     loog.info('👍 Success message')
     loog.warn('❌ Warning message')
     loog.error('👎 Error message')
-    loog.info('👉 Running test')
-    output = buf.to_s
-    refute_includes(output, '👍')
-    refute_includes(output, '❌')
-    refute_includes(output, '👎')
-    refute_includes(output, '👉')
+    loog.debug('👉 Debug message')
+    assert_equal("+ Success message\n! Warning message\n- Error message\n> Debug message\n", buf.to_s)
   end
 
   def test_converts_all_defined_symbols
-    buf = Loog::Buffer.new
-    loog = Judges::AsciiLoog.new(buf)
-    Judges::AsciiLoog::UNICODE_TO_ASCII.each_key do |unicode|
-      loog.info("Test #{unicode} symbol")
-      refute_includes(buf.to_s, unicode)
+    expected = {
+      '👍' => '+', '👎' => '-', '❌' => '!', '👉' => '>', '✓' => '+',
+      '✗' => '!', '►' => '>', '◄' => '<', '▼' => 'v', '▲' => '^'
+    }
+    assert_equal(expected, Judges::AsciiLoog::UNICODE_TO_ASCII)
+    expected.each do |unicode, ascii|
+      buf = Loog::Buffer.new
+      Judges::AsciiLoog.new(buf).info("Test #{unicode} symbol")
+      assert_equal("Test #{ascii} symbol\n", buf.to_s)
     end
   end
 
