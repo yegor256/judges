@@ -74,16 +74,17 @@ class Judges::Options
   # Convert options to a string representation.
   #
   # Creates a human-readable string representation of all options,
-  # suitable for logging. Sensitive values (longer than 8 characters)
-  # are partially masked with asterisks for security.
+  # suitable for logging. String values are masked with asterisks for security:
+  # a value longer than 8 characters keeps its first and last four characters,
+  # while a shorter one is masked entirely.
   #
   # @return [String] Formatted string with each option on a new line
   # @example Convert to string
   #   options = Judges::Options.new(["token=supersecrettoken", "debug=true"])
   #   puts options.to_s
   #   # Output:
-  #   # debug → "true"
-  #   # token → "supe****oken"
+  #   # DEBUG → "****"
+  #   # TOKEN → "supe********oken"
   def to_s
     to_h.map do |k, v|
       v =
