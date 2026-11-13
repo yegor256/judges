@@ -3,6 +3,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require 'English'
 require 'baza-rb'
 require 'elapsed'
 require 'fileutils'
@@ -56,12 +57,26 @@ class Judges::Download
         download(baza, id, path, name)
         throw(:"👍 Downloaded durable ##{id} to #{path} (#{File.size(path)} bytes)")
       ensure
-        baza.durable_unlock(id, opts['owner'] || 'default')
+        unlock(baza, id, opts['owner'] || 'default')
       end
     end
   end
 
   private
+
+  # Unlock the durable, preserving any in-flight exception.
+  # @param [BazaRb] baza The durable storage client
+  # @param [Integer] id The durable ID
+  # @param [String] owner The lock owner
+  def unlock(baza, id, owner)
+    inflight = $ERROR_INFO
+    baza.durable_unlock(id, owner)
+  rescue StandardError => e
+    raise if inflight.nil? || inflight.is_a?(UncaughtThrowError)
+    msg = "Failed to unlock durable ##{id}: #{e.message}"
+    @loog&.warn(msg)
+    $loog&.warn(msg) if $loog && $loog != @loog
+  end
 
   # Download the durable to a temporary location before replacing the target.
   # @param [BazaRb] baza The durable storage client
