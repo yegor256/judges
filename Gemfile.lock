@@ -63,7 +63,7 @@ GEM
       cucumber-gherkin (> 36, < 43)
       cucumber-messages (> 31, < 35)
       cucumber-tag-expressions (> 6, < 12)
-    cucumber-cucumber-expressions (20.1.0)
+    cucumber-cucumber-expressions (20.2.0)
       bigdecimal
     cucumber-gherkin (42.0.1)
       cucumber-messages (>= 34, < 35)
@@ -73,16 +73,15 @@ GEM
     cucumber-query (16.2.0)
       cucumber-messages (>= 34.1, < 36)
     cucumber-tag-expressions (11.0.1)
-    date (3.6.0)
     decoor (0.1.0)
-    diff-lcs (1.6.2)
+    diff-lcs (2.0.0)
     drb (2.2.3)
     elapsed (0.3.1)
       loog (~> 0.6)
       tago (~> 0.1)
     ellipsized (0.3.0)
     erb (6.0.7)
-    ethon (0.19.1)
+    ethon (0.19.2)
       ffi (>= 1.15.0)
       logger
     factbase (0.19.16)
@@ -183,9 +182,6 @@ GEM
     prism (2.1.0-x86_64-darwin)
     prism (2.1.0-x86_64-linux-gnu)
     prism (2.1.0-x86_64-linux-musl)
-    psych (5.4.0)
-      date
-      stringio
     public_suffix (7.0.5)
     qbash (0.8.4)
       backtrace (> 0)
@@ -197,9 +193,14 @@ GEM
     rake (13.4.2)
     random-port (0.8.2)
       tago (~> 0.0)
-    rdoc (7.2.0)
+    rbs (4.2.0)
+      logger
+      prism (>= 1.6.0)
+      tsort
+    rdoc (8.1.0)
       erb
-      psych (>= 4.0.0)
+      prism (>= 1.6.0)
+      rbs (>= 4.0.0)
       tsort
     regexp_parser (2.13.1)
     retries (0.0.5)
@@ -240,7 +241,6 @@ GEM
     simplecov-cobertura (4.0.0)
       rexml
       simplecov (~> 1.0)
-    stringio (3.2.0)
     sys-uname (1.5.1)
       ffi (~> 1.1)
       memoist3 (~> 1.0.0)
@@ -268,7 +268,7 @@ GEM
       hashdiff (>= 0.4.0, < 2.0.0)
     win32ole (1.9.3)
     yaml (0.4.0)
-    yard (0.9.38)
+    yard (0.9.45)
 
 PLATFORMS
   aarch64-linux-gnu
@@ -284,7 +284,7 @@ PLATFORMS
 DEPENDENCIES
   base64 (~> 0.3)
   cucumber (~> 12.0)
-  diff-lcs (= 1.6.2)
+  diff-lcs (= 2.0.0)
   judges!
   minitest (~> 6.0)
   minitest-mock (~> 5.27)
@@ -295,7 +295,7 @@ DEPENDENCIES
   qbash (~> 0.4)
   rake (~> 13.2)
   random-port (~> 0.7)
-  rdoc (= 7.2.0)
+  rdoc (= 8.1.0)
   rubocop (~> 1.74)
   rubocop-elegant (~> 0.5)
   rubocop-minitest (~> 0.38)
@@ -305,7 +305,7 @@ DEPENDENCIES
   simplecov-cobertura (~> 4.0)
   w3c_validators (~> 1.3)
   webmock (~> 3.25)
-  yard (= 0.9.38)
+  yard (= 0.9.45)
 
 BUNDLED WITH
    2.6.8
