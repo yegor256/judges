@@ -11,6 +11,25 @@ name: rake
     branches:
       - master
 jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+      - name: Check Chromium installation
+        run: google-chrome --version
+      - run: bundle exec rake browser
+        env:
+          BROWSER_PATH: /usr/bin/google-chrome
+      - uses: actions/upload-artifact@v6
+        if: failure()
+        with:
+          name: browser-diagnostics
+          path: temp/browser/
   rake:
     strategy:
       matrix:
