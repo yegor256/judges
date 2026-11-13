@@ -94,6 +94,30 @@ class TestImport < Minitest::Test
     end
   end
 
+  def test_refuses_a_bare_boolean_key
+    Dir.mktmpdir do |d|
+      yaml = File.join(d, 'input.yml')
+      save_it(yaml, "- what: switch\n  on: 5\n  yes: 7\n")
+      e =
+        assert_raises(StandardError) do
+          Judges::Import.new(Loog::NULL).run({}, [yaml, File.join(d, 'base.fb')])
+        end
+      assert_includes(e.message, 'The key true of the fact #0', e.message)
+    end
+  end
+
+  def test_refuses_a_numeric_key_in_a_later_fact
+    Dir.mktmpdir do |d|
+      yaml = File.join(d, 'input.yml')
+      save_it(yaml, "- what: a\n- 5: b\n")
+      e =
+        assert_raises(StandardError) do
+          Judges::Import.new(Loog::NULL).run({}, [yaml, File.join(d, 'base.fb')])
+        end
+      assert_includes(e.message, 'The key 5 of the fact #1', e.message)
+    end
+  end
+
   def test_refuses_a_directory_as_yaml
     Dir.mktmpdir do |d|
       dir = File.join(d, 'input.yml')
