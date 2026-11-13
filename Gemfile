@@ -6,7 +6,6 @@
 source 'https://rubygems.org'
 gemspec
 
-gem 'base64', '~>0.3'
 gem 'cucumber', '~>12.0', require: false
 gem 'diff-lcs', '2.0.0', require: false
 gem 'minitest', '~>6.0', require: false
