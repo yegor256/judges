@@ -174,6 +174,8 @@ Feature: Update
     Then Stdout contains "Running alpha"
     Then Stdout contains "Running gamma"
     Then Stdout contains "Running beta"
+    Then Stdout contains "Running alpha" before "Running beta"
+    Then Stdout contains "Running gamma" before "Running beta"
     Then Stdout contains "3 judge(s) processed"
     And Exit code is zero
 
@@ -200,6 +202,10 @@ Feature: Update
     Then Stdout contains "Running third"
     Then Stdout contains "Running second"
     Then Stdout contains "Running fourth"
+    Then Stdout contains "Running first" before "Running second"
+    Then Stdout contains "Running third" before "Running second"
+    Then Stdout contains "Running first" before "Running fourth"
+    Then Stdout contains "Running third" before "Running fourth"
     Then Stdout contains "4 judge(s) processed"
     And Exit code is zero
 
@@ -221,6 +227,8 @@ Feature: Update
     Then Stdout contains "Running priority"
     Then Stdout contains "Running normal"
     Then Stdout contains "Running delayed"
+    Then Stdout contains "Running priority" before "Running normal"
+    Then Stdout contains "Running normal" before "Running delayed"
     Then Stdout contains "3 judge(s) processed"
     And Exit code is zero
 
