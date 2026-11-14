@@ -119,7 +119,7 @@ class JudgesGLI extend GLI::App
     c.flag([:lib])
     c.desc 'Shuffle judges, except those starting with the specified prefix'
     c.flag([:shuffle], default_value: '')
-    c.desc 'Random seed for judge ordering'
+    c.desc 'Random seed for judge ordering, zero for a new order on every run'
     c.flag([:seed], default_value: 0, type: Integer)
     c.desc 'Prioritize a judge to run before all others (supports wildcards with *)'
     c.flag([:boost], multiple: true)
