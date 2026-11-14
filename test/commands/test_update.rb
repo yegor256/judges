@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'factbase/to_xml'
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require 'factbase/to_xml'
 require 'loog'
 require 'loog/tee'
 require 'nokogiri'
@@ -393,6 +393,19 @@ class TestUpdate < Minitest::Test
       Dir.mktmpdir do |d|
         Judges::Update.new(Loog::NULL).run({ 'expect-judges' => true }, [d, File.join(d, 'base.fb')])
       end
+    end
+  end
+
+  def test_fails_when_directory_is_absent
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Update.new(Loog::NULL).run({}, [File.join(d, 'absent'), file])
+        end.message,
+        'The directory is absent'
+      )
+      refute_path_exists(file, 'The factbase must not be touched')
     end
   end
 
