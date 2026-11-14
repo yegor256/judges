@@ -222,10 +222,10 @@
       <xsl:otherwise>
         <td>
           <xsl:for-each select="$f/*">
-            <xsl:text> </xsl:text>
             <xsl:variable name="visible" select="string-length(substring-before(concat(' ,', $hidden, ','), concat(',', name(), ','))) = 0"/>
             <xsl:variable name="is-highlighted" select="contains(concat(',', $highlighted, ','),             concat(',', name(), ','))"/>
             <xsl:if test="string-length(substring-before(concat(' ,', $columns, ','), concat(',', name(), ','))) = 0">
+              <xsl:text> </xsl:text>
               <xsl:choose>
                 <xsl:when test="$visible">
                   <span>
