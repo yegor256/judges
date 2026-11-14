@@ -294,6 +294,32 @@ class TestPrint < Minitest::Test
     assert_includes(loog.to_s, 'without integrity check')
   end
 
+  def test_reprints_when_an_html_option_changes
+    WebMock.disable_net_connect!
+    stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(body: 'nothing')
+    stub_request(:get, 'https://yegor256.github.io/judges/assets/index.js').to_return(body: 'nothing')
+    {
+      'columns' => %w[what who], 'title' => %w[first second], 'hidden' => %w[_id who],
+      'highlighted' => %w[stale who], 'offline' => [false, true]
+    }.each do |option, values|
+      Dir.mktmpdir do |d|
+        factbase = File.join(d, 'base.fb')
+        fb = Factbase.new
+        fb.insert.then do |f|
+          f.what = 'push'
+          f.who = 'alice'
+        end
+        File.binwrite(factbase, fb.export)
+        html = File.join(d, 'base.html')
+        values.each do |v|
+          loog = Loog::Buffer.new
+          Judges::Print.new(loog).run({ 'format' => 'html', option => v }, [factbase, html])
+          assert_includes(loog.to_s, 'Factbase printed', "not printed again with --#{option}=#{v}")
+        end
+      end
+    end
+  end
+
   def test_retries_the_asset_after_a_failure
     WebMock.disable_net_connect!
     stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css')
