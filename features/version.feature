@@ -8,3 +8,4 @@ Feature: Version
     Given I make a temp directory
     Then I run bin/judges with "version"
     And Exit code is zero
+    And Stdout contains "0.0.0"
