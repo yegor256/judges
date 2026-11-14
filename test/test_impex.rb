@@ -31,6 +31,20 @@ class TestImpex < Minitest::Test
     end
   end
 
+  def test_reports_the_facts_that_came_from_the_file
+    Dir.mktmpdir do |d|
+      slave = Factbase.new
+      2.times { slave.insert.foo = 1 }
+      file = File.join(d, 'slave.fb')
+      File.binwrite(file, slave.export)
+      master = Factbase.new
+      3.times { master.insert.bar = 1 }
+      loog = Loog::Buffer.new
+      Judges::Impex.new(loog, file).import_to(master)
+      assert_includes(loog.to_s, '2 facts loaded from', loog.to_s)
+    end
+  end
+
   def test_refuses_a_nil_file
     assert_includes(assert_raises(ArgumentError) { Judges::Impex.new(Loog::NULL, nil) }.message, 'The file is nil')
   end
