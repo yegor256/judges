@@ -42,7 +42,7 @@ class Judges::Impex
   #   When false, logs a message and returns an empty factbase.
   # @return [Factbase] The imported factbase, or empty factbase if file
   #   doesn't exist and strict is false
-  # @raise [RuntimeError] If file doesn't exist and strict is true
+  # @raise [StandardError] If file doesn't exist and strict is true
   # @example Import with strict mode (default)
   #   fb = impex.import # Raises error if file missing
   # @example Import with non-strict mode
@@ -70,7 +70,7 @@ class Judges::Impex
   #
   # @param [Factbase] fb The factbase to import into. The imported data
   #   will be added to this existing factbase.
-  # @raise [RuntimeError] If file doesn't exist
+  # @raise [StandardError] If file doesn't exist
   # @example Import into existing factbase
   #   fb = Factbase.new
   #   # ... populate fb with some data ...
