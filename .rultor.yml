@@ -8,6 +8,8 @@ assets:
   rubygems.yml: yegor256/home#assets/rubygems.yml
 install: |
   pdd -f /dev/null
+  gem install bundler --version 4.0.24 --no-document
+  bundle config set --local path vendor/bundle
   bundle install --no-color
 release:
   pre: false
