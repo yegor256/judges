@@ -210,6 +210,9 @@
       <xsl:when test="string-length($cols) &gt; 0">
         <td>
           <xsl:variable name="c" select="substring-before(concat($cols, ','), ',')"/>
+          <xsl:if test="contains(concat(',', $highlighted, ','), concat(',', $c, ','))">
+            <xsl:attribute name="class">highlighted</xsl:attribute>
+          </xsl:if>
           <xsl:call-template name="value">
             <xsl:with-param name="v" select="$f/*[name()=$c]"/>
           </xsl:call-template>
