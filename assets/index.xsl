@@ -58,8 +58,8 @@
           <xsl:with-param name="hash">sha384-JbsYayq5Otme+gjh/pl7NrA/qMIU0bxbdzKvYqQGHvvag0lHhM62TQnDzz+EyzXj</xsl:with-param>
         </xsl:call-template>
         <xsl:call-template name="css">
-          <xsl:with-param name="url">https://cdn.jsdelivr.net/npm/drops@0.2.0/dist/drops-0.2.0.min.css</xsl:with-param>
-          <xsl:with-param name="hash">sha384-5jl1QSYGvyjnoRf6lIhaq2MlbW/qjOvNay9i434tlxyKPqm+t1ed5vxKgT75C4xe</xsl:with-param>
+          <xsl:with-param name="url">https://cdn.jsdelivr.net/npm/drops@0.3.2/dist/drops-0.3.2.min.css</xsl:with-param>
+          <xsl:with-param name="hash">sha384-p1uPBv+9Vp2mQmUJHUrsDnDVbg88Upi66Gf8uTcVy0I2ZIHbSUIEj3q+S6D7B1Lz</xsl:with-param>
         </xsl:call-template>
         <xsl:call-template name="css">
           <xsl:with-param name="url">https://yegor256.github.io/judges/assets/index.css</xsl:with-param>
