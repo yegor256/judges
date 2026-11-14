@@ -141,6 +141,7 @@ class Judges::Test
   end
 
   def run_single_test(judge, buf, opts, judges, yaml, badge)
+    raise(ArgumentError, 'The runs value must be at least 1') if (opts['runs'] || yaml['runs'] || 1) < 1
     timeout = yaml['timeout']
     if timeout.is_a?(Numeric) && !timeout.finite?
       raise(ArgumentError, "A finite timeout is expected, but #{timeout.inspect} provided")
