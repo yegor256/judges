@@ -15,6 +15,7 @@ require_relative '../../judges'
 require_relative '../../judges/categories'
 require_relative '../../judges/judges'
 require_relative '../../judges/options'
+require_relative '../../judges/pack_int'
 require_relative '../../judges/to_rel'
 
 # The +test+ command.
@@ -116,7 +117,7 @@ class Judges::Test
         yaml = YAML.load_file(f, permitted_classes: [Time])
         next if skip_test?(buf, f, yaml, opts)
         buf.info("🛠️ Testing #{f.to_rel}:")
-        count += run_single_test(judge, buf, opts, judges, yaml, badge)
+        count += run_single_test(judge, buf, opts, judges, yaml, badge, f.to_rel)
       rescue StandardError, ScriptError => e
         @loog.info(buf.to_s)
         @loog.warn(Backtrace.new(e))
@@ -140,13 +141,15 @@ class Judges::Test
     false
   end
 
-  def run_single_test(judge, buf, opts, judges, yaml, badge)
+  def run_single_test(judge, buf, opts, judges, yaml, badge, path)
     timeout = yaml['timeout']
     if timeout.is_a?(Numeric) && !timeout.finite?
       raise(ArgumentError, "A finite timeout is expected, but #{timeout.inspect} provided")
     end
+    yaml['timeout'] = Judges::PackInt.new(timeout, 'timeout', path).parse
+    yaml['runs'] = Judges::PackInt.new(yaml['runs'], 'runs', path).parse
     fb = Factbase.new
-    prepare(fb, yaml)
+    prepare(fb, yaml, path)
     global = {}
     yaml['before']&.each do |n|
       j = judges.get(n).with_loog(buf)
@@ -207,11 +210,10 @@ class Judges::Test
     judges.any? { |n| n.match?(%r{^#{Regexp.escape(name)}(/#{re})?$}) }
   end
 
-  def prepare(fb, yaml)
+  def prepare(fb, yaml, path)
     id = 1
     inputs = yaml['input']
-    repeat = yaml['repeat']&.to_i || 1
-    raise(ArgumentError, 'The repeat value must be at least 1') if repeat < 1
+    repeat = Judges::PackInt.new(yaml['repeat'], 'repeat', path).parse(1)
     repeat.times do
       inputs&.each do |i|
         f = fb.insert
@@ -243,7 +245,7 @@ class Judges::Test
   # @return [Range] The range of runs that were made
   def test_one(fb, opts, judge, tname, yaml, global:, assert: true)
     options = Judges::Options.new(opts['option']) + Judges::Options.new(yaml['options'])
-    runs = opts['runs'] || yaml['runs'] || 1
+    runs = Judges::PackInt.new(opts['runs'], 'runs', '--runs').parse || yaml['runs'] || 1
     timeout = yaml['timeout']
     (1..runs).each do |r|
       fbx = fb
