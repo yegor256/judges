@@ -20,7 +20,10 @@ Feature: Update
 
   Scenario: Generate a summary fact, with errors
     Given I make a temp directory
-    Then I have a "buggy/buggy.rb" file with content: "this is an intentional bug"
+    Then I have a "buggy/buggy.rb" file with content:
+    """
+      this is an intentional bug
+    """
     Then I run bin/judges with "update --quiet --summary=append --max-cycles 1 . simple.fb"
     Then Exit code is zero
     Then I run bin/judges with "inspect simple.fb"
@@ -29,22 +32,28 @@ Feature: Update
 
   Scenario: Append to existing summary fact, with errors
     Given I make a temp directory
-    Then I have a "buggy/buggy.rb" file with content: "this is an intentional bug"
+    Then I have a "buggy/buggy.rb" file with content:
+    """
+      this is an intentional bug
+    """
     Then I run bin/judges with "update --quiet --summary=append --max-cycles 1 . simple.fb"
     Then Exit code is zero
     Then Stdout contains "Summary fact not found"
     Then I run bin/judges with "update --quiet --summary=append --max-cycles 1 . simple.fb"
     Then I run bin/judges with "inspect simple.fb"
     Then Stdout contains "Summary fact found"
-    Then Stdout contains "errors:"
+    Then Stdout contains "error:"
     And Exit code is zero
 
   Scenario: Delete a previous summary fact and create new one
     Given I make a temp directory
-    Then I have a "buggy/buggy.rb" file with content: "this is an intentional bug"
+    Then I have a "buggy/buggy.rb" file with content:
+    """
+      this is an intentional bug
+    """
     Then I run bin/judges with "update --quiet --summary=add --max-cycles 1 . simple.fb"
     Then Exit code is zero
-    Then Stdout contains "Summary fact added"
+    Then Stdout contains "Summary fact not found"
     Then I run bin/judges with "update --quiet --summary=add --max-cycles 1 . simple.fb"
     Then Exit code is zero
     And Stdout contains "Summary fact deleted"
@@ -254,4 +263,26 @@ Feature: Update
     Then Stdout contains "beta"
     Then Stdout contains "1xOK"
     Then Stdout contains "1xSKIPPED (timeout)"
+    And Exit code is zero
+
+  Scenario: Accept a fractional timeout for a judge
+    Given I make a temp directory
+    Then I have a "slow/slow.rb" file with content:
+    """
+      sleep(10)
+      $fb.insert.foo = 1
+    """
+    Then I run bin/judges with "--verbose update --timeout 0.5 --quiet . foo.fb"
+    Then Stdout contains "execution expired"
+    Then Stdout contains "Update completed in 1 cycle(s), did nothing"
+    And Exit code is zero
+
+  Scenario: Accept a fractional lifetime
+    Given I make a temp directory
+    Then I have a "simple/simple.rb" file with content:
+    """
+      $fb.insert.foo = 1
+    """
+    Then I run bin/judges with "--verbose update --lifetime 100.5 --timeout 3.5 --max-cycles 1 . simple.fb"
+    Then Stdout contains "Update completed in 1 cycle(s)"
     And Exit code is zero

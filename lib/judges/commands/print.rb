@@ -25,7 +25,7 @@ require_relative '../../judges/impex'
 # License:: MIT
 class Judges::Print
   FORMATS = %w[yaml json xml html].freeze
-  OUTPUT_OPTIONS = %w[format query title columns hidden highlighted offline].freeze
+  OUTPUT_OPTIONS = %w[format query title columns hidden highlighted offline factbase].freeze
 
   # Initialize.
   # @param [Loog] loog Logging facility
@@ -56,7 +56,7 @@ class Judges::Print
       raise(ArgumentError, 'The cache sidecar must not overwrite the input factbase')
     end
     FileUtils.mkdir_p(File.dirname(o))
-    stamp = stamp(opts, fmt)
+    stamp = stamp(opts.merge('factbase' => Digest::SHA256.file(f).hexdigest), fmt)
     return if skip?(opts, f, o, sidecar, stamp)
     elapsed(@loog, level: Logger::INFO) { write(o, sidecar, stamp, fmt, opts, fb) }
   end
@@ -112,8 +112,8 @@ class Judges::Print
       Nokogiri::XSLT.quote_params(
         'title' => opts['title'],
         'date' => Time.now.utc.iso8601,
-        'columns' => opts['columns'].to_s.empty? ? 'when,what,who' : opts['columns'],
-        'hidden' => opts['hidden'] || '_id,_version,_time,_job',
+        'columns' => opts['columns'].to_s.empty? ? 'when,what' : opts['columns'],
+        'hidden' => opts['hidden'] || '_id,_time,_version,_job',
         'highlighted' => opts['highlighted'] || 'stale,tombstone',
         'version' => Judges::VERSION,
         'css_hash' => sha256(opts, 'index.css'),
