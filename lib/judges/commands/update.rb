@@ -112,7 +112,7 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
     end
   end
 
-  # rubocop:disable Metrics/MethodLength
+  # rubocop:disable-next Metrics/MethodLength
   def loop_them(judges, fb, churn, opts, options)
     c = 0
     ch = Factbase::Churn.new
@@ -152,7 +152,6 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
     statistics&.report(@loog)
     summarize(fb, ch, errors, c, opts['summary']) if %w[add append].include?(opts['summary'])
   end
-  # rubocop:enable Metrics/MethodLength
 
   # Update the summary.
   # @param [Factbase] fb The factbase
