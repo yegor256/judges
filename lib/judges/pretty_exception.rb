@@ -22,7 +22,7 @@ class Judges::PrettyException < SimpleDelegator
   undef_method :kind_of?
 
   def message
-    __getobj__.message.ellipsized(100, :right)
+    (__getobj__.message || __getobj__.class.to_s).to_s.ellipsized(100, :right)
   end
 
   # The exception to raise, of the original class, with the shortened message.
