@@ -57,6 +57,4 @@ jobs:
             Get-ChildItem $rubyPath
           }
         shell: pwsh
-      - run: bundle config set --global path "$(pwd)/vendor/bundle"
-      - run: bundle install --no-color
       - run: bundle exec rake
