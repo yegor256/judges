@@ -609,4 +609,78 @@ class TestUpdate < Minitest::Test
       assert_empty(xml.xpath('/fb/f[foo]'), xml)
     end
   end
+
+  def test_lifetime_spent_before_first_judge_quiet
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      file = File.join(d, 'base.fb')
+      log = Loog::Buffer.new
+      up = Judges::Update.new(Loog::Tee.new(log, Loog::NULL))
+      refute_nil(up)
+      sleep(0.15)
+      fake = ->(_sec, &block) { block.call }
+      Timeout.stub(:timeout, fake) do
+        up.run({ 'lifetime' => 0.12, 'timeout' => 0.1, 'quiet' => true, 'expect-judges' => true }, [d, file])
+      end
+      assert_includes(log.to_s, 'Lifetime is over before any judge could run')
+      assert_path_exists(file)
+    end
+  end
+
+  def test_lifetime_spent_before_first_judge_no_quiet
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      file = File.join(d, 'base.fb')
+      log = Loog::Buffer.new
+      up = Judges::Update.new(Loog::Tee.new(log, Loog::NULL))
+      refute_nil(up)
+      sleep(0.15)
+      fake = ->(_sec, &block) { block.call }
+      Timeout.stub(:timeout, fake) do
+        up.run({ 'lifetime' => 0.12, 'timeout' => 0.1, 'quiet' => false, 'expect-judges' => true }, [d, file])
+      end
+      assert_includes(log.to_s, 'Lifetime is over before any judge could run')
+      assert_path_exists(file)
+    end
+  end
+
+  def test_lifetime_spent_skips_multiple_judges
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      save_it(File.join(d, 'bar/bar.rb'), '$fb.insert.bar = 2')
+      file = File.join(d, 'base.fb')
+      log = Loog::Buffer.new
+      up = Judges::Update.new(Loog::Tee.new(log, Loog::NULL))
+      refute_nil(up)
+      sleep(0.15)
+      fake = ->(_sec, &block) { block.call }
+      Timeout.stub(:timeout, fake) do
+        up.run({ 'lifetime' => 0.12, 'timeout' => 0.1, 'quiet' => true, 'expect-judges' => true }, [d, file])
+      end
+      assert_includes(log.to_s, 'Lifetime is over before any judge could run (2 judge(s) skipped); not failing')
+      assert_path_exists(file)
+    end
+  end
+
+  def test_lifetime_below_timeout_fraction
+    Dir.mktmpdir do |d|
+      ran = File.join(d, 'ran.txt')
+      save_it(File.join(d, 'foo/foo.rb'), "File.write(#{ran.inspect}, 'yes'); $fb.insert.foo = 1")
+      file = File.join(d, 'base.fb')
+      log = Loog::Buffer.new
+      now = Time.now
+      fake = ->(_sec, &block) { block.call }
+      Time.stub(:now, now) do
+        up = Judges::Update.new(Loog::Tee.new(log, Loog::NULL))
+        up.instance_variable_set(:@start, now - 9.6)
+        Timeout.stub(:timeout, fake) do
+          up.run({ 'lifetime' => 10.0, 'timeout' => 9.0, 'quiet' => true, 'expect-judges' => true }, [d, file])
+        end
+      end
+      assert_includes(log.to_s, 'Not running "foo", not enough time left')
+      assert_includes(log.to_s, 'Lifetime is over before any judge could run (1 judge(s) skipped); not failing')
+      refute_path_exists(ran)
+      assert_path_exists(file)
+    end
+  end
 end
