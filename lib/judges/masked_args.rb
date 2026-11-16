@@ -3,6 +3,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require 'shellwords'
 require_relative '../judges'
 
 # Command line arguments, with the secrets in them hidden.
@@ -28,10 +29,12 @@ class Judges::MaskedArgs
     @args = args
   end
 
-  # Render them as one line, with every secret hidden.
+  # Render them as one line, with every secret hidden and shell-escaped.
   # @return [String] The line, safe to print
   def to_s
-    @args.each_with_index.map { |arg, i| hidden(arg, i.positive? ? @args[i - 1] : nil) }.join(' ')
+    @args.each_with_index.map do |arg, i|
+      Shellwords.escape(hidden(arg, i.positive? ? @args[i - 1] : nil))
+    end.join(' ')
   end
 
   private
