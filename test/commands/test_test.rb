@@ -225,6 +225,24 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_expected_failure_true_needs_an_exception
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        expected_failure: true
+        YAML
+      )
+      log = Loog::Buffer.new
+      assert_raises(StandardError) do
+        Judges::Test.new(log).run({}, [d])
+      end
+      assert_includes(log.to_s, 'Exception expected but not raised', log.to_s)
+    end
+  end
+
   def test_empty_expected_failure_pass
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
@@ -392,6 +410,25 @@ class TestTest < Minitest::Test
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
       save_it(File.join(d, 'foo/simple.yml'), "input:\nexpected:\n  - /fb[count(f)=1]")
       Judges::Test.new(Loog::NULL).run({}, [d])
+    end
+  end
+
+  def test_expected_failure_list_checks_the_message
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'raise "another joke"')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        expected_failure:
+          - a joke
+        YAML
+      )
+      log = Loog::Buffer.new
+      assert_raises(StandardError) do
+        Judges::Test.new(log).run({}, [d])
+      end
+      assert_includes(log.to_s, 'this is not what was expected', log.to_s)
     end
   end
 end
