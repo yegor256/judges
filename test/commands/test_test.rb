@@ -97,6 +97,26 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_refuses_a_boolean_key_of_an_input_fact
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 4')
+      save_it(File.join(d, 'foo/t.yml'), "input:\n  - on: 5\n    yes: 7\nexpected:\n  - /fb/f[on=5]\n")
+      loog = Loog::Buffer.new
+      assert_raises(StandardError) { Judges::Test.new(loog).run({}, [d]) }
+      assert_includes(loog.to_s, 'The key true of an input fact in foo/t is not a string', loog.to_s)
+    end
+  end
+
+  def test_refuses_a_numeric_key_in_a_later_input_fact
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 4')
+      save_it(File.join(d, 'foo/t.yml'), "input:\n  - foo: 1\n  - 5: 1\nexpected:\n  - /fb/f\n")
+      loog = Loog::Buffer.new
+      assert_raises(StandardError) { Judges::Test.new(loog).run({}, [d]) }
+      assert_includes(loog.to_s, 'The key 5 of an input fact in foo/t is not a string', loog.to_s)
+    end
+  end
+
   def test_with_options
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = $options.bar')
