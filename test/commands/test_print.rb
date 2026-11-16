@@ -58,6 +58,25 @@ class TestPrint < Minitest::Test
     end
   end
 
+  def test_rejects_input_as_output
+    Dir.mktmpdir do |dir|
+      source = File.join(dir, 'data.fb')
+      fb = Factbase.new
+      fb.insert.what = 'kept'
+      original = fb.export
+      File.binwrite(source, original)
+      [false, true].each do |force|
+        assert_includes(
+          assert_raises(ArgumentError) do
+            Judges::Print.new(Loog::NULL).run({ 'format' => 'json', 'force' => force }, [source, source])
+          end.message,
+          'input factbase'
+        )
+        assert_equal(original, File.binread(source))
+      end
+    end
+  end
+
   def test_rejects_cache_sidecar_linked_to_input
     skip('Creating symbolic links requires extra privileges on Windows') if OS.windows?
     Dir.mktmpdir do |dir|
