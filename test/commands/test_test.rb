@@ -394,4 +394,345 @@ class TestTest < Minitest::Test
       Judges::Test.new(Loog::NULL).run({}, [d])
     end
   end
+
+  def test_with_string_runs
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 1')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        runs: '2'
+        input: []
+        expected:
+          - /fb[count(f)=2]
+        YAML
+      )
+      Judges::Test.new(Loog::NULL).run({}, [d])
+      assert_path_exists(d)
+    end
+  end
+
+  def test_with_string_timeout
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        timeout: '5'
+        expected:
+          - /fb[count(f)=1]
+          - /fb/f[foo='42']
+        YAML
+      )
+      Judges::Test.new(Loog::NULL).run({}, [d])
+      assert_path_exists(d)
+    end
+  end
+
+  def test_with_string_timeout_in_after_script
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(File.join(d, 'foo/assert.rb'), 'raise unless $fb.size == 1')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        timeout: '5'
+        after:
+          - assert.rb
+        YAML
+      )
+      Judges::Test.new(Loog::NULL).run({}, [d])
+      assert_path_exists(d)
+    end
+  end
+
+  def test_refuses_invalid_runs
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        runs: '0'
+        YAML
+      )
+      loog = Loog::Buffer.new
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Test.new(loog).run({}, [d])
+        end.message,
+        '1 tests failed'
+      )
+      assert_match(%r{The 'runs' in .*foo/x\.yml must be a positive integer, while "0" \(String\) found}, loog.to_s)
+    end
+  end
+
+  def test_refuses_negative_runs
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        runs: -1
+        YAML
+      )
+      loog = Loog::Buffer.new
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Test.new(loog).run({}, [d])
+        end.message,
+        '1 tests failed'
+      )
+      assert_match(%r{The 'runs' in .*foo/x\.yml must be a positive integer, while -1 \(Integer\) found}, loog.to_s)
+    end
+  end
+
+  def test_refuses_malformed_string_runs
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        runs: '2junk'
+        YAML
+      )
+      loog = Loog::Buffer.new
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Test.new(loog).run({}, [d])
+        end.message,
+        '1 tests failed'
+      )
+      assert_match(
+        %r{The 'runs' in .*foo/x\.yml must be a positive integer, while "2junk" \(String\) found},
+        loog.to_s
+      )
+    end
+  end
+
+  def test_refuses_float_runs
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        runs: 1.5
+        YAML
+      )
+      loog = Loog::Buffer.new
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Test.new(loog).run({}, [d])
+        end.message,
+        '1 tests failed'
+      )
+      assert_match(%r{The 'runs' in .*foo/x\.yml must be a positive integer, while 1\.5 \(Float\) found}, loog.to_s)
+    end
+  end
+
+  def test_refuses_invalid_timeout
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        timeout: '0'
+        YAML
+      )
+      loog = Loog::Buffer.new
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Test.new(loog).run({}, [d])
+        end.message,
+        '1 tests failed'
+      )
+      assert_match(
+        %r{The 'timeout' in .*foo/x\.yml must be a positive integer, while "0" \(String\) found},
+        loog.to_s
+      )
+    end
+  end
+
+  def test_refuses_negative_timeout
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        timeout: -5
+        YAML
+      )
+      loog = Loog::Buffer.new
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Test.new(loog).run({}, [d])
+        end.message,
+        '1 tests failed'
+      )
+      assert_match(
+        %r{The 'timeout' in .*foo/x\.yml must be a positive integer, while -5 \(Integer\) found},
+        loog.to_s
+      )
+    end
+  end
+
+  def test_refuses_malformed_string_timeout
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        timeout: '5seconds'
+        YAML
+      )
+      loog = Loog::Buffer.new
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Test.new(loog).run({}, [d])
+        end.message,
+        '1 tests failed'
+      )
+      assert_match(
+        %r{The 'timeout' in .*foo/x\.yml must be a positive integer, while "5seconds" \(String\) found},
+        loog.to_s
+      )
+    end
+  end
+
+  def test_refuses_float_timeout
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        timeout: 1.5
+        YAML
+      )
+      loog = Loog::Buffer.new
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Test.new(loog).run({}, [d])
+        end.message,
+        '1 tests failed'
+      )
+      assert_match(
+        %r{The 'timeout' in .*foo/x\.yml must be a positive integer, while 1\.5 \(Float\) found},
+        loog.to_s
+      )
+    end
+  end
+
+  def test_with_string_repeat
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 1')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        repeat: '2'
+        input:
+          - what: y
+        expected:
+          - /fb[count(f)=3]
+        YAML
+      )
+      Judges::Test.new(Loog::NULL).run({}, [d])
+      assert_path_exists(d)
+    end
+  end
+
+  def test_refuses_non_numeric_repeat
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        repeat: two
+        input:
+          - what: y
+        YAML
+      )
+      loog = Loog::Buffer.new
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Test.new(loog).run({}, [d])
+        end.message,
+        '1 tests failed'
+      )
+      assert_match(
+        %r{The 'repeat' in .*foo/x\.yml must be a positive integer, while "two" \(String\) found},
+        loog.to_s
+      )
+    end
+  end
+
+  def test_refuses_float_repeat
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        repeat: 1.5
+        input:
+          - what: y
+        YAML
+      )
+      loog = Loog::Buffer.new
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Test.new(loog).run({}, [d])
+        end.message,
+        '1 tests failed'
+      )
+      assert_match(%r{The 'repeat' in .*foo/x\.yml must be a positive integer, while 1\.5 \(Float\) found}, loog.to_s)
+    end
+  end
+
+  def test_refuses_non_positive_repeat
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        repeat: 0
+        input:
+          - what: y
+        YAML
+      )
+      loog = Loog::Buffer.new
+      assert_includes(
+        assert_raises(StandardError) do
+          Judges::Test.new(loog).run({}, [d])
+        end.message,
+        '1 tests failed'
+      )
+      assert_match(%r{The 'repeat' in .*foo/x\.yml must be a positive integer, while 0 \(Integer\) found}, loog.to_s)
+    end
+  end
+
+  def test_with_string_timeout_failure
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'sleep(10)')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        timeout: '1'
+        YAML
+      )
+      loog = Loog::Buffer.new
+      assert_raises(StandardError) do
+        Judges::Test.new(loog).run({}, [d])
+      end
+      assert_includes(loog.to_s, 'Test timed out after 1 seconds')
+    end
+  end
 end
