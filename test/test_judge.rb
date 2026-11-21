@@ -124,4 +124,48 @@ class TestJudge < Minitest::Test
       end
     end
   end
+
+  def test_returns_absolute_test_paths
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'pack', 'alpha', 'alpha.rb'), '')
+      save_it(File.join(d, 'pack', 'alpha', 'check.yml'), "---\nfoo: 42")
+      save_it(File.join(d, 'pack', 'alpha', 'beta.yml'), "---\nfoo: 42")
+      save_it(File.join(d, 'pack', 'empty', 'empty.rb'), '')
+      Dir.chdir(d) do
+        files = Judges::Judge.new('pack/alpha', nil, Loog::NULL).tests
+        files.each { |f| assert_equal(File.absolute_path(f), f, "#{f} is not absolute") }
+        assert_equal(%w[beta.yml check.yml], files.map { |f| File.basename(f) })
+        Dir.chdir(File.join(d, 'pack', 'empty')) do
+          files.each { |f| assert(File.file?(f), "#{f} is not usable after chdir") }
+        end
+        assert_empty(Judges::Judge.new('pack/empty', nil, Loog::NULL).tests)
+        absolute = Judges::Judge.new(File.join(d, 'pack', 'alpha'), nil, Loog::NULL).tests
+        absolute.each { |f| assert_equal(File.absolute_path(f), f, "#{f} is not absolute") }
+        assert_equal(files.map { |f| File.basename(f) }, absolute.map { |f| File.basename(f) })
+      end
+    end
+  end
+
+  def test_normalizes_the_dots_in_a_test_path
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'pack', 'alpha', 'alpha.rb'), '')
+      save_it(File.join(d, 'pack', 'alpha', 'check.yml'), "---\nfoo: 42")
+      Dir.chdir(d) do
+        files = Judges::Judge.new(File.join('pack', '..', 'pack', 'alpha'), nil, Loog::NULL).tests
+        assert_equal(['check.yml'], files.map { |f| File.basename(f) })
+        refute_includes(files.first, '..')
+        assert(File.file?(files.first))
+      end
+    end
+  end
+
+  def test_finds_yaml_and_yml_packs
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, "#{File.basename(d)}.rb"), '$fb.insert')
+      save_it(File.join(d, 'b.yaml'), "expected: []\n")
+      save_it(File.join(d, 'a.yml'), "expected: []\n")
+      save_it(File.join(d, 'c.txt'), 'not a pack')
+      assert_equal(%w[a.yml b.yaml], Judges::Judge.new(d, nil, Loog::NULL).tests.map { |t| File.basename(t) })
+    end
+  end
 end
