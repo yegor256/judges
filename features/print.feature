@@ -23,7 +23,7 @@ Feature: Print
     Then I run bin/judges with "--verbose eval simple.fb '$fb.insert.foo = 42'"
     Then I run bin/judges with "--offline print --format=html simple.fb simple.html"
     Then Stdout contains "printed"
-    Then simple.html contains "sha256-offline"
+    Then simple.html doesn't contain "sha256-offline"
     And Exit code is zero
 
   Scenario: Simple print of a small factbase, to JSON
