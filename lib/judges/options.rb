@@ -74,8 +74,8 @@ class Judges::Options
   # Convert options to a string representation.
   #
   # Creates a human-readable string representation of all options,
-  # suitable for logging. Sensitive values (longer than 8 characters)
-  # are partially masked with asterisks for security.
+  # suitable for logging. String values, long numbers, and values of options
+  # with secret names are masked with asterisks for security.
   #
   # @return [String] Formatted string with each option on a new line
   # @example Convert to string
@@ -89,7 +89,7 @@ class Judges::Options
       v =
         if v.is_a?(String)
           "\"#{mask(v)}\""
-        elsif v.to_s.length > 8
+        elsif v.to_s.length > 8 || k.to_s.match?(/(?:token|secret|password|key)\z/i)
           "#{mask(v.to_s)} (#{v.class.name})"
         else
           "#{v} (#{v.class.name})"
