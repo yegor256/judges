@@ -54,8 +54,8 @@
         </title>
         <link rel="icon" href="https://www.zerocracy.com/svg/logo.svg" type="image/svg+xml"/>
         <xsl:call-template name="css">
-          <xsl:with-param name="url">https://cdn.jsdelivr.net/npm/tacit-css@1.8.1/dist/tacit-css.min.css</xsl:with-param>
-          <xsl:with-param name="hash">sha384-JbsYayq5Otme+gjh/pl7NrA/qMIU0bxbdzKvYqQGHvvag0lHhM62TQnDzz+EyzXj</xsl:with-param>
+          <xsl:with-param name="url">https://cdn.jsdelivr.net/npm/tacit-css@1.9.7/dist/tacit-css.min.css</xsl:with-param>
+          <xsl:with-param name="hash">sha384-D/LLHCkqHnoJ7y04sSEBX95s7wMjBn45wtHneRfp03QBgt6+a6Pz2eLUC4N1CAI0</xsl:with-param>
         </xsl:call-template>
         <xsl:call-template name="css">
           <xsl:with-param name="url">https://cdn.jsdelivr.net/npm/drops@0.2.0/dist/drops-0.2.0.min.css</xsl:with-param>
