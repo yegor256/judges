@@ -41,12 +41,14 @@ class Judges::Import
         require('factbase/logged')
         fb = Factbase::Logged.new(fb, @loog)
       end
-      yaml.each do |i|
+      yaml.each_with_index do |i, index|
         f = fb.insert
         i.each do |p, v|
           (v.is_a?(Array) ? v : [v]).each do |value|
             f.public_send(:"#{p}=", value)
           end
+        rescue ArgumentError => e
+          raise(StandardError, "The fact ##{index} in #{args[0].to_rel} can't be imported: #{e.message}")
         end
       end
       impex.export(fb)
