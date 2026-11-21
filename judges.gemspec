@@ -26,6 +26,7 @@ Gem::Specification.new do |s|
   s.rdoc_options = ['--charset=UTF-8']
   s.extra_rdoc_files = ['README.md', 'LICENSE.txt']
   s.add_dependency('backtrace', '~>0.4')
+  s.add_dependency('base64', '~>0.3')
   s.add_dependency('baza.rb', '~>0.10')
   s.add_dependency('concurrent-ruby', '~>1.2')
   s.add_dependency('elapsed', '~>0.2')
