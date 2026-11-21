@@ -445,6 +445,15 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_creates_parent_directories_of_churn_file
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      churn = File.join(d, 'reports/latest/churn.txt')
+      Judges::Update.new(Loog::NULL).run({ 'churn' => churn, 'max-cycles' => 1 }, [d, File.join(d, 'base.fb')])
+      assert_equal('1i/0d/1a', File.read(churn))
+    end
+  end
+
   def test_skipped_judge
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
