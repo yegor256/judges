@@ -43,6 +43,27 @@ class TestCategories < Minitest::Test
     refute(Judges::Categories.new(nil, 'bad').ok?('bad'))
   end
 
+  def test_accepts_comma_separated_lists
+    cats = Judges::Categories.new('foo,bar', 'bad,sad')
+    assert(cats.ok?('bar'))
+    refute(cats.ok?('sad'))
+    refute(cats.ok?('other'))
+  end
+
+  def test_accepts_a_list_with_spaces
+    cats = Judges::Categories.new('foo, bar', 'bad, sad')
+    assert(cats.ok?('bar'))
+    assert(cats.ok?('foo'))
+    refute(cats.ok?('sad'))
+    refute(cats.ok?(' bar'))
+  end
+
+  def test_accepts_an_empty_list
+    cats = Judges::Categories.new('', '')
+    assert(cats.ok?(nil))
+    assert(cats.ok?('anything'))
+  end
+
   def test_matches_numeric_category
     assert(Judges::Categories.new(['2024'], nil).ok?(2024))
     refute(Judges::Categories.new(nil, ['2024']).ok?([2024]))
