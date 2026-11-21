@@ -71,4 +71,22 @@ class TestEval < Minitest::Test
       assert_includes(error.message, expr, error.message)
     end
   end
+
+  def test_keeps_absent_file_absent_on_read
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'typo.fb')
+      Judges::Eval.new(Loog::NULL).run({}, [file, '$fb.size'])
+      refute_path_exists(file)
+    end
+  end
+
+  def test_keeps_file_untouched_on_read
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      Judges::Eval.new(Loog::NULL).run({}, [file, '$fb.insert.foo = 1'])
+      File.utime(Time.at(0), Time.at(0), file)
+      Judges::Eval.new(Loog::NULL).run({}, [file, '$fb.size'])
+      assert_equal(Time.at(0), File.mtime(file))
+    end
+  end
 end
