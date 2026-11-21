@@ -362,6 +362,16 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_rejects_directory_named_as_script
+    Dir.mktmpdir do |d|
+      FileUtils.mkdir_p(File.join(d, 'foo', 'foo.rb'))
+      assert_includes(
+        assert_raises(StandardError) { Judges::Test.new(Loog::NULL).run({}, [d]) }.message,
+        'foo/foo.rb is absent or not a file'
+      )
+    end
+  end
+
   def test_goes_on_after_broken_after_script
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'aaa/aaa.rb'), '$fb.insert.foo = 1')
