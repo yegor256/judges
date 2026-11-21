@@ -49,6 +49,28 @@ class TestPush < Minitest::Test
     end
   end
 
+  def test_sends_gzip_meta_and_owner
+    stubs
+    Dir.mktmpdir do |d|
+      Judges::Push.new(Loog::NULL).run(uses.merge('meta' => ['foo:bar']), ['foo', writes(d)])
+    end
+    assert_requested(:put, 'https://example.org/push/foo', headers: { 'Content-Encoding' => 'gzip' })
+    assert_requested(
+      :put, 'https://example.org/push/foo',
+      headers: { 'X-Zerocracy-Meta' => Base64.strict_encode64('foo:bar') }
+    )
+    assert_requested(:post, 'https://example.org/lock/foo', body: /owner=mine/)
+    assert_requested(:post, 'https://example.org/unlock/foo', body: /owner=mine/)
+  end
+
+  def test_sends_plain_body_without_zip
+    stubs
+    Dir.mktmpdir do |d|
+      Judges::Push.new(Loog::NULL).run(uses.merge('zip' => false), ['foo', writes(d)])
+    end
+    assert_requested(:put, 'https://example.org/push/foo') { |req| !req.headers.key?('Content-Encoding') }
+  end
+
   def test_keeps_a_fractional_timeout
     Dir.mktmpdir do |d|
       file = File.join(d, 'base.fb')
@@ -116,5 +138,26 @@ class TestPush < Minitest::Test
         Judges::Push.new(Loog::NULL).run({ 'offline' => true }, ['foo', 'file.fb'])
       end.message
     )
+  end
+
+  private
+
+  def uses
+    { 'token' => '000', 'host' => 'example.org', 'port' => 443, 'ssl' => true, 'owner' => 'mine' }
+  end
+
+  def stubs
+    WebMock.disable_net_connect!
+    stub_request(:get, 'https://example.org/csrf').to_return(body: 'test-csrf-token')
+    stub_request(:post, %r{https://example.org/(un)?lock/foo}).to_return(status: 302)
+    stub_request(:put, 'https://example.org/push/foo').to_return(status: 200, body: '42')
+  end
+
+  def writes(dir)
+    file = File.join(dir, 'base.fb')
+    fb = Factbase.new
+    fb.insert.foo = 42
+    File.binwrite(file, fb.export)
+    file
   end
 end
