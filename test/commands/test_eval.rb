@@ -71,4 +71,28 @@ class TestEval < Minitest::Test
       assert_includes(error.message, expr, error.message)
     end
   end
+
+  def test_blames_a_loaded_file_not_the_expression
+    Dir.mktmpdir do |d|
+      bad = File.join(d, 'bad.rb')
+      File.write(bad, "def helper(\n")
+      error =
+        assert_raises(StandardError) do
+          Judges::Eval.new(Loog::NULL).run({}, [File.join(d, 'base.fb'), "load #{bad.inspect}"])
+        end
+      assert_includes(error.message, 'failed:', error.message)
+      refute_includes(error.message, 'is not valid Ruby', error.message)
+    end
+  end
+
+  def test_blames_a_nested_eval_not_the_expression
+    Dir.mktmpdir do |d|
+      error =
+        assert_raises(StandardError) do
+          Judges::Eval.new(Loog::NULL).run({}, [File.join(d, 'base.fb'), 'eval("1 +")'])
+        end
+      assert_includes(error.message, 'failed:', error.message)
+      refute_includes(error.message, 'is not valid Ruby', error.message)
+    end
+  end
 end

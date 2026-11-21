@@ -36,9 +36,12 @@ class Judges::Eval
         $fb = Factbase::Logged.new($fb, @loog)
       end
       begin
-        eval(args[1]) # rubocop:disable Security/Eval
+        RubyVM::InstructionSequence.compile(args[1])
       rescue SyntaxError => e
         raise(StandardError, "The expression #{args[1].inspect} is not valid Ruby: #{e.message}", cause: e)
+      end
+      begin
+        eval(args[1]) # rubocop:disable Security/Eval
       rescue ScriptError => e
         raise(StandardError, "The expression #{args[1].inspect} failed: #{e.message}", cause: e)
       end
