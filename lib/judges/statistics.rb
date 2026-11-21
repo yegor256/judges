@@ -40,7 +40,7 @@ class Judges::Statistics
     stats = @data[name]
     stats[:total_time] += time
     stats[:cycles] += 1
-    stats[:results] << result
+    stats[:results] << result.dup
     return unless churn
     stats[:total_churn] = (stats[:total_churn] || Factbase::Churn.new) + churn
   end
