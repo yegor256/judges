@@ -87,8 +87,11 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
     end
     options += Judges::Options.new(opts['option'])
     if opts['options-file']
+      file = opts['options-file']
+      raise(StandardError, "The options file is a directory: #{file.to_rel}") if File.directory?(file)
+      raise(StandardError, "The options file is absent: #{file.to_rel}") unless File.exist?(file)
       options += Judges::Options.new(
-        File.readlines(opts['options-file'])
+        File.readlines(file)
           .compact
           .reject { |ln| ln.strip.empty? }
           .map { |ln| ln.strip.split('=', 1).map(&:strip).join('=') }
