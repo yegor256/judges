@@ -43,12 +43,12 @@ class Judges::Push
       compress: opts.fetch('zip', true)
     )
     elapsed(@loog, level: Logger::INFO) do
-      baza.lock(name, opts['owner'])
+      baza.lock(name, opts['owner'] || 'default')
       begin
         baza.push(name, fb.export, opts['meta'] || [])
         throw(:"👍 Pushed #{fb.size} facts to baza")
       ensure
-        baza.unlock(name, opts['owner'])
+        baza.unlock(name, opts['owner'] || 'default')
       end
     end
   end
