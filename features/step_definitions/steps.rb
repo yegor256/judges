@@ -5,6 +5,7 @@
 
 require 'English'
 require 'securerandom'
+require 'socket'
 require 'tmpdir'
 
 Before do
@@ -19,8 +20,8 @@ After do
 end
 
 Given(/^We are online$/) do
-  TCPSocket.new('google.com', 80)
-rescue SocketError
+  Socket.tcp('google.com', 80, connect_timeout: 5).close
+rescue SocketError, SystemCallError
   pending
 end
 
