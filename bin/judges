@@ -21,8 +21,6 @@ Encoding.default_internal = Encoding::UTF_8
 
 class JudgesGLI extend GLI::App
 
-  @@args = ARGV.dup
-
   def self.run_it(cmd, ruby)
     cmd.action do |global, options, args|
       require_relative "../lib/judges/commands/#{ruby}"
@@ -69,9 +67,6 @@ class JudgesGLI extend GLI::App
     end
     if global[:ascii]
       @@loog = Judges::AsciiLoog.new(@@loog)
-    end
-    if global[:echo]
-      @@loog.info("+ #{File.absolute_path($0)} #{Judges::MaskedArgs.new(@@args)}")
     end
     @@loog.debug("Judges #{Judges::VERSION}")
     if global[:factbase]
@@ -315,4 +310,7 @@ class JudgesGLI extend GLI::App
   end
 end
 
-exit JudgesGLI.run(ARGV) if ENV['GLI_TESTING'].nil?
+if ENV['GLI_TESTING'].nil?
+  Loog::REGULAR.info("+ #{File.absolute_path($0)} #{Judges::MaskedArgs.new(ARGV)}") if ARGV.include?('--echo')
+  exit JudgesGLI.run(ARGV)
+end
