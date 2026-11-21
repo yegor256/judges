@@ -26,7 +26,13 @@ global variables available to it:
   of [Loog](https://www.rubydoc.info/gems/loog/0.5.1/Loog),
   where `.info` and `.debug` logs are welcome;
 * `$options` — a holder of options coming from either the `--option` command
-  line flag or the `.yml` file during testing;
+  line flag or the `.yml` file during testing. Use `$options['name']` or
+  `$options[:name]` (bracket access) as the reliable way to look up arbitrary
+  option names: dot access (e.g., `$options.foo`) supports common option names
+  that collide with Ruby `Object` methods (`class`, `clone`, `display`, `dup`,
+  `extend`, `freeze`, `hash`, `method`, `tap`, `then`), while other `Object`
+  method names such as `object_id` or `inspect` still invoke Ruby's `Object`
+  methods when called with dot notation and must be read via `$options['...']`;
 * `$local` — a hash map that is cleaned up when the execution of
   a judge is finished;
 * `$global` — a hash map that is never cleaned up;
