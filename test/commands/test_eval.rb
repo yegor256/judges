@@ -26,6 +26,21 @@ class TestEval < Minitest::Test
     end
   end
 
+  def test_keeps_facts_of_existing_factbase
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      before = Factbase.new
+      before.insert.foo = 42
+      File.binwrite(file, before.export)
+      Judges::Eval.new(Loog::NULL).run({}, [file, '$fb.insert.foo = 43'])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
+      refute_empty(xml.xpath('/fb/f[foo="42"]'), xml)
+      refute_empty(xml.xpath('/fb/f[foo="43"]'), xml)
+    end
+  end
+
   def test_reports_invalid_ruby_as_a_command_error
     Dir.mktmpdir do |d|
       error =
