@@ -297,6 +297,18 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_summarizes_added_cycles_and_version
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.then { |f| f.foo = 1; f.bar = 2 }')
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::NULL).run({ 'quiet' => true, 'summary' => 'add', 'max-cycles' => 2 }, [d, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      sum = fb.query('(eq what "judges-summary")').each.first
+      assert_equal([4, 2, Judges::VERSION], [sum.added, sum.cycles, sum.version], sum.to_s)
+    end
+  end
+
   def test_runs_no_cycle_when_none_is_allowed
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
