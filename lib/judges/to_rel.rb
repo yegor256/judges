@@ -10,8 +10,10 @@ require 'pathname'
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
 class Object
-  # Generates a relative name of a file (to the current dir).
-  # @return [String] Relative path to the file with optional quotes if it contains spaces
+  # Generates a display name of a file: the shorter of its relative and
+  # absolute spellings, with a trailing slash when it is an existing
+  # directory and with double quotes when it has a space.
+  # @return [String] Display path, not usable as-is with +File.+ calls
   def to_rel
     s = File.absolute_path(to_s)
     t =
