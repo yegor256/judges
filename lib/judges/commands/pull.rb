@@ -33,12 +33,12 @@ class Judges::Pull
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     raise(StandardError, 'The pull command needs the network, while --offline is set') if opts['offline']
     fb = Factbase.new
+    raise(ArgumentError, "The --timeout must be positive: #{opts['timeout']}") if (opts['timeout'] || 30).to_f <= 0
     baza = BazaRb.new(
       opts['host'], opts['port'].to_i, opts['token'],
       ssl: opts['ssl'],
       timeout: (opts['timeout'] || 30).to_f,
-      loog: @loog,
-      retries: (opts['retries'] || 3).to_i
+      loog: @loog, retries: (opts['retries'] || 3).to_i
     )
     name = args[0]
     elapsed(@loog, level: Logger::INFO) do
