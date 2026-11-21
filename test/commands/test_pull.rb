@@ -214,4 +214,43 @@ class TestPull < Minitest::Test
       end.message
     )
   end
+
+  def test_pull_nothing_when_all_jobs_are_expired
+    WebMock.disable_net_connect!
+    stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
+    lock = stub_request(:post, %r{http://example.org/lock/foo}).to_return(status: 302)
+    stub_request(:get, 'http://example.org/exists/foo').to_return(body: 'yes')
+    stub_request(:get, 'http://example.org/recent/foo.txt').to_return(
+      status: 303,
+      headers: { 'X-Zerocracy-Flash' => 'The product "foo" doesn\'t have any not-yet-expired jobs' }
+    )
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      Judges::Pull.new(Loog::NULL).run(
+        { 'token' => '000', 'host' => 'example.org', 'port' => 80, 'ssl' => false, 'wait' => 10, 'owner' => 'none' },
+        ['foo', file]
+      )
+      refute_path_exists(file)
+    end
+    assert_not_requested(lock)
+  end
+
+  def test_fails_when_recent_is_refused
+    WebMock.disable_net_connect!
+    stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
+    lock = stub_request(:post, %r{http://example.org/lock/foo}).to_return(status: 302)
+    stub_request(:get, 'http://example.org/exists/foo').to_return(body: 'yes')
+    stub_request(:get, 'http://example.org/recent/foo.txt').to_return(
+      status: 303, headers: { 'X-Zerocracy-Flash' => 'Something else' }
+    )
+    Dir.mktmpdir do |d|
+      assert_raises(StandardError) do
+        Judges::Pull.new(Loog::NULL).run(
+          { 'token' => '000', 'host' => 'example.org', 'port' => 80, 'ssl' => false, 'wait' => 10, 'owner' => 'none' },
+          ['foo', File.join(d, 'base.fb')]
+        )
+      end
+    end
+    assert_not_requested(lock)
+  end
 end
