@@ -35,6 +35,11 @@ Given(/^I have a "([^"]*)" file with content:$/) do |file, text|
   File.write(file, text.gsub('\\xFF', 0xFF.chr))
 end
 
+Given(/^I have a "([^"]*)" file with content: "([^"]*)"$/) do |file, text|
+  FileUtils.mkdir_p(File.dirname(file)) unless File.exist?(file)
+  File.write(file, text)
+end
+
 When(%r{^I run bin/judges with "([^"]*)"$}) do |arg|
   home = File.join(File.dirname(__FILE__), '../..')
   arg.gsub!('{FAKE-NAME}') { "fake#{SecureRandom.hex(8)}" }
