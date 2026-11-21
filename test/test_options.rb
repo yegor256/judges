@@ -60,6 +60,10 @@ class TestOptions < Minitest::Test
     assert_equal({ PATH: 'C:\\tmp\\file' }, Judges::Options.new('path=C:\\tmp\\file').to_h)
   end
 
+  def test_trailing_backslash
+    assert_equal({ PATH: 'C:\\tmp\\' }, Judges::Options.new('path=C:\\tmp\\').to_h)
+  end
+
   def test_equals_less_token_in_string
     opts = Judges::Options.new('token=abc123,max_speed=100,debug')
     assert_equal('abc123', opts.token)
