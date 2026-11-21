@@ -44,6 +44,12 @@ class TestMaskedArgs < Minitest::Test
     refute_includes(line, 'ghp_SUPERSECRET123', line)
   end
 
+  def test_hides_a_passphrase_inside_an_option
+    line = Judges::MaskedArgs.new(%w[update --option=passphrase=SUPERSECRET123456]).to_s
+    refute_includes(line, 'SUPERSECRET123456', line)
+    assert_equal('update --option=passphrase=SUPE*********3456', line)
+  end
+
   def test_hides_secrets_by_other_names
     %w[secret password key].each do |name|
       line = Judges::MaskedArgs.new(["--option=my_#{name}=SUPERSECRET123"]).to_s
