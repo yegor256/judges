@@ -35,7 +35,7 @@ class Judges::Options
   # @example Initialize with hash
   #   options = Judges::Options.new({ token: "abc123", debug: true })
   def initialize(pairs = nil)
-    @pairs = pairs
+    @pairs = pairs.dup
   end
 
   # Check if options are empty.

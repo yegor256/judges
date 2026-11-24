@@ -197,4 +197,12 @@ class TestOptions < Minitest::Test
     assert_equal('third', opts.name)
     assert_equal('third', opts.NAME)
   end
+
+  def test_keeps_pairs_given_at_construction
+    pairs = ['timeout=1']
+    opts = Judges::Options.new(pairs)
+    pairs << 'max=2'
+    assert_equal(1, opts.timeout)
+    assert_nil(opts.max)
+  end
 end
