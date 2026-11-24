@@ -3,6 +3,7 @@ PATH
   specs:
     judges (0.0.0)
       backtrace (~> 0.4)
+      base64 (~> 0.3)
       baza.rb (~> 0.10)
       concurrent-ruby (~> 1.2)
       elapsed (~> 0.2)
@@ -282,7 +283,6 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
-  base64 (~> 0.3)
   cucumber (~> 12.0)
   diff-lcs (= 2.0.0)
   judges!
