@@ -7,8 +7,10 @@ require 'baza-rb'
 require 'elapsed'
 require 'fileutils'
 require 'iri'
+require 'tmpdir'
 require 'typhoeus'
 require_relative '../../judges'
+require_relative '../durable_placeholder'
 
 # The +download+ command.
 #
@@ -50,15 +52,31 @@ class Judges::Download
       end
       @loog.info("Durable ##{id} ('#{name}') found in '#{jname}'")
       baza.durable_lock(id, opts['owner'] || 'default')
-      tmp = "#{path}.part"
       begin
-        baza.durable_load(id, tmp)
-        FileUtils.mv(tmp, path)
+        download(baza, id, path, name)
         throw(:"👍 Downloaded durable ##{id} to #{path} (#{File.size(path)} bytes)")
       ensure
-        FileUtils.rm_f(tmp)
         baza.durable_unlock(id, opts['owner'] || 'default')
       end
+    end
+  end
+
+  private
+
+  # Download the durable to a temporary location before replacing the target.
+  # @param [BazaRb] baza The durable storage client
+  # @param [Integer] id The durable ID
+  # @param [String] path The destination path
+  # @param [String] name The durable file name
+  def download(baza, id, path, name)
+    Dir.mktmpdir do |dir|
+      downloaded = File.join(dir, name)
+      baza.durable_load(id, downloaded)
+      if Judges::DurablePlaceholder.incomplete?(downloaded)
+        raise(StandardError, "Durable ##{id} is an incomplete upload; retry 'judges upload'")
+      end
+      FileUtils.mkdir_p(File.dirname(path))
+      FileUtils.mv(downloaded, path)
     end
   end
 end

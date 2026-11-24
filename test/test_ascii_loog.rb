@@ -96,4 +96,22 @@ class TestAsciiLoog < Minitest::Test
       loog.error(msg)
     end
   end
+
+  def test_converts_the_arrow
+    buf = Loog::Buffer.new
+    Judges::AsciiLoog.new(buf).info('TOKEN → "abc"')
+    assert_includes(buf.to_s, 'TOKEN -> "abc"')
+  end
+
+  def test_converts_the_warning_sign
+    buf = Loog::Buffer.new
+    Judges::AsciiLoog.new(buf).info('⚠️ No facts deleted')
+    assert_includes(buf.to_s, '! No facts deleted')
+  end
+
+  def test_leaves_nothing_outside_ascii
+    buf = Loog::Buffer.new
+    Judges::AsciiLoog.new(buf).info('café → ☃')
+    assert_predicate(buf.to_s, :ascii_only?)
+  end
 end

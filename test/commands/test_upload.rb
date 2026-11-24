@@ -5,6 +5,7 @@
 
 require 'loog'
 require 'webmock/minitest'
+require 'zlib'
 require_relative '../../lib/judges'
 require_relative '../../lib/judges/commands/upload'
 require_relative '../test__helper'
@@ -27,7 +28,7 @@ class TestUpload < Minitest::Test
     stub_request(:post, %r{https://example.org/durables/42/unlock}).to_return(status: 302)
     Dir.mktmpdir do |d|
       file = File.join(d, 'upload.txt')
-      File.write(file, content)
+      File.binwrite(file, content)
       loog = Loog::Buffer.new
       Judges::Upload.new(loog).run(
         {
@@ -41,14 +42,14 @@ class TestUpload < Minitest::Test
       )
       assert_includes(loog.to_s, "Uploaded #{file} to new durable")
     end
-    assert_requested(:put, %r{https://example.org/durables/42}, times: 1)
+    assert_requested(:put, %r{https://example.org/durables/42}, times: 1) { |r| Zlib.gunzip(r.body) == content }
     assert_requested(:post, %r{https://example.org/durables/42/lock}, times: 1)
     assert_requested(:post, %r{https://example.org/durables/42/unlock}, times: 1)
   end
 
   def test_upload_with_custom_owner
     WebMock.disable_net_connect!
-    content = 'Binary data here'
+    content = "Binary\x00data\xFFhere".b
     stub_request(:get, 'http://example.org/durable-find?file=data.bin&pname=judge1').to_return(
       status: 200, body: '123'
     )
@@ -58,7 +59,7 @@ class TestUpload < Minitest::Test
     stub_request(:post, %r{http://example.org/durables/123/unlock}).to_return(status: 302)
     Dir.mktmpdir do |d|
       file = File.join(d, 'data.bin')
-      File.write(file, content)
+      File.binwrite(file, content)
       Judges::Upload.new(Loog::NULL).run(
         {
           'token' => '000',
@@ -70,7 +71,7 @@ class TestUpload < Minitest::Test
         ['judge1', file]
       )
     end
-    assert_requested(:put, 'http://example.org/durables/123', times: 1)
+    assert_requested(:put, 'http://example.org/durables/123', times: 1) { |r| Zlib.gunzip(r.body) == content }
     assert_requested(:post, %r{http://example.org/durables/123/lock}, body: /owner=custom/, times: 1)
     assert_requested(:post, %r{http://example.org/durables/123/unlock}, body: /owner=custom/, times: 1)
   end
@@ -96,6 +97,39 @@ class TestUpload < Minitest::Test
         )
       end
     end
+  end
+
+  def test_failed_save_leaves_marker
+    placed = nil
+    client = Object.new
+    client.define_singleton_method(:durable_find) { |*| '' }
+    client.define_singleton_method(:durable_place) do |_pname, path|
+      placed = File.binread(path)
+      42
+    end
+    client.define_singleton_method(:durable_lock) { |*| true }
+    client.define_singleton_method(:durable_save) { |*| raise(StandardError, 'save failed') }
+    client.define_singleton_method(:durable_unlock) { |*| true }
+    maker = ->(*_args, **_opts) { client }
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'test.txt')
+      File.write(file, 'content')
+      BazaRb.stub(:new, maker) do
+        assert_raises(StandardError) do
+          Judges::Upload.new(Loog::NULL).run(
+            {
+              'token' => '000',
+              'host' => 'example.org',
+              'port' => 80,
+              'ssl' => false,
+              'owner' => 'none'
+            },
+            ['somejudge', file]
+          )
+        end
+      end
+    end
+    assert_equal(Judges::DurablePlaceholder::CONTENT, placed)
   end
 
   def test_fails_with_wrong_number_of_arguments

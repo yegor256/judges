@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'factbase/to_xml'
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require 'factbase/to_xml'
 require 'loog'
 require 'nokogiri'
 require_relative '../../lib/judges'

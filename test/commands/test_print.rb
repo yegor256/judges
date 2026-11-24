@@ -58,6 +58,25 @@ class TestPrint < Minitest::Test
     end
   end
 
+  def test_rejects_input_as_output
+    Dir.mktmpdir do |dir|
+      source = File.join(dir, 'data.fb')
+      fb = Factbase.new
+      fb.insert.what = 'kept'
+      original = fb.export
+      File.binwrite(source, original)
+      [false, true].each do |force|
+        assert_includes(
+          assert_raises(ArgumentError) do
+            Judges::Print.new(Loog::NULL).run({ 'format' => 'json', 'force' => force }, [source, source])
+          end.message,
+          'input factbase'
+        )
+        assert_equal(original, File.binread(source))
+      end
+    end
+  end
+
   def test_rejects_cache_sidecar_linked_to_input
     skip('Creating symbolic links requires extra privileges on Windows') if OS.windows?
     Dir.mktmpdir do |dir|
@@ -125,6 +144,24 @@ class TestPrint < Minitest::Test
       assert_empty(v.errors, "#{doc}\n\n#{v.errors.join('; ')}")
     rescue W3CValidators::ValidatorUnavailable, OpenSSL::SSL::SSLError
       skip('Cloud validator is too busy')
+    end
+  end
+
+  def test_empty_columns_render_default_ones
+    WebMock.disable_net_connect!
+    stub_request(:get, 'https://yegor256.github.io/judges/assets/index.css').to_return(body: 'nothing')
+    stub_request(:get, 'https://yegor256.github.io/judges/assets/index.js').to_return(body: 'nothing')
+    Dir.mktmpdir do |d|
+      factbase = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert.then do |f|
+        f.what = 'a'
+        f.who = 42
+      end
+      File.binwrite(factbase, fb.export)
+      html = File.join(d, 'x.html')
+      Judges::Print.new(Loog::NULL).run({ 'format' => 'html', 'columns' => '' }, [factbase, html])
+      assert_equal(%w[when what], Nokogiri::HTML(File.read(html)).css('table#facts th.sorter').map(&:text))
     end
   end
 
@@ -229,6 +266,27 @@ class TestPrint < Minitest::Test
       assert_equal(1, YAML.load_file(output).size)
       printer.run({ 'format' => 'json', 'query' => '(always)' }, [f, output])
       assert_equal(2, JSON.parse(File.read(output)).size)
+    end
+  end
+
+  def test_reprints_when_factbase_changes
+    Dir.mktmpdir do |d|
+      first = File.join(d, 'first.fb')
+      second = File.join(d, 'second.fb')
+      output = File.join(d, 'report.json')
+      fb = Factbase.new
+      fb.insert.what = 'first'
+      other = Factbase.new
+      other.insert.what = 'second'
+      File.binwrite(first, fb.export)
+      File.binwrite(second, other.export)
+      printer = Judges::Print.new(Loog::NULL)
+      printer.run({ 'format' => 'json' }, [first, output])
+      future = Time.now + 5
+      File.utime(future, future, output)
+      printer.run({ 'format' => 'json' }, [second, output])
+      assert_includes(File.read(output), 'second')
+      refute_includes(File.read(output), 'first')
     end
   end
 

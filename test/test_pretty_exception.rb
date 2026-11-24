@@ -21,12 +21,25 @@ class TestPrettyException < Minitest::Test
     assert_equal(txt, Judges::PrettyException.new(RuntimeError.new(txt)).message)
   end
 
+  def test_nil_message_falls_back
+    error = Class.new(StandardError).new
+    error.define_singleton_method(:message) { [].first }
+    assert_equal(error.class.to_s, Judges::PrettyException.new(error).message)
+  end
+
   def test_hide_class
     exp = Judges::PrettyException.new(RuntimeError.new('test'))
     assert_equal(exp.class, RuntimeError)
     assert_instance_of(RuntimeError, exp)
     assert_kind_of(RuntimeError, exp)
     assert_kind_of(StandardError, exp)
+    assert_kind_of(StandardError, exp)
+  end
+
+  def test_raise_keeps_class_and_shortens_message
+    txt = 'y' * 300
+    pretty = Judges::PrettyException.new(ArgumentError.new(txt))
+    assert_equal(txt.ellipsized(100, :right), assert_raises(ArgumentError) { raise(pretty) }.message)
   end
 
   def test_refuses_a_nil_exception
