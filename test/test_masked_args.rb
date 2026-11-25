@@ -109,4 +109,15 @@ class TestMaskedArgs < Minitest::Test
     refute_includes(line, 'with', line)
     assert_equal('--token secr\*\*\*\*\*\*\*\*\*\*\*ces\!', line)
   end
+
+  def test_masks_comma_separated_and_spaced_options
+    comma = Judges::MaskedArgs.new(['--option', 'foo=1,github_token=ghp_secret123456']).to_s
+    refute_includes(comma, 'secret', comma)
+    assert_includes(comma, 'foo\\=1', comma)
+    spaced = Judges::MaskedArgs.new(['--option', 'github_token = ghp_secret123456']).to_s
+    refute_includes(spaced, 'secret', spaced)
+    escaped = Judges::MaskedArgs.new(['--option', 'github_token=abc\\,def123456,bar=2']).to_s
+    refute_includes(escaped, 'def123456', escaped)
+    assert_includes(escaped, 'bar\\=2', escaped)
+  end
 end
