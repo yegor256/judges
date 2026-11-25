@@ -416,4 +416,29 @@ class TestTest < Minitest::Test
       assert_path_exists(d)
     end
   end
+
+  def test_escapes_dots_in_pack_name
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 1')
+      save_it(File.join(d, 'foo/test.v1.yml'), "expected:\n  - /fb[f[bar=999]]\n")
+      save_it(File.join(d, 'foo/testXv1.yml'), "expected:\n  - /fb[f[bar=1]]\n")
+      loog = Loog::Buffer.new
+      Judges::Test.new(loog).run({ 'judge' => ['foo/testXv1'] }, [d])
+      assert_includes(loog.to_s, '1 tests passed')
+      refute_includes(loog.to_s, 'test.v1')
+    end
+  end
+
+  def test_escapes_brackets_and_parens
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 1')
+      save_it(File.join(d, 'foo/case[1].yml'), "expected:\n  - /fb[f[bar=1]]\n")
+      save_it(File.join(d, 'foo/unmatched(paren.yml'), "expected:\n  - /fb[f[bar=1]]\n")
+      ['foo/case[1]', 'foo/unmatched(paren'].each do |target|
+        loog = Loog::Buffer.new
+        Judges::Test.new(loog).run({ 'judge' => [target] }, [d])
+        assert_includes(loog.to_s, '1 tests passed')
+      end
+    end
+  end
 end
