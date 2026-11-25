@@ -91,14 +91,17 @@ class Judges::Judge
       end
       ENV.store(n, v.to_s)
     end
+    skipped = nil
     elapsed(@loog, good: "#{$judge} completed", level: Logger::INFO) do
       load(s, true)
       nil
       # rubocop:disable Lint/RescueException
     rescue Exception => e
       # rubocop:enable Lint/RescueException
-      raise(Judges::Skip, e.message) if e.is_a?(RuntimeError) && e.message == 'skip'
-      raise(e) if e.is_a?(Judges::Skip)
+      if (e.is_a?(RuntimeError) && e.message == 'skip') || e.is_a?(Judges::Skip)
+        skipped = Judges::Skip.new(e.message)
+        throw(:"👍 #{$judge} skipped")
+      end
       e = Judges::PrettyException.new(e) if e.is_a?(Octokit::ServerError)
       @loog.error(Backtrace.new(e))
       raise(e) if e.is_a?(StandardError)
@@ -108,6 +111,7 @@ class Judges::Judge
       $fb = $judge = $options = $loog = $epoch = $kickoff = nil
       ENV.replace(env)
     end
+    raise(skipped) if skipped
   end
 
   # Returns the name of the judge.

@@ -12,6 +12,4 @@ module Judges
 end
 
 # When judge skips its execution.
-# rubocop:disable Lint/InheritException
-class Judges::Skip < Exception; end
-# rubocop:enable Lint/InheritException
+class Judges::Skip < StandardError; end

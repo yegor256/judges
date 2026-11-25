@@ -234,19 +234,22 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
     start = Time.now
     result = 'OK'
     impact = nil
+    skip = false
     elapsed(@loog, level: Logger::INFO) do
       impact = one_judge(opts, fb, judge, global, options, errors)
       churn.append(impact.inserted, impact.deleted, impact.added)
       throw(:"👍 The '#{judge.name}' judge made zero changes to #{fb.size} facts") if impact.zero?
       throw(:"👍 The '#{judge.name}' judge #{impact} out of #{fb.size} facts")
+    rescue Judges::Skip
+      skip = true
+      throw(:"👍 The '#{judge.name}' judge skipped itself")
     end
-    impact
-  rescue StandardError, SyntaxError, Judges::Skip => e
-    skip = e.is_a?(Judges::Skip) || (e.is_a?(RuntimeError) && e.message == 'skip')
-    @loog.info("The '#{judge.name}' judge skipped itself in #{start.ago}") if skip
-    @loog.warn(Backtrace.new(e)) unless skip
-    errors << e.message unless skip
-    result = skip ? 'SKIPPED' : 'ERROR'
+    result = 'SKIPPED' if skip
+    impact || true
+  rescue StandardError, SyntaxError => e
+    @loog.warn(Backtrace.new(e))
+    errors << e.message
+    result = 'ERROR'
     impact || true
   ensure
     statistics&.record(judge.name, Time.now - start, result, impact) if start
