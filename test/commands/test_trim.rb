@@ -15,6 +15,19 @@ require_relative '../test__helper'
 # Copyright:: Copyright (c) 2024-2026 Yegor Bugayenko
 # License:: MIT
 class TestTrim < Minitest::Test
+  def test_does_not_rewrite_when_no_facts_match
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert.foo = 42
+      File.binwrite(file, fb.export)
+      stamp = Time.utc(2026, 1, 1)
+      File.utime(stamp, stamp, file)
+      Judges::Trim.new(Loog::NULL).run({ 'query' => '(eq foo 99)' }, [file])
+      assert_equal(stamp, File.mtime(file))
+    end
+  end
+
   def test_trims_factbase
     Dir.mktmpdir do |d|
       file = File.join(d, 'base.fb')
