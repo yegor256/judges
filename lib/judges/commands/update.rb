@@ -234,9 +234,14 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
     start = Time.now
     result = 'OK'
     impact = nil
+    before = errors.size
     elapsed(@loog, level: Logger::INFO) do
       impact = one_judge(opts, fb, judge, global, options, errors)
       churn.append(impact.inserted, impact.deleted, impact.added)
+      if errors.size > before
+        result = 'ERROR'
+        throw(:"❌ The '#{judge.name}' judge timed out (#{impact})")
+      end
       throw(:"👍 The '#{judge.name}' judge made zero changes to #{fb.size} facts") if impact.zero?
       throw(:"👍 The '#{judge.name}' judge #{impact} out of #{fb.size} facts")
     end

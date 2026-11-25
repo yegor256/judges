@@ -655,4 +655,18 @@ class TestUpdate < Minitest::Test
       end
     end
   end
+
+  def test_records_timeout_error_in_statistics
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'sleep 10')
+      log = Loog::Buffer.new
+      Judges::Update.new(log).run(
+        { 'timeout' => 0.1, 'quiet' => true, 'statistics' => true, 'max-cycles' => 1 },
+        [d, File.join(d, 'base.fb')]
+      )
+      out = log.to_s
+      refute_includes(out, "👍 The 'foo' judge", out)
+      assert_match(/foo\s+[\d.]+\s+1\s+\S+\s+ERROR/, out)
+    end
+  end
 end
