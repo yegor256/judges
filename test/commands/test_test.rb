@@ -453,4 +453,28 @@ class TestTest < Minitest::Test
       assert_includes(loog.to_s, "Unknown key 'expected_failures' in")
     end
   end
+
+  def test_refuses_false_key_and_misspelled_key
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      save_it(File.join(d, 'foo/t4.yml'), "false: ignored\ninput: []\nexpect:\n  - /fb[count(f)=42]\n")
+      loog = Loog::Buffer.new
+      assert_raises(StandardError) do
+        Judges::Test.new(loog).run({}, [d])
+      end
+      assert_includes(loog.to_s, 'Unknown key')
+    end
+  end
+
+  def test_refuses_null_key_and_misspelled_key
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      save_it(File.join(d, 'foo/t5.yml'), "null: ignored\ninput: []\nexpect:\n  - /fb[count(f)=42]\n")
+      loog = Loog::Buffer.new
+      assert_raises(StandardError) do
+        Judges::Test.new(loog).run({}, [d])
+      end
+      assert_includes(loog.to_s, 'Unknown key')
+    end
+  end
 end
