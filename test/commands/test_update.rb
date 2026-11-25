@@ -717,4 +717,35 @@ class TestUpdate < Minitest::Test
       end
     end
   end
+
+  def test_fails_early_when_churn_is_read_only
+    skip('root ignores 0444 permissions') if Process.uid.zero?
+    Dir.mktmpdir do |d|
+      marker = File.join(d, 'marker.txt')
+      save_it(File.join(d, 'foo/foo.rb'), "File.write('#{marker.tr('\\', '/')}', 'ran')")
+      churn = File.join(d, 'readonly.txt')
+      File.write(churn, 'locked')
+      File.chmod(0o444, churn)
+      file = File.join(d, 'base.fb')
+      assert_raises(StandardError) do
+        Judges::Update.new(Loog::NULL).run({ 'churn' => churn }, [d, file])
+      end
+      refute_path_exists(marker)
+      refute_path_exists(file)
+    end
+  end
+
+  def test_preserves_dangling_symlink_for_churn
+    skip('symlinks require elevated privileges on Windows') if Gem.win_platform?
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
+      target = File.join(d, 'missing.txt')
+      churn = File.join(d, 'churn.txt')
+      File.symlink('missing.txt', churn)
+      Judges::Update.new(Loog::NULL).run({ 'churn' => churn, 'max-cycles' => 1 }, [d, File.join(d, 'base.fb')])
+      assert(File.symlink?(churn))
+      assert_path_exists(target)
+      refute_empty(File.read(target))
+    end
+  end
 end

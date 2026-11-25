@@ -311,10 +311,10 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
     raise(StandardError, "The churn path is a directory: #{churn.to_rel}") if File.directory?(churn)
     FileUtils.mkdir_p(File.dirname(churn))
     if File.exist?(churn)
-      FileUtils.touch(churn)
+      File.open(churn, File::WRONLY | File::APPEND, &:flush)
     else
-      FileUtils.touch(churn)
-      File.delete(churn)
+      File.open(churn, File::WRONLY | File::CREAT, &:flush)
+      File.delete(File.symlink?(churn) ? File.expand_path(File.readlink(churn), File.dirname(churn)) : churn)
     end
   rescue SystemCallError => e
     raise(StandardError, "The churn path cannot be written: #{churn.to_rel} (#{e.message})")
