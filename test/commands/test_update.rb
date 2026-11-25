@@ -655,4 +655,16 @@ class TestUpdate < Minitest::Test
       end
     end
   end
+
+  def test_logs_integer_error_count_in_summary
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'raise "boom"')
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::NULL).run({ 'quiet' => true, 'summary' => 'add', 'max-cycles' => 1 }, [d, file])
+      log = Loog::Buffer.new
+      Judges::Update.new(log).run({ 'quiet' => true, 'summary' => 'append', 'max-cycles' => 1 }, [d, file])
+      assert_includes(log.to_s, 'with 1 error:')
+      refute_includes(log.to_s, 'with true error')
+    end
+  end
 end
