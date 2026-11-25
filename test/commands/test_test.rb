@@ -416,4 +416,17 @@ class TestTest < Minitest::Test
       assert_path_exists(d)
     end
   end
+
+  def test_refuses_missing_pack_with_judge
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 4')
+      save_it(File.join(d, 'foo/something.yml'), "input: []\nexpected:\n  - /fb[count(f)=1]\n")
+      err =
+        assert_raises(StandardError) do
+          Judges::Test.new(Loog::NULL).run({ 'judge' => ['foo/nonexistent'] }, [d])
+        end
+      assert_includes(err.message, 'foo/something', err.message)
+      Judges::Test.new(Loog::NULL).run({ 'judge' => ['foo/nonexistent'], 'quiet' => true }, [d])
+    end
+  end
 end
