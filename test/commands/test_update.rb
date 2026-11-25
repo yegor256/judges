@@ -694,4 +694,17 @@ class TestUpdate < Minitest::Test
       assert_includes(sum.error, 'MyEmptyError')
     end
   end
+
+  def test_handles_anonymous_exception
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'raise Class.new(StandardError).new("")')
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::NULL).run({ 'quiet' => true, 'summary' => 'add', 'max-cycles' => 1 }, [d, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      sum = fb.query('(eq what "judges-summary")').each.first
+      refute_nil(sum)
+      refute_empty(sum.error)
+    end
+  end
 end
