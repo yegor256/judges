@@ -99,9 +99,15 @@ class TestAsciiLoog < Minitest::Test
     buf = Loog::Buffer.new
     Judges::AsciiLoog.new(buf).info((+'Привет ❌ failure').force_encoding('ASCII-8BIT'))
     output = buf.to_s
-    assert_includes(output, '! failure')
-    assert_includes(output, 'Привет')
+    assert_includes(output, '?????? ! failure')
+    assert_predicate(output, :ascii_only?)
     refute_includes(output, '❌')
+  end
+
+  def test_handles_utf_sixteen_message
+    buf = Loog::Buffer.new
+    Judges::AsciiLoog.new(buf).info('OK → yes'.encode(Encoding::UTF_16LE))
+    assert_includes(buf.to_s, 'OK -> yes')
   end
 
   def test_handles_frozen_binary_string
