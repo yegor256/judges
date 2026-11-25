@@ -379,4 +379,16 @@ class TestPrint < Minitest::Test
       assert_includes(err.message, 'The output path is a directory:', err.message)
     end
   end
+
+  def test_refuses_auto_dir_before_reading
+    Dir.mktmpdir do |d|
+      f = File.join(d, 'missing.fb')
+      FileUtils.mkdir_p(File.join(d, 'missing.yaml'))
+      err =
+        assert_raises(StandardError) do
+          Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml', 'auto' => true }, [f])
+        end
+      assert_includes(err.message, 'The output path is a directory:', err.message)
+    end
+  end
 end
