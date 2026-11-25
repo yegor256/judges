@@ -416,4 +416,17 @@ class TestTest < Minitest::Test
       assert_path_exists(d)
     end
   end
+
+  def test_excludes_skipped_tests_from_summary
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 1')
+      save_it(File.join(d, 'foo/active.yml'), "input: []\nexpected:\n  - /fb[count(f)=1]\n")
+      save_it(File.join(d, 'foo/ignored.yml'), "skip: true\ninput: []\nexpected:\n  - /fb[count(f)=99]\n")
+      log = Loog::Buffer.new
+      Judges::Test.new(log).run({}, [d])
+      out = log.to_s
+      assert_includes(out, 'foo/active', out)
+      refute_match(%r{foo/ignored\s+[\d.]+\s+OK}, out)
+    end
+  end
 end

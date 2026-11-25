@@ -121,9 +121,8 @@ class Judges::Test
         @loog.info(buf.to_s)
         @loog.warn(Backtrace.new(e))
         errors << badge
-      ensure
-        times[badge] = Time.now - start
       end
+      times[badge] = Time.now - start
     end
     count
   end
