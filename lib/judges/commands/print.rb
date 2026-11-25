@@ -43,14 +43,15 @@ class Judges::Print
     fmt = opts['format']&.downcase
     raise(ArgumentError, "Unknown format '#{fmt}', use one of #{FORMATS.join(', ')}") unless FORMATS.include?(fmt)
     f = args[0]
-    fb = Judges::Impex.new(@loog, f).import
-    fb.query("(not #{opts['query']})").delete! unless opts['query'].nil?
     o = args[1]
     if o.nil?
       raise(ArgumentError, 'Either provide output file name or use --auto') unless opts['auto']
       o = File.join(File.dirname(f), File.basename(f).gsub(/\.[^.]*$/, ''))
       o = "#{o}.#{fmt}"
     end
+    raise(ArgumentError, "The output path is a directory: #{o.to_rel}") if File.directory?(o)
+    fb = Judges::Impex.new(@loog, f).import
+    fb.query("(not #{opts['query']})").delete! unless opts['query'].nil?
     if File.exist?(o) && File.identical?(f, o)
       raise(ArgumentError, 'The output must not overwrite the input factbase')
     end
