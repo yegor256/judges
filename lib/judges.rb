@@ -10,3 +10,6 @@
 module Judges
   VERSION = '0.0.0' unless const_defined?(:VERSION)
 end
+
+# When judge skips its execution.
+class Judges::Skip < StandardError; end

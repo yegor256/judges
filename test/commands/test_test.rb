@@ -469,4 +469,21 @@ class TestTest < Minitest::Test
       assert_path_exists(d)
     end
   end
+
+  def test_skipping_judge_continues_and_respects_quiet
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'aaa/aaa.rb'), "raise 'skip'")
+      save_it(File.join(d, 'aaa/t1.yml'), "input: []\nexpected:\n  - /fb\n")
+      save_it(File.join(d, 'bbb/bbb.rb'), '$fb.insert.foo = 1')
+      save_it(File.join(d, 'bbb/t2.yml'), "input: []\nexpected:\n  - /fb[count(f)=1]\n")
+      loog = Loog::Buffer.new
+      assert_raises(StandardError) do
+        Judges::Test.new(loog).run({ 'quiet' => false }, [d])
+      end
+      assert_includes(loog.to_s, 'bbb')
+      qloog = Loog::Buffer.new
+      Judges::Test.new(qloog).run({ 'quiet' => true }, [d])
+      assert_includes(qloog.to_s, 'bbb')
+    end
+  end
 end
