@@ -70,17 +70,21 @@ class Judges::Test
       raise(StandardError, "#{errors.size} tests failed") unless opts['quiet']
       @loog.debug('Not failing the build with test failures, due to the --quiet option')
     end
-    return unless tested.zero? || tests.zero?
-    if opts['judge'].nil?
-      raise(StandardError, 'There seem to be no judges') unless opts['quiet']
-      @loog.debug('Not failing the build with no judges tested, due to the --quiet option')
-    else
-      raise(StandardError, 'There seem to be no judges') if visible.empty?
-      @loog.info("The following judges are available to use with the --judge option:\n  #{visible.join("\n  ")}")
-    end
+    empty(opts, visible) if tested.zero? || tests.zero?
   end
 
   private
+
+  def empty(opts, visible)
+    if opts['judge'].nil?
+      raise(StandardError, 'There seem to be no judges') unless opts['quiet']
+      @loog.debug('Not failing the build with no judges tested, due to the --quiet option')
+      return
+    end
+    raise(StandardError, 'There seem to be no judges') if visible.empty?
+    @loog.info("The following judges are available to use with the --judge option:\n  #{visible.join("\n  ")}")
+    raise(StandardError, "No test matches #{opts['judge'].join(',')}: #{visible.join(', ')}") unless opts['quiet']
+  end
 
   # Check that every sub-directory holds a script named after it.
   #
@@ -221,9 +225,7 @@ class Judges::Test
             id += 1
           end
           if vv.is_a?(Array)
-            vv.each do |v|
-              f.public_send(:"#{k}=", v)
-            end
+            vv.each { |v| f.public_send(:"#{k}=", v) }
           else
             f.public_send(:"#{k}=", vv)
           end
