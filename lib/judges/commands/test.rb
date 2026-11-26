@@ -15,6 +15,7 @@ require_relative '../../judges'
 require_relative '../../judges/categories'
 require_relative '../../judges/judges'
 require_relative '../../judges/options'
+require_relative '../../judges/test_summary'
 require_relative '../../judges/to_rel'
 
 # The +test+ command.
@@ -43,6 +44,7 @@ class Judges::Test
     @loog.info("Testing judges in #{dir.to_rel}...")
     misplaced(dir)
     errors = []
+    skips = []
     tested = 0
     tests = 0
     visible = []
@@ -55,7 +57,7 @@ class Judges::Test
         @loog.info("👉 Testing #{judge.script} (##{i}) in #{judge.dir.to_rel}...")
         buf = Loog::Buffer.new
         judge = judge.with_loog(buf)
-        tests += run_judge_tests(judge, buf, opts, judges, visible, times, errors)
+        tests += run_judge_tests(judge, buf, opts, judges, visible, times, errors, skips)
         tested += 1
       end
       if tested.zero? && !visible.empty? && !(opts['judge'] || []).empty?
@@ -64,7 +66,7 @@ class Judges::Test
           "No judge matches --judge=#{opts['judge'].join(',')}, while these are available: #{visible.join(', ')}"
         )
       end
-      print_test_summary(times, errors, tested, tests)
+      Judges::TestSummary.new(@loog).print(times, errors, skips, tested, tests)
     end
     unless errors.empty?
       raise(StandardError, "#{errors.size} tests failed") unless opts['quiet']
@@ -104,7 +106,7 @@ class Judges::Test
     )
   end
 
-  def run_judge_tests(judge, buf, opts, judges, visible, times, errors)
+  def run_judge_tests(judge, buf, opts, judges, visible, times, errors, skips)
     count = 0
     judge.tests.each do |f|
       tname = File.basename(f).gsub(/\.yml$/, '')
@@ -114,7 +116,10 @@ class Judges::Test
       start = Time.now
       begin
         yaml = YAML.load_file(f, permitted_classes: [Time])
-        next if skip_test?(buf, f, yaml, opts)
+        if skip_test?(buf, f, yaml, opts)
+          skips << badge
+          next
+        end
         buf.info("🛠️ Testing #{f.to_rel}:")
         count += run_single_test(judge, buf, opts, judges, yaml, badge)
       rescue StandardError, ScriptError => e
@@ -178,26 +183,6 @@ class Judges::Test
         $loog = previous[1]
       end
     end
-  end
-
-  def print_test_summary(times, errors, tested, tests)
-    unless times.empty?
-      fmt = "%-60s\t%9s\t%-9s"
-      @loog.info(
-        [
-          'Test summary:',
-          format(fmt, 'Script', 'Seconds', 'Result'),
-          format(fmt, '---', '---', '---'),
-          times.sort_by { |_, v| v }.reverse.map do |script, sec|
-            format(fmt, script.ellipsized(50), format('%.3f', sec), errors.include?(script) ? 'ERROR' : 'OK')
-          end.join("\n  ")
-        ].join("\n  ")
-      )
-    end
-    throw(:'👍 No judges tested') if tested.zero?
-    throw(:"👍 All #{tested} judge(s) but no tests passed") if tests.zero?
-    throw(:"👍 All #{tested} judge(s) and #{tests} tests passed") if errors.empty?
-    throw(:"❌ #{tested} judge(s) tested, #{errors.size} of them failed")
   end
 
   def include?(opts, name, tname = nil)
