@@ -6,9 +6,8 @@
 source 'https://rubygems.org'
 gemspec
 
-gem 'base64', '~>0.3'
 gem 'cucumber', '~>12.0', require: false
-gem 'diff-lcs', '1.6.2', require: false
+gem 'diff-lcs', '2.0.0', require: false
 gem 'ferrum', '~>0.20.1', require: false
 gem 'minitest', '~>6.0', require: false
 gem 'minitest-mock', '~>5.27', require: false
@@ -19,7 +18,7 @@ gem 'os', '~>1.1', require: false
 gem 'qbash', '~>0.4', require: false
 gem 'rake', '~>13.2', require: false
 gem 'random-port', '~>0.7', require: false
-gem 'rdoc', '7.2.0', require: false
+gem 'rdoc', '8.1.0', require: false
 gem 'rubocop', '~>1.74', require: false
 gem 'rubocop-elegant', '~>0.5', require: false
 gem 'rubocop-minitest', '~>0.38', require: false
@@ -30,4 +29,4 @@ gem 'simplecov-cobertura', '~>4.0', require: false
 gem 'w3c_validators', '~>1.3', require: false
 gem 'webmock', '~>3.25', require: false
 gem 'webrick', '~>1.9', require: false
-gem 'yard', '0.9.38', require: false
+gem 'yard', '0.9.45', require: false

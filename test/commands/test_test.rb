@@ -260,6 +260,59 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_with_expected_failure_integer
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'raise "HTTP 404 not found";')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        expected_failure:
+          - 404
+        YAML
+      )
+      Judges::Test.new(Loog::NULL).run({}, [d])
+      assert_path_exists(d)
+    end
+  end
+
+  def test_with_expected_failure_integer_mismatch
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'raise "HTTP 500 error";')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        expected_failure:
+          - 404
+        YAML
+      )
+      loog = Loog::Buffer.new
+      assert_raises(StandardError) do
+        Judges::Test.new(loog).run({}, [d])
+      end
+      assert_includes(loog.to_s, 'not what was expected')
+    end
+  end
+
+  def test_with_expected_failure_multiple_integers
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), 'raise "Gateway error: 502";')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        input: []
+        expected_failure:
+          - 500
+          - 502
+          - 504
+        YAML
+      )
+      Judges::Test.new(Loog::NULL).run({}, [d])
+      assert_path_exists(d)
+    end
+  end
+
   def test_with_timeout_success
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 42')
@@ -392,6 +445,53 @@ class TestTest < Minitest::Test
       save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1')
       save_it(File.join(d, 'foo/simple.yml'), "input:\nexpected:\n  - /fb[count(f)=1]")
       Judges::Test.new(Loog::NULL).run({}, [d])
+    end
+  end
+
+  def test_renumbers_id_given_as_array
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 1')
+      save_it(
+        File.join(d, 'foo/x.yml'),
+        <<-YAML
+        repeat: 2
+        input:
+          -
+            _id: [7]
+            foo: 1
+        expected:
+          - /fb[count(f[_id=1])=1]
+          - /fb[count(f[_id=2])=1]
+          - /fb[not(f[_id=7])]
+        YAML
+      )
+      Judges::Test.new(Loog::NULL).run({}, [d])
+      assert_path_exists(d)
+    end
+  end
+
+  def test_escapes_dots_in_pack_name
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 1')
+      save_it(File.join(d, 'foo/test.v1.yml'), "expected:\n  - /fb[f[bar=999]]\n")
+      save_it(File.join(d, 'foo/testXv1.yml'), "expected:\n  - /fb[f[bar=1]]\n")
+      loog = Loog::Buffer.new
+      Judges::Test.new(loog).run({ 'judge' => ['foo/testXv1'] }, [d])
+      assert_includes(loog.to_s, '1 tests passed')
+      refute_includes(loog.to_s, 'test.v1')
+    end
+  end
+
+  def test_escapes_brackets_and_parens
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 1')
+      save_it(File.join(d, 'foo/case[1].yml'), "expected:\n  - /fb[f[bar=1]]\n")
+      save_it(File.join(d, 'foo/unmatched(paren.yml'), "expected:\n  - /fb[f[bar=1]]\n")
+      ['foo/case[1]', 'foo/unmatched(paren'].each do |target|
+        loog = Loog::Buffer.new
+        Judges::Test.new(loog).run({ 'judge' => [target] }, [d])
+        assert_includes(loog.to_s, '1 tests passed')
+      end
     end
   end
 end

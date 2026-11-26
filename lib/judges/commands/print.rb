@@ -51,6 +51,9 @@ class Judges::Print
       o = File.join(File.dirname(f), File.basename(f).gsub(/\.[^.]*$/, ''))
       o = "#{o}.#{fmt}"
     end
+    if File.exist?(o) && File.identical?(f, o)
+      raise(ArgumentError, 'The output must not overwrite the input factbase')
+    end
     sidecar = "#{o}.judges-options"
     if File.exist?(sidecar) && File.identical?(f, sidecar)
       raise(ArgumentError, 'The cache sidecar must not overwrite the input factbase')
