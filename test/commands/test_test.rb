@@ -53,6 +53,51 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_matches_a_judge_name_literally
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo.bar/foo.bar.rb'), '$fb.insert.bar = 4')
+      save_it(
+        File.join(d, 'foo.bar/something.yml'),
+        <<-YAML
+        input: []
+        expected:
+          - /fb[count(f)=1]
+        YAML
+      )
+      e =
+        assert_raises(StandardError) do
+          Judges::Test.new(Loog::NULL).run({ 'judge' => ['fooXbar'] }, [d])
+        end
+      assert_includes(e.message, 'No judge matches --judge=fooXbar', e.message)
+    end
+  end
+
+  def test_matches_a_test_pack_name_literally
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.bar = 4')
+      save_it(
+        File.join(d, 'foo/case.one.yml'),
+        <<-YAML
+        input: []
+        expected:
+          - /fb[count(f)=99]
+        YAML
+      )
+      save_it(
+        File.join(d, 'foo/caseXone.yml'),
+        <<-YAML
+        input: []
+        expected:
+          - /fb[count(f)=1]
+        YAML
+      )
+      loog = Loog::Buffer.new
+      Judges::Test.new(loog).run({ 'judge' => ['foo/caseXone'] }, [d])
+      assert_includes(loog.to_s, 'caseXone')
+      refute_includes(loog.to_s, 'case.one')
+    end
+  end
+
   def test_negative
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$fb.query("(eq foo 42)").each { |f| f.bar = 4 }')
