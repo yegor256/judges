@@ -101,12 +101,15 @@ class Judges::Judge
       e = Judges::PrettyException.new(e) if e.is_a?(Octokit::ServerError)
       @loog.error(Backtrace.new(e))
       raise(e) if e.is_a?(StandardError)
-      raise(e) if e.is_a?(Timeout::ExitException)
+      raise(StandardError, "#{$judge} terminated") if e.is_a?(Timeout::ExitException)
       raise(StandardError, "#{e.message} (#{e.class.name})")
     ensure
       $fb = $judge = $options = $loog = $epoch = $kickoff = nil
       ENV.replace(env)
     end
+  rescue StandardError => e
+    raise(e.cause) if e.cause.is_a?(Timeout::ExitException)
+    raise(e)
   end
 
   # Returns the name of the judge.
