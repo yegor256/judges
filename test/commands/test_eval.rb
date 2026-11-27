@@ -26,6 +26,16 @@ class TestEval < Minitest::Test
     end
   end
 
+  def test_hides_command_locals_from_expression
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      Judges::Eval.new(Loog::NULL).run({}, [file, 'impex = nil; $fb.insert.foo = 7'])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_equal(1, fb.size)
+    end
+  end
+
   def test_reports_invalid_ruby_as_a_command_error
     Dir.mktmpdir do |d|
       error =
