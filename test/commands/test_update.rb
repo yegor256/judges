@@ -655,4 +655,31 @@ class TestUpdate < Minitest::Test
       end
     end
   end
+
+  def test_counts_only_processed_judges_in_cycle
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'alpha/alpha.rb'), '$fb.insert.foo = 1')
+      save_it(File.join(d, 'beta/beta.rb'), '$fb.insert.foo = 2')
+      save_it(File.join(d, 'gamma/gamma.rb'), '$fb.insert.foo = 3')
+      loog = Loog::Buffer.new
+      Judges::Update.new(loog).run({ 'judge' => ['alpha'], 'max-cycles' => 1 }, [d, File.join(d, 'base.fb')])
+      assert_includes(loog.to_s, '1 judge(s) processed')
+      refute_includes(loog.to_s, '3 judge(s) processed')
+    end
+  end
+
+  def test_counts_only_processed_judges_with_fail_fast
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'alpha/alpha.rb'), "raise 'boom'")
+      save_it(File.join(d, 'beta/beta.rb'), '$fb.insert.foo = 2')
+      save_it(File.join(d, 'gamma/gamma.rb'), '$fb.insert.foo = 3')
+      loog = Loog::Buffer.new
+      Judges::Update.new(loog).run(
+        { 'boost' => ['alpha'], 'fail-fast' => true, 'quiet' => true, 'max-cycles' => 1 },
+        [d, File.join(d, 'base.fb')]
+      )
+      assert_includes(loog.to_s, '1 judge(s) processed with 1 errors')
+      refute_includes(loog.to_s, '3 judge(s) processed')
+    end
+  end
 end
