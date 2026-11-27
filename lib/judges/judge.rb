@@ -64,6 +64,7 @@ class Judges::Judge
   # @raise [RuntimeError] If the lib directory doesn't exist, the script can't be loaded, or execution fails
   # rubocop:disable-next Metrics/MethodLength
   def run(fb, global, local, options)
+    env = ENV.to_h
     $fb = fb
     $judge = File.basename(@dir)
     $options = options
@@ -82,7 +83,6 @@ class Judges::Judge
     end
     s = File.join(@dir, script)
     raise(StandardError, "Can't load '#{s}'") unless File.exist?(s)
-    env = ENV.to_h
     options.to_h.each do |k, v|
       n = k.to_s
       if RESERVED.include?(n)
@@ -103,10 +103,10 @@ class Judges::Judge
       raise(e) if e.is_a?(StandardError)
       raise(e) if e.is_a?(Timeout::ExitException)
       raise(StandardError, "#{e.message} (#{e.class.name})")
-    ensure
-      $fb = $judge = $options = $loog = $epoch = $kickoff = nil
-      ENV.replace(env)
     end
+  ensure
+    $fb = $judge = $options = $loog = $global = $local = $epoch = $kickoff = nil
+    ENV.replace(env)
   end
 
   # Returns the name of the judge.

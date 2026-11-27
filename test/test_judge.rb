@@ -124,4 +124,17 @@ class TestJudge < Minitest::Test
       end
     end
   end
+
+  def test_clears_globals_after_run
+    Dir.mktmpdir do |d|
+      assert_raises(StandardError) do
+        Judges::Judge.new(d, nil, Loog::NULL).run(Factbase.new, { a: 1 }, { b: 2 }, {})
+      end
+      [$fb, $judge, $options, $loog, $global, $local, $epoch, $kickoff].each { |v| assert_nil(v) }
+      save_it(File.join(d, "#{File.basename(d)}.rb"), '$fb.insert.foo = 1')
+      Judges::Judge.new(d, nil, Loog::NULL).run(Factbase.new, { a: 1 }, { b: 2 }, {})
+      assert_nil($global)
+      assert_nil($local)
+    end
+  end
 end
