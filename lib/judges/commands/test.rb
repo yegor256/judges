@@ -203,8 +203,8 @@ class Judges::Test
   def include?(opts, name, tname = nil)
     judges = opts['judge'] || []
     return true if judges.empty?
-    re = tname.nil? ? '.+' : tname
-    judges.any? { |n| n.match?(%r{^#{Regexp.escape(name)}(/#{re})?$}) }
+    re = tname.nil? ? '.+' : Regexp.escape(tname)
+    judges.any? { |n| n.match?(%r{\A#{Regexp.escape(name)}(/#{re})?\z}) }
   end
 
   def prepare(fb, yaml)
@@ -256,7 +256,7 @@ class Judges::Test
       caught = capture(fbx, judge, options, timeout, global)
       if failure
         raise(StandardError, 'Exception expected but not raised') if caught.nil?
-        if failure.is_a?(Array) && failure.none? { |s| caught.message.include?(s) }
+        if failure.is_a?(Array) && failure.none? { |s| caught.message.include?(s.to_s) }
           raise(
             StandardError,
             "Exception #{caught.class} raised with #{caught.message.inspect}, but this is not what was expected"

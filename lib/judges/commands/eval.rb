@@ -30,20 +30,25 @@ class Judges::Eval
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     impex = Judges::Impex.new(@loog, args[0])
     elapsed(@loog, level: Logger::INFO) do
-      $fb = impex.import(strict: false)
-      if opts['log']
-        require('factbase/logged')
-        $fb = Factbase::Logged.new($fb, @loog)
-      end
+      previous = $fb
       begin
-        eval(args[1]) # rubocop:disable Security/Eval
-      rescue SyntaxError => e
-        raise(StandardError, "The expression #{args[1].inspect} is not valid Ruby: #{e.message}", cause: e)
-      rescue ScriptError => e
-        raise(StandardError, "The expression #{args[1].inspect} failed: #{e.message}", cause: e)
+        $fb = impex.import(strict: false)
+        if opts['log']
+          require('factbase/logged')
+          $fb = Factbase::Logged.new($fb, @loog)
+        end
+        begin
+          eval(args[1]) # rubocop:disable Security/Eval
+        rescue SyntaxError => e
+          raise(StandardError, "The expression #{args[1].inspect} is not valid Ruby: #{e.message}", cause: e)
+        rescue ScriptError => e
+          raise(StandardError, "The expression #{args[1].inspect} failed: #{e.message}", cause: e)
+        end
+        impex.export($fb)
+        throw(:'👍 Evaluated successfully')
+      ensure
+        $fb = previous
       end
-      impex.export($fb)
-      throw(:'👍 Evaluated successfully')
     end
   end
 end

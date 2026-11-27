@@ -54,12 +54,12 @@
         </title>
         <link rel="icon" href="https://www.zerocracy.com/svg/logo.svg" type="image/svg+xml"/>
         <xsl:call-template name="css">
-          <xsl:with-param name="url">https://cdn.jsdelivr.net/npm/tacit-css@1.8.1/dist/tacit-css.min.css</xsl:with-param>
-          <xsl:with-param name="hash">sha384-JbsYayq5Otme+gjh/pl7NrA/qMIU0bxbdzKvYqQGHvvag0lHhM62TQnDzz+EyzXj</xsl:with-param>
+          <xsl:with-param name="url">https://cdn.jsdelivr.net/npm/tacit-css@1.9.7/dist/tacit-css.min.css</xsl:with-param>
+          <xsl:with-param name="hash">sha384-D/LLHCkqHnoJ7y04sSEBX95s7wMjBn45wtHneRfp03QBgt6+a6Pz2eLUC4N1CAI0</xsl:with-param>
         </xsl:call-template>
         <xsl:call-template name="css">
-          <xsl:with-param name="url">https://cdn.jsdelivr.net/npm/drops@0.2.0/dist/drops-0.2.0.min.css</xsl:with-param>
-          <xsl:with-param name="hash">sha384-5jl1QSYGvyjnoRf6lIhaq2MlbW/qjOvNay9i434tlxyKPqm+t1ed5vxKgT75C4xe</xsl:with-param>
+          <xsl:with-param name="url">https://cdn.jsdelivr.net/npm/drops@0.3.2/dist/drops-0.3.2.min.css</xsl:with-param>
+          <xsl:with-param name="hash">sha384-p1uPBv+9Vp2mQmUJHUrsDnDVbg88Upi66Gf8uTcVy0I2ZIHbSUIEj3q+S6D7B1Lz</xsl:with-param>
         </xsl:call-template>
         <xsl:call-template name="css">
           <xsl:with-param name="url">https://yegor256.github.io/judges/assets/index.css</xsl:with-param>
@@ -68,12 +68,17 @@
           </xsl:with-param>
         </xsl:call-template>
         <xsl:call-template name="javascript">
-          <xsl:with-param name="url">https://code.jquery.com/jquery-3.7.1.min.js</xsl:with-param>
-          <xsl:with-param name="hash">sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=</xsl:with-param>
+          <xsl:with-param name="url">https://code.jquery.com/jquery-4.0.0.min.js</xsl:with-param>
+          <xsl:with-param name="hash">sha384-fgGyf7Mo7DURSOMnOy7ed+dkq5Job205Gnzu6QIg0BOHKaqt4D76Dt8VlDCzcMHV</xsl:with-param>
+        </xsl:call-template>
+        <!-- Tablesorter still uses APIs removed in jQuery 4; Migrate restores them. -->
+        <xsl:call-template name="javascript">
+          <xsl:with-param name="url">https://code.jquery.com/jquery-migrate-4.0.2.min.js</xsl:with-param>
+          <xsl:with-param name="hash">sha384-j1JGhEtpRFQa6jnqPcEWt92tLBipLPhYYJxOL/bmH3VrUmV++ZHPOXLcrjVMkuo6</xsl:with-param>
         </xsl:call-template>
         <xsl:call-template name="javascript">
-          <xsl:with-param name="url">https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.min.js</xsl:with-param>
-          <xsl:with-param name="hash">sha384-+PEWXCk8F17zxsQsEjkuHjUN4yFMHv03eKxKLrqwDql8FJQM0NeSvHRZFVLfXyn7</xsl:with-param>
+          <xsl:with-param name="url">https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.32.0/js/jquery.tablesorter.min.js</xsl:with-param>
+          <xsl:with-param name="hash">sha384-ArwQRauoLx1SFi62tbVaz0/5G73uk4P9LSFlRxe0JBRcw1DuzgAFIt0EG8XNtHXp</xsl:with-param>
         </xsl:call-template>
         <xsl:call-template name="javascript">
           <xsl:with-param name="url">https://yegor256.github.io/judges/assets/index.js</xsl:with-param>

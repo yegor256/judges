@@ -71,4 +71,21 @@ class TestEval < Minitest::Test
       assert_includes(error.message, expr, error.message)
     end
   end
+
+  def test_restores_global_fb_after_run
+    previous = $fb
+    sentinel = Object.new
+    $fb = sentinel
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      Judges::Eval.new(Loog::NULL).run({}, [file, '$fb.insert.foo = 1'])
+      assert_same(sentinel, $fb)
+      assert_raises(StandardError) do
+        Judges::Eval.new(Loog::NULL).run({}, [file, '1 +'])
+      end
+      assert_same(sentinel, $fb)
+    end
+  ensure
+    $fb = previous
+  end
 end
