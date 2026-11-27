@@ -47,6 +47,20 @@ class TestJoin < Minitest::Test
     end
   end
 
+  def test_refuses_to_join_hard_links
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      linked = File.join(d, 'alias.fb')
+      fb = Factbase.new
+      fb.insert.zz = 5
+      original = fb.export
+      File.binwrite(file, original)
+      File.link(file, linked)
+      assert_raises(ArgumentError) { Judges::Join.new(Loog::NULL).run({}, [file, linked]) }
+      assert_equal(original, File.binread(file), 'the factbase was changed')
+    end
+  end
+
   def test_renumbers_the_facts_it_takes_in
     Dir.mktmpdir do |d|
       files =
