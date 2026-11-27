@@ -91,6 +91,22 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_interrupts_judge_at_lifetime_limit
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1; sleep 10')
+      file = File.join(d, 'base.fb')
+      log = Loog::Buffer.new
+      update = Judges::Update.new(log)
+      update.instance_variable_set(:@start, Time.now - 1.9)
+      update.run({ 'lifetime' => 2, 'timeout' => 1, 'quiet' => true }, [d, file])
+      assert_includes(log.to_s, "Had to stop 'foo' due to the --lifetime=2")
+      refute_includes(log.to_s, 'Terminated due to --timeout=1')
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_equal(1, fb.query('(exists foo)').each.to_a.size)
+    end
+  end
+
   def test_cancels_slow_judge
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), 'sleep 10; $fb.insert.foo = 1')

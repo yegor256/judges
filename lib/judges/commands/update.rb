@@ -285,19 +285,21 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
     begin
       throw(:"👎 The '#{judge.name}' judge skipped, no time left") if
         opts['lifetime'] && Time.now - @start > opts['lifetime']
-      Timeout.timeout(opts['timeout'], JudgeTimeout) do
+      failure = nil
+      Timeout.timeout(opts['timeout']) do
         judge.run(fb, global, local, options)
+      rescue Timeout::Error => e
+        failure = e
       end
-    rescue Timeout::ExitException => e
+    rescue Timeout::Error, Timeout::ExitException => e
       if opts['lifetime'] && Time.now - @start >= opts['lifetime']
         @loog.info("Had to stop '#{judge.name}' due to the --lifetime=#{opts['lifetime']}")
-      elsif e.is_a?(JudgeTimeout)
+      else
         @loog.error("Terminated due to --timeout=#{opts['timeout']}")
         errors << "Judge #{judge.name} stopped by timeout after #{start.ago}: #{e.message}"
-      else
-        raise(e)
       end
     end
+    raise(failure) if failure
     fb.churn
   end
 
@@ -306,6 +308,3 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
     judges.empty? || judges.any?(name)
   end
 end
-
-# Exception raised when a judge times out.
-class Judges::Update::JudgeTimeout < Timeout::ExitException; end
