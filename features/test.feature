@@ -148,6 +148,19 @@ Feature: Test
     Then I run bin/judges with "test mine"
     And Exit code is zero
 
+  Scenario: A pack with no YAML document is refused
+    Given I make a temp directory
+    Then I have a "mine/foo/foo.rb" file with content:
+    """
+    $fb.insert
+    """
+    Then I have a "mine/foo/empty.yml" file with content:
+    """
+    """
+    Then I run bin/judges with "test mine"
+    Then Exit code is not zero
+    And Stdout contains "foo/empty"
+
   Scenario: Test with a post-assert
     Given I make a temp directory
     Then I have a "mine/foo/foo.rb" file with content:
