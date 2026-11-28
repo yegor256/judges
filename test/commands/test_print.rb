@@ -339,4 +339,21 @@ class TestPrint < Minitest::Test
     end
     refute_includes(loog.to_s, 'without integrity check')
   end
+
+  def test_rejects_directory_as_output
+    Dir.mktmpdir do |d|
+      source = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert.what = 'kept'
+      File.binwrite(source, fb.export)
+      dir = File.join(d, 'existing')
+      FileUtils.mkdir_p(dir)
+      assert_includes(
+        assert_raises(ArgumentError) do
+          Judges::Print.new(Loog::NULL).run({ 'format' => 'yaml' }, [source, dir])
+        end.message,
+        'directory'
+      )
+    end
+  end
 end
