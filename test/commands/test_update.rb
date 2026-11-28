@@ -189,6 +189,41 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_survives_judge_that_changes_directory
+    Dir.mktmpdir do |d|
+      Dir.mkdir(File.join(d, 'other'))
+      save_it(
+        File.join(d, 'judges/cd/cd.rb'),
+        'Dir.chdir(File.join(__dir__, "../../other")); $fb.insert.what = "x" if $fb.size.zero?'
+      )
+      home = Dir.pwd
+      begin
+        Dir.chdir(d)
+        Judges::Update.new(Loog::NULL).run({ 'max-cycles' => 2, 'expect-judges' => true }, ['judges', 'x.fb'])
+      ensure
+        Dir.chdir(home)
+      end
+      assert_path_exists(File.join(d, 'x.fb'))
+      refute_path_exists(File.join(d, 'other/x.fb'))
+    end
+  end
+
+  def test_writes_churn_to_original_directory
+    Dir.mktmpdir do |d|
+      Dir.mkdir(File.join(d, 'other'))
+      save_it(File.join(d, 'judges/cd/cd.rb'), 'Dir.chdir(File.join(__dir__, "../../other")); $fb.insert.what = "x"')
+      home = Dir.pwd
+      begin
+        Dir.chdir(d)
+        Judges::Update.new(Loog::NULL).run({ 'max-cycles' => 1, 'churn' => 'churn.txt' }, ['judges', 'x.fb'])
+      ensure
+        Dir.chdir(home)
+      end
+      assert_path_exists(File.join(d, 'churn.txt'))
+      refute_path_exists(File.join(d, 'other/churn.txt'))
+    end
+  end
+
   def test_keeps_global_across_cycles
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'foo/foo.rb'), '$global[:n] = ($global[:n] || 0) + 1; $fb.insert.seen = $global[:n]')
