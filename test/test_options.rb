@@ -73,6 +73,13 @@ class TestOptions < Minitest::Test
     assert_equal('true', opts.debug)
   end
 
+  def test_keeps_the_commas_of_a_value_in_an_array
+    assert_equal(
+      { REPOSITORIES: 'yegor256/judges,yegor256/factbase', MAX: 42 },
+      Judges::Options.new(['repositories=yegor256/judges,yegor256/factbase', 'max=42']).to_h
+    )
+  end
+
   def test_with_hash
     opts = Judges::Options.new('foo' => 42, 'bar' => 'hello')
     assert_equal(42, opts.foo)
