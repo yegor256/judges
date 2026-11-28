@@ -68,8 +68,8 @@
           </xsl:with-param>
         </xsl:call-template>
         <xsl:call-template name="javascript">
-          <xsl:with-param name="url">https://code.jquery.com/jquery-4.0.0.min.js</xsl:with-param>
-          <xsl:with-param name="hash">sha384-fgGyf7Mo7DURSOMnOy7ed+dkq5Job205Gnzu6QIg0BOHKaqt4D76Dt8VlDCzcMHV</xsl:with-param>
+          <xsl:with-param name="url">https://code.jquery.com/jquery-4.1.0.min.js</xsl:with-param>
+          <xsl:with-param name="hash">sha384-UGSi5euAzE1p4sK41+yKs3vtdPcidmaW6fY2NUITZkjIPyMVUUYB/BV4A5Oa8uu2</xsl:with-param>
         </xsl:call-template>
         <!-- Tablesorter still uses APIs removed in jQuery 4; Migrate restores them. -->
         <xsl:call-template name="javascript">
