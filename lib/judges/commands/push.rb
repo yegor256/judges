@@ -34,6 +34,7 @@ class Judges::Push
     raise(StandardError, 'The push command needs the network, while --offline is set') if opts['offline']
     name = args[0]
     fb = Judges::Impex.new(@loog, args[1]).import
+    raise(ArgumentError, "The --timeout must be positive: #{opts['timeout']}") if (opts['timeout'] || 30).to_f <= 0
     baza = BazaRb.new(
       opts['host'], opts['port'].to_i, opts['token'],
       ssl: opts['ssl'],
