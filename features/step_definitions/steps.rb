@@ -61,6 +61,11 @@ Then(/^([a-z].+) contains "([^"]*)"$/) do |file, txt|
   raise(StandardError, "The file #{file} doesn't contain '#{txt}':\n#{data}") unless data.include?(txt)
 end
 
+Then(/^([a-z].+) doesn't contain "([^"]*)"$/) do |file, txt|
+  data = File.read(file)
+  raise(StandardError, "The file #{file} contains '#{txt}':\n#{data}") if data.include?(txt)
+end
+
 Then(/^Stdout contains "([^"]*)"$/) do |txt|
   raise(StandardError, "STDOUT doesn't contain '#{txt}':\n#{@stdout}") unless @stdout.include?(txt)
 end
