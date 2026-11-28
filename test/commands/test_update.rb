@@ -99,7 +99,7 @@ class TestUpdate < Minitest::Test
       update = Judges::Update.new(log)
       update.instance_variable_set(:@start, Time.now - 1.9)
       update.run({ 'lifetime' => 2, 'timeout' => 1, 'quiet' => true }, [d, file])
-      assert_includes(log.to_s, "Had to stop 'foo' due to the --lifetime=2")
+      assert_includes(log.to_s, 'Had to stop due to the --lifetime=2')
       refute_includes(log.to_s, 'Terminated due to --timeout=1')
       fb = Factbase.new
       fb.import(File.binread(file))

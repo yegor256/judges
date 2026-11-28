@@ -233,8 +233,10 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
     result = 'OK'
     impact = nil
     elapsed(@loog, level: Logger::INFO) do
-      impact = one_judge(opts, fb, judge, global, options, errors)
-      churn.append(impact.inserted, impact.deleted, impact.added)
+      impact =
+        one_judge(opts, fb, judge, global, options, errors) do |delta|
+          churn.append(delta.inserted, delta.deleted, delta.added)
+        end
       throw(:"👍 The '#{judge.name}' judge made zero changes to #{fb.size} facts") if impact.zero?
       throw(:"👍 The '#{judge.name}' judge #{impact} out of #{fb.size} facts")
     end
@@ -277,6 +279,7 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
   # @param [Hash] global Global options
   # @param [Judges::Options] options The options
   # @param [Array<String>] errors List of errors
+  # @yieldparam [Factbase::Churn] churn Changes made before completion or interruption
   # @return [Factbase::Churn] How many modifications have been made
   def one_judge(opts, fb, judge, global, options, errors)
     local = {}
@@ -291,13 +294,15 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
       rescue Timeout::Error => e
         failure = e
       end
-    rescue Timeout::Error, Timeout::ExitException => e
+    rescue Timeout::Error => e
       if opts['lifetime'] && Time.now - @start >= opts['lifetime']
         @loog.info("Had to stop '#{judge.name}' due to the --lifetime=#{opts['lifetime']}")
       else
         @loog.error("Terminated due to --timeout=#{opts['timeout']}")
         errors << "Judge #{judge.name} stopped by timeout after #{start.ago}: #{e.message}"
       end
+    ensure
+      yield(fb.churn)
     end
     raise(failure) if failure
     fb.churn
