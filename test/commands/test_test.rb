@@ -116,6 +116,25 @@ class TestTest < Minitest::Test
     end
   end
 
+  def test_keeps_every_value_of_a_list_in_input
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.query("(exists many)").each { |f| f.seen = f["many"].join(",") }')
+      save_it(
+        File.join(d, 'foo/something.yml'),
+        <<-YAML
+        input:
+          -
+            many: [1, 2, -10]
+        expected:
+          - /fb[count(f)=1]
+          - /fb/f[seen='1,2,-10']
+        YAML
+      )
+      Judges::Test.new(Loog::NULL).run({}, [d])
+      assert_path_exists(d)
+    end
+  end
+
   def test_with_before
     Dir.mktmpdir do |d|
       save_it(File.join(d, 'first/first.rb'), 'x = $fb.size; $fb.insert.foo = x')
