@@ -39,6 +39,9 @@ class TestInspect < Minitest::Test
       loog = Loog::Buffer.new
       Judges::Inspect.new(loog).run({}, [f])
       assert_includes(loog.to_s, 'Facts: 1')
+      assert_includes(loog.to_s, 'Summary fact found', loog.to_s)
+      refute_includes(loog.to_s, 'Summary fact not found', loog.to_s)
+      assert_includes(loog.to_s, "\terror: \"something\"", loog.to_s)
     end
   end
 end
