@@ -154,6 +154,9 @@
         </tr>
       </thead>
       <tbody>
+        <xsl:if test="not(f)">
+          <xsl:text> </xsl:text>
+        </xsl:if>
         <xsl:apply-templates select="f"/>
       </tbody>
     </table>
