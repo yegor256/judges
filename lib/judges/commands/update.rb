@@ -45,10 +45,10 @@ class Judges::Update # rubocop:disable Metrics/ClassLength
     dir = args[0]
     raise(StandardError, "The directory is absent: #{dir.to_rel}") unless File.directory?(dir)
     guard(opts['churn'], args[1]) if opts['churn']
+    options = build_options(opts)
     impex = Judges::Impex.new(@loog, args[1])
     fb = impex.import(strict: false)
     fb = Factbase::Logged.new(fb, @loog) if opts['log']
-    options = build_options(opts)
     judges = Judges::Judges.new(
       dir, opts['lib'], @loog,
       epoch: @start, shuffle: opts['shuffle'], boost: opts['boost'],
