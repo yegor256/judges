@@ -24,9 +24,11 @@ class TestJoin < Minitest::Test
       slave = File.join(d, 'slave.fb')
       two = Factbase.new
       two.insert.foo_bar = 42
-      File.binwrite(slave, two.export)
+      original = two.export
+      File.binwrite(slave, original)
       loog = Loog::Buffer.new
       Judges::Join.new(loog).run({}, [master, slave])
+      assert_equal(original, File.binread(slave))
       fb = Factbase.new
       fb.import(File.binread(master))
       xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
