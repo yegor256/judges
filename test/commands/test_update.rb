@@ -82,11 +82,28 @@ class TestUpdate < Minitest::Test
         save_it(File.join(d, "foo-#{i}/foo-#{i}.rb"), '$fb.insert.foo = 0.05; sleep 2;')
       end
       file = File.join(d, 'base.fb')
-      Judges::Update.new(Loog::NULL).run({ 'lifetime' => 0.12, 'timeout' => 0.1, 'quiet' => true }, [d, file])
+      Judges::Update.new(Loog::NULL).run({ 'lifetime' => 2, 'timeout' => 0.1, 'quiet' => true }, [d, file])
       fb = Factbase.new
       fb.import(File.binread(file))
       xml = Nokogiri::XML.parse(Factbase::ToXML.new(fb).xml)
       refute_empty(xml.xpath('/fb/f[foo]'), xml)
+      assert_operator(xml.xpath('/fb/f[foo]').size, :<, 100)
+    end
+  end
+
+  def test_interrupts_judge_at_lifetime_limit
+    Dir.mktmpdir do |d|
+      save_it(File.join(d, 'foo/foo.rb'), '$fb.insert.foo = 1; sleep 10')
+      file = File.join(d, 'base.fb')
+      log = Loog::Buffer.new
+      update = Judges::Update.new(log)
+      update.instance_variable_set(:@start, Time.now - 1.9)
+      update.run({ 'lifetime' => 2, 'timeout' => 1, 'quiet' => true }, [d, file])
+      assert_includes(log.to_s, 'Had to stop due to the --lifetime=2')
+      refute_includes(log.to_s, 'Terminated due to --timeout=1')
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_equal(1, fb.query('(exists foo)').each.to_a.size)
     end
   end
 
