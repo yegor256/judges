@@ -124,6 +124,12 @@ Feature: Test
     Then I run bin/judges with "test --enable bad mine"
     Then Stdout contains "Testing mine/bad/bad.yml"
     And Exit code is not zero
+    Then I run bin/judges with "test --enable good,bad mine"
+    Then Stdout contains "Testing mine/bad/bad.yml"
+    And Exit code is not zero
+    Then I run bin/judges with "test --disable good,bad mine"
+    Then Stdout contains "All 2 judge(s) but no tests passed"
+    And Exit code is zero
 
   Scenario: Test with a pre-condition
     Given I make a temp directory
