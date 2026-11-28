@@ -61,6 +61,20 @@ class TestEval < Minitest::Test
     end
   end
 
+  def test_keeps_factbase_when_expression_fails
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert.foo = 42
+      original = fb.export
+      File.binwrite(file, original)
+      assert_raises(RuntimeError) do
+        Judges::Eval.new(Loog::NULL).run({}, [file, '$fb.insert.foo = 43; raise "failed after insert"'])
+      end
+      assert_equal(original, File.binread(file))
+    end
+  end
+
   def test_reports_script_error_with_expression_name
     Dir.mktmpdir do |d|
       expr = "require 'no_such_file_anywhere'"
