@@ -38,7 +38,7 @@
   </xsl:template>
   <xsl:template match="/">
     <xsl:text disable-output-escaping="yes">&lt;!DOCTYPE html&gt;</xsl:text>
-    <html>
+    <html lang="en">
       <head>
         <meta charset="UTF-8"/>
         <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
