@@ -82,6 +82,27 @@ class TestPush < Minitest::Test
     end
   end
 
+  def test_falls_back_to_the_default_owner
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      fb = Factbase.new
+      fb.insert.foo = 1
+      File.binwrite(file, fb.export)
+      seen = []
+      fake = Object.new
+      fake.define_singleton_method(:lock) { |_name, owner| seen << owner }
+      fake.define_singleton_method(:unlock) { |_name, owner| seen << owner }
+      fake.define_singleton_method(:push) { |*| 42 }
+      BazaRb.stub(:new, ->(*_args, **_kwargs) { fake }) do
+        Judges::Push.new(Loog::NULL).run(
+          { 'token' => '000', 'host' => 'example.org', 'port' => 443, 'ssl' => true },
+          ['foo', file]
+        )
+      end
+      assert_equal(%w[default default], seen)
+    end
+  end
+
   def test_fails_on_http_error
     WebMock.disable_net_connect!
     stub_request(:get, 'http://example.org/csrf').to_return(body: 'test-csrf-token')
