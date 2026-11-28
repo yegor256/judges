@@ -3,6 +3,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2024-2026 Yegor Bugayenko
 # SPDX-License-Identifier: MIT
 
+require 'English'
 require 'baza-rb'
 require 'elapsed'
 require 'iri'
@@ -48,8 +49,24 @@ class Judges::Push
         baza.push(name, fb.export, opts['meta'] || [])
         throw(:"👍 Pushed #{fb.size} facts to baza")
       ensure
-        baza.unlock(name, opts['owner'])
+        unlock(baza, name, opts['owner'])
       end
     end
+  end
+
+  private
+
+  # Unlock the factbase, preserving any in-flight exception.
+  # @param [BazaRb] baza The client
+  # @param [String] name The factbase name
+  # @param [String] owner The lock owner
+  def unlock(baza, name, owner)
+    inflight = $ERROR_INFO
+    baza.unlock(name, owner)
+  rescue StandardError => e
+    raise if inflight.nil? || inflight.is_a?(UncaughtThrowError)
+    msg = "Failed to unlock '#{name}': #{e.message}"
+    @loog&.warn(msg)
+    $loog&.warn(msg) if $loog && $loog != @loog
   end
 end
