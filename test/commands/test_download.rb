@@ -52,6 +52,7 @@ class TestDownload < Minitest::Test
     stub_request(:post, %r{http://example.org/durables/123/unlock}).to_return(status: 302)
     Dir.mktmpdir do |d|
       file = File.join(d, 'data.bin')
+      File.write(file, 'old local content')
       Judges::Download.new(Loog::NULL).run(
         {
           'token' => '000',
