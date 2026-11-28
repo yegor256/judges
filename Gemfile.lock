@@ -74,7 +74,7 @@ GEM
     cucumber-query (16.4.0)
       cucumber-messages (>= 34.1, < 36)
     cucumber-tag-expressions (11.2.0)
-    decoor (0.1.0)
+    decoor (0.1.1)
     diff-lcs (2.0.0)
     drb (2.2.3)
     elapsed (0.3.2)
@@ -271,7 +271,7 @@ GEM
       hashdiff (>= 0.4.0, < 2.0.0)
     win32ole (1.9.3)
     yaml (0.4.0)
-    yard (0.9.45)
+    yard (0.9.46)
 
 PLATFORMS
   aarch64-linux-gnu
@@ -307,7 +307,7 @@ DEPENDENCIES
   simplecov-cobertura (~> 4.0)
   w3c_validators (~> 1.3)
   webmock (~> 3.25)
-  yard (= 0.9.45)
+  yard (= 0.9.46)
 
 BUNDLED WITH
   4.0.24

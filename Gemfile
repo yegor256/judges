@@ -27,4 +27,4 @@ gem 'simplecov', '~>1.0', require: false
 gem 'simplecov-cobertura', '~>4.0', require: false
 gem 'w3c_validators', '~>1.3', require: false
 gem 'webmock', '~>3.25', require: false
-gem 'yard', '0.9.45', require: false
+gem 'yard', '0.9.46', require: false
