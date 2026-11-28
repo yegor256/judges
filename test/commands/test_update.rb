@@ -200,6 +200,20 @@ class TestUpdate < Minitest::Test
     end
   end
 
+  def test_gives_every_judge_an_empty_local
+    Dir.mktmpdir do |d|
+      %w[first second].each do |j|
+        save_it(File.join(d, "#{j}/#{j}.rb"), '$fb.insert.seen = $local.size; $local[$judge] = true')
+      end
+      file = File.join(d, 'base.fb')
+      Judges::Update.new(Loog::NULL).run({ 'max-cycles' => 2 }, [d, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_equal(4, fb.size)
+      assert_equal(4, fb.query('(eq seen 0)').each.to_a.size, 'a judge found something in $local it did not put there')
+    end
+  end
+
   def test_extend_existing_factbase
     Dir.mktmpdir do |d|
       file = File.join(d, 'base.fb')
