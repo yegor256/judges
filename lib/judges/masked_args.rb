@@ -20,7 +20,7 @@ class Judges::MaskedArgs
 
   OPTIONS = %w[-o --option].freeze
 
-  SENSITIVE = /\A(?<key>[a-z_0-9]*(?:token|secret|password|key))=(?<value>.+)\z/i
+  SENSITIVE = /\A(?<prefix>\s*[a-z_0-9]*(?:token|secret|password|key)\s*=\s*)(?<value>.+?)(?<suffix>\s*)\z/i
 
   # Initialize.
   # @param [Array<String>] args The arguments, as they arrived
@@ -57,9 +57,10 @@ class Judges::MaskedArgs
   # @param [String] arg The pair, or anything else
   # @return [String] The pair with the value hidden, or the argument as it was
   def pairs(arg)
-    m = SENSITIVE.match(arg)
-    return arg if m.nil?
-    "#{m[:key]}=#{mask(m[:value])}"
+    arg.split(/(?<!\\),/, -1).map do |part|
+      m = SENSITIVE.match(part)
+      m.nil? ? part : "#{m[:prefix]}#{mask(m[:value])}#{m[:suffix]}"
+    end.join(',')
   end
 
   # Hide the middle of a secret, the way +Judges::Options#to_s+ hides it.
