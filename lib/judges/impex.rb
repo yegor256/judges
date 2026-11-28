@@ -62,29 +62,6 @@ class Judges::Impex
     fb
   end
 
-  # Import factbase from file into existing factbase.
-  #
-  # Imports data from the file into an existing Factbase instance rather
-  # than creating a new one. This is useful when you need to merge data
-  # into an already populated factbase. The operation is timed and logged.
-  #
-  # @param [Factbase] fb The factbase to import into. The imported data
-  #   will be added to this existing factbase.
-  # @raise [RuntimeError] If file doesn't exist
-  # @example Import into existing factbase
-  #   fb = Factbase.new
-  #   # ... populate fb with some data ...
-  #   impex.import_to(fb) # Adds data from file to existing facts
-  def import_to(fb)
-    unless File.exist?(@file) && !File.directory?(@file)
-      raise(StandardError, "The factbase is absent at #{@file.to_rel}")
-    end
-    elapsed(@loog, level: Logger::INFO) do
-      fb.import(File.binread(@file))
-      throw(:"The factbase loaded from #{@file.to_rel} (#{File.size(@file)} bytes, #{fb.size} facts)")
-    end
-  end
-
   # Export factbase to file.
   #
   # Exports the given Factbase instance to the file specified during
