@@ -38,6 +38,21 @@ class TestImport < Minitest::Test
     end
   end
 
+  def test_keeps_ids_unique_in_non_empty_factbase
+    Dir.mktmpdir do |d|
+      file = File.join(d, 'base.fb')
+      fb = Factbase.new
+      2.times { |i| fb.insert._id = i + 1 }
+      File.binwrite(file, fb.export)
+      yaml = File.join(d, 'input.yml')
+      save_it(yaml, "- _id: 1\n  what: x\n- _id: 2\n  what: y\n")
+      Judges::Import.new(Loog::NULL).run({}, [yaml, file])
+      fb = Factbase.new
+      fb.import(File.binread(file))
+      assert_equal([1, 2, 3, 4], fb.query('(exists _id)').each.map(&:_id).sort)
+    end
+  end
+
   def test_refuses_an_empty_file
     Dir.mktmpdir do |d|
       yaml = File.join(d, 'input.yml')

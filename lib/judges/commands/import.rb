@@ -41,10 +41,12 @@ class Judges::Import
         require('factbase/logged')
         fb = Factbase::Logged.new(fb, @loog)
       end
+      max = fb.query('(max _id)').one || 0
       yaml.each do |i|
         f = fb.insert
         i.each do |p, v|
           (v.is_a?(Array) ? v : [v]).each do |value|
+            value += max if p == '_id'
             f.public_send(:"#{p}=", value)
           end
         end
