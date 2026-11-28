@@ -34,7 +34,7 @@ class Judges::Pull
     raise(StandardError, 'The pull command needs the network, while --offline is set') if opts['offline']
     fb = Factbase.new
     baza = BazaRb.new(
-      opts['host'], opts['port'].to_i, opts['token'],
+      opts['host'], (opts['port'] || (opts['ssl'] ? 443 : 80)).to_i, opts['token'],
       ssl: opts['ssl'],
       timeout: (opts['timeout'] || 30).to_f,
       loog: @loog,
