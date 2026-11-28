@@ -32,4 +32,8 @@ class Judges::PrettyException < SimpleDelegator
   def exception(msg = nil)
     __getobj__.exception(msg || message)
   end
+
+  def exception(*)
+    __getobj__.exception(message)
+  end
 end
