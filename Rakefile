@@ -27,16 +27,23 @@ desc 'Run all unit tests'
 Rake::TestTask.new(:test) do |test|
   Rake::Cleaner.cleanup_files(['coverage'])
   test.libs << 'lib' << 'test'
-  test.pattern = 'test/**/test_*.rb'
+  test.test_files = FileList['test/**/test_*.rb'].exclude('test/browser/**')
   test.warning = true
   test.verbose = false
+end
+
+desc 'Render HTML and exercise its assets in headless Chromium'
+Rake::TestTask.new(:browser) do |test|
+  test.libs << 'lib' << 'test'
+  test.pattern = 'test/browser/test_*.rb'
+  test.warning = true
 end
 
 desc 'Run them via Ruby, one by one'
 task :picks do
   next if OS.windows?
   %w[test lib].each do |d|
-    Dir["#{d}/**/*.rb"].each do |f|
+    FileList["#{d}/**/*.rb"].exclude('test/browser/**').each do |f|
       qbash("bundle exec ruby #{Shellwords.escape(f)}", stdout: $stdout, env: { 'PICKS' => 'yes' })
     end
   end

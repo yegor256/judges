@@ -8,6 +8,7 @@ gemspec
 
 gem 'cucumber', '~>12.0', require: false
 gem 'diff-lcs', '2.0.0', require: false
+gem 'ferrum', '~>0.20.1', require: false
 gem 'minitest', '~>6.0', require: false
 gem 'minitest-mock', '~>5.27', require: false
 gem 'minitest-reporters', '~>1.7', require: false
@@ -27,4 +28,5 @@ gem 'simplecov', '~>1.0', require: false
 gem 'simplecov-cobertura', '~>4.0', require: false
 gem 'w3c_validators', '~>1.3', require: false
 gem 'webmock', '~>3.25', require: false
+gem 'webrick', '~>1.9', require: false
 gem 'yard', '0.9.45', require: false
