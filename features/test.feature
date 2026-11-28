@@ -10,6 +10,11 @@ Feature: Test
     Then Stdout contains "All 3 judge(s) and 3 tests passed"
     And Exit code is zero
 
+  Scenario: Help of the test command explains the quiet flag
+    When I run bin/judges with "help test"
+    Then Exit code is zero
+    And Stdout contains "Exit with zero code even if tests fail"
+
   Scenario: Simple test of just one judge
     Given I run bin/judges with "test --judge guess ./fixtures"
     Then Stdout contains "All 1 judge(s) and 1 tests passed"
