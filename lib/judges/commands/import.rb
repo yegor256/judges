@@ -27,7 +27,8 @@ class Judges::Import
   # Run the import command (called by the +bin/judges+ script).
   # @param [Hash] opts Command line options (start with '--')
   # @param [Array] args List of command line arguments
-  # @raise [RuntimeError] If not exactly two arguments provided or file not found
+  # @raise [ArgumentError] If not exactly two arguments provided
+  # @raise [StandardError] If the file is not found
   def run(opts, args)
     raise(ArgumentError, 'Exactly two arguments required') unless args.size == 2
     raise(StandardError, "File not found #{args[0].to_rel}") unless File.exist?(args[0])
