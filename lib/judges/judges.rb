@@ -37,6 +37,10 @@ class Judges::Judges
   # @param [Integer] seed Random seed for judge ordering (default: 0)
   def initialize(dir, lib, loog, epoch: Time.now, shuffle: '', boost: [], demote: [], seed: 0)
     raise(ArgumentError, 'The directory is nil') if dir.nil?
+    unless lib.nil?
+      raise(StandardError, "Lib dir #{lib.to_rel} is absent") unless File.exist?(lib)
+      raise(StandardError, "Lib #{lib.to_rel} is not a directory") unless File.directory?(lib)
+    end
     @dir = dir
     @lib = lib
     @loog = loog
